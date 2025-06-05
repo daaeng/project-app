@@ -7,6 +7,14 @@ import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { CircleAlert, Undo2 } from 'lucide-react';
+import { type BreadcrumbItem } from '@/types';
+
+const breadcrumbs: BreadcrumbItem[] = [
+    {
+        title: 'Product Information',
+        href: '/products',
+    },
+];
 
 interface Product{
     product: string,
@@ -33,7 +41,7 @@ interface props{
 
 export default function edit({product} : props) {
 
-    const {data, setData, put, processing, errors } = useForm({
+    const {data, errors } = useForm({
 
         product: product.product,
         date: product.date,
@@ -54,18 +62,14 @@ export default function edit({product} : props) {
 
     })
 
-    const handleUpdate = (e: React.FormEvent) =>{
-        e.preventDefault();
-        put(route('products.update', product.id));
-    }
-
     return (
-        <AppLayout breadcrumbs={[{title: 'Edit Data Product', href:`/product/${product.id}/edit`}]}>
-            <Head title="Edit Product" />
+        
+        <AppLayout breadcrumbs={breadcrumbs}>
+            <Head title="Product" />
 
             <div className="h-full flex-col rounded-xl p-4">
             
-                <Heading title='Edit Data Product'/>
+                <Heading title='Show Data Product'/>
 
                 <Link href={route('products.index')}>
                     <Button className='bg-auto w-25 hover:bg-accent hover:text-black'>
@@ -94,39 +98,39 @@ export default function edit({product} : props) {
                                 </AlertDescription>
                             </Alert>
                         )}
-                    <form onSubmit={handleUpdate} className='space-y-3 grid lg:grid-cols-2 md:grid-cols-1 gap-2'>
+                    <form className='space-y-3 grid lg:grid-cols-2 md:grid-cols-1 gap-2'>
 
                         <div className='space-y-2'>
                             <div className='gap-2'>
                                 <Label htmlFor='Product Name'> Product </Label>
-                                <Input placeholder='Product Name' value={data.product} onChange={(e) => setData('product', e.target.value)} />
+                                <Input placeholder='Product Name' value={data.product} readOnly className='bg-gray-50'/>
                             </div>
                             <div className='gap-2'>
                                 <Label htmlFor='Tanggal'> Tanggal </Label>
-                                <Input type='date' placeholder='Tanggal' value={data.date} onChange={(e) => setData('date', e.target.value)}/>
+                                <Input type='date' placeholder='Tanggal' value={data.date} readOnly className='bg-gray-50'/>
                             </div>
                             <div className='gap-2'>
                                 <Label htmlFor='Invoice'> No. Invoice </Label>
-                                <Input placeholder='Invoice' value={data.no_invoice} onChange={(e) => setData('no_invoice', e.target.value)} />
+                                <Input placeholder='Invoice' value={data.no_invoice} readOnly className='bg-gray-50'/>
                             </div>
                             <div className='gap-2'>
                                 <Label htmlFor='Name Supplier'> Name Supplier </Label>
-                                <Input placeholder='Name Supplier' value={data.nm_supplier} onChange={(e) => setData('nm_supplier', e.target.value)} />
+                                <Input placeholder='Name Supplier' value={data.nm_supplier} readOnly className='bg-gray-50'/>
                             </div>
                             <div className='gap-2'>
                                 <Label htmlFor='Jenis Barang'> Jenis Barang </Label>
-                                <Input placeholder='Jenis Barang' value={data.j_brg} onChange={(e) => setData('j_brg', e.target.value)}/>
+                                <Input placeholder='Jenis Barang' value={data.j_brg} readOnly className='bg-gray-50'/>
                             </div>                        
                             <div className='gap-2'>
                                 <Label htmlFor='Description'> Description </Label>
-                                <Textarea placeholder='Description' value={data.desk} onChange={(e) => setData('desk', e.target.value)}/>
+                                <Textarea placeholder='Description' value={data.desk} readOnly className='bg-gray-50'/>
                             </div>
 
                         </div>
                         
 
                         <div className='grid grid-cols-3'>
-                            <div className='p-2 mt-3 col-span-3 bg-gray-900 rounded-md h-fit text-white'>
+                            <div className='p-2 mt-3 col-span-3 border-2 rounded-md h-fit '>
 
                                 <div className='grid md:grid-cols-2 sm:grid-cols-1 gap-3 p-2'>
 
@@ -136,23 +140,23 @@ export default function edit({product} : props) {
 
                                     <div className='gap-2 md:col-span-1 sm:col-span-3'>
                                         <Label htmlFor='Quantity'> Quantity (Kg) </Label>
-                                        <Input placeholder='Quantity' value={data.qty_kg} onChange={(e) => setData('qty_kg', e.target.value)}/>
+                                        <Input placeholder='Quantity' value={data.qty_kg} readOnly className='bg-gray-50'/>
                                     </div>
                                     <div className='gap-2 md:col-span-1 sm:col-span-3'>
                                         <Label htmlFor='Price'> Price /Qty </Label>
-                                        <Input placeholder='Price' value={data.price_qty} onChange={(e) => setData('price_qty', e.target.value)}/>
+                                        <Input placeholder='Price' value={data.price_qty} readOnly className='bg-gray-50'/>
                                     </div>
                                     <div className='gap-2 md:col-span-1 sm:col-span-3'>
                                         <Label htmlFor='Amount'> Amount </Label>
-                                        <Input placeholder='Amount' value={data.amount} onChange={(e) => setData('amount', e.target.value)}/>
+                                        <Input placeholder='Amount' value={data.amount} readOnly className='bg-gray-50'/>
                                     </div>
                                     <div className='gap-2 md:col-span-1 sm:col-span-3'>
                                         <Label htmlFor='Keping'> Keping / Buah</Label>
-                                        <Input placeholder='Keping' value={data.keping} onChange={(e) => setData('keping', e.target.value)}/>
+                                        <Input placeholder='Keping' value={data.keping} readOnly className='bg-gray-50'/>
                                     </div>
                                     <div className='gap-2 md:col-span-1 sm:col-span-3'>
                                         <Label htmlFor='Kualitas'> Kualitas </Label>
-                                        <Input placeholder='Kualitas' value={data.kualitas} onChange={(e) => setData('kualitas', e.target.value)}/>
+                                        <Input placeholder='Kualitas' value={data.kualitas} readOnly className='bg-gray-50'/>
                                     </div>
 
                                     <div className='gap-2 sm:col-span-3 mt-5'>
@@ -161,23 +165,23 @@ export default function edit({product} : props) {
 
                                     <div className='gap-2 md:col-span-1 sm:col-span-3'>
                                         <Label htmlFor='Quantity'> Quantity (Kg) </Label>
-                                        <Input placeholder='Quantity' value={data.qty_out} onChange={(e) => setData('qty_out', e.target.value)}/>
+                                        <Input placeholder='Quantity' value={data.qty_out} readOnly className='bg-gray-50'/>
                                     </div>
                                     <div className='gap-2 md:col-span-1 sm:col-span-3'>
                                         <Label htmlFor='Price'> Price /Qty </Label>
-                                        <Input placeholder='Price' value={data.price_out} onChange={(e) => setData('price_out', e.target.value)}/>
+                                        <Input placeholder='Price' value={data.price_out} readOnly className='bg-gray-50'/>
                                     </div>
                                     <div className='gap-2 md:col-span-1 sm:col-span-3'>
                                         <Label htmlFor='Amount'> Amount </Label>
-                                        <Input placeholder='Amount' value={data.amount_out} onChange={(e) => setData('amount_out', e.target.value)}/>
+                                        <Input placeholder='Amount' value={data.amount_out} readOnly className='bg-gray-50'/>
                                     </div>
                                     <div className='gap-2 md:col-span-1 sm:col-span-3'>
                                         <Label htmlFor='Keping'> Keping / Buah </Label>
-                                        <Input placeholder='Keping Keluar' value={data.keping_out} onChange={(e) => setData('keping_out', e.target.value)}/>
+                                        <Input placeholder='Keping Keluar' value={data.keping_out} readOnly className='bg-gray-50'/>
                                     </div>
                                     <div className='gap-2 md:col-span-1 sm:col-span-3'>
                                         <Label htmlFor='Kualitas'> Kualitas </Label>
-                                        <Input placeholder='Kualitas' value={data.kualitas_out} onChange={(e) => setData('kualitas_out', e.target.value)}/>
+                                        <Input placeholder='Kualitas' value={data.kualitas_out} readOnly className='bg-gray-50'/>
                                     </div>
                                                                         
                                 </div>
@@ -185,12 +189,6 @@ export default function edit({product} : props) {
                             </div>
 
 
-                        </div>
-
-                        <div className=''>
-                            <Button type='submit' disabled={processing}>
-                                Update Product
-                            </Button>
                         </div>
 
                     </form>

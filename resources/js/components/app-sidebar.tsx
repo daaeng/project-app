@@ -4,7 +4,7 @@ import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { LayoutDashboard, ChartArea, UserCog2, PackageIcon, FileText} from 'lucide-react';
+import { LayoutDashboard, ChartArea, UserCog2, PackageIcon, BookText, ReceiptText, Notebook} from 'lucide-react';
 import AppLogo from './app-logo';
 
 const mainNavItems: NavItem[] = [
@@ -19,6 +19,12 @@ const mainNavItems: NavItem[] = [
         href: '/usermanagements',
         icon: UserCog2,
     },
+    
+    {
+        title: 'Role Management',
+        href: '/roles',
+        icon: Notebook,
+    },
 
     {
         title: 'Product',
@@ -27,9 +33,14 @@ const mainNavItems: NavItem[] = [
     },
     
     {
-        title: 'Request',
+        title: 'Request Latter',
         href: '/requests',
-        icon: FileText,
+        icon: BookText ,
+    },
+    {
+        title: 'Invoice',
+        href: '/notas',
+        icon: ReceiptText ,
     },
     
     {

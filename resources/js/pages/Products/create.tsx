@@ -6,13 +6,13 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head, useForm } from '@inertiajs/react';
-import { CircleAlert } from 'lucide-react';
+import { Head, Link, useForm } from '@inertiajs/react';
+import { CircleAlert, Undo2 } from 'lucide-react';
 
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Create Product',
+        title: 'Product',
         href: '/products',
     },
 ];
@@ -30,10 +30,13 @@ export default function index() {
         qty_kg: '',
         price_qty: '',
         amount: '',
+        keping: '',
+        kualitas: '',
         qty_out: '',
         price_out: '',
         amount_out: '',
-
+        keping_out: '',
+        kualitas_out: '',
     })
 
     const handleSubmit = (e: React.FormEvent) =>{
@@ -48,6 +51,13 @@ export default function index() {
             <div className="h-full flex-col rounded-xl p-4">
             
                 <Heading title='Create Product'/>
+
+                <Link href={route('products.index')}>
+                    <Button className='bg-auto w-25 hover:bg-accent hover:text-black'>
+                        <Undo2 />
+                        Back
+                    </Button>
+                </Link>
 
                 <div className='w-full p-4'>
 
@@ -69,7 +79,7 @@ export default function index() {
                         </Alert>
                     )}
 
-                    <form onSubmit={handleSubmit} className='space-y-3 grid grid-cols-2 gap-2'>
+                    <form onSubmit={handleSubmit} className='space-y-3 grid lg:grid-cols-2 md:grid-cols-1 gap-2'>
 
                         <div className='space-y-2'>
                             <div className='gap-2'>
@@ -81,8 +91,8 @@ export default function index() {
                                 <Input type='date' placeholder='Tanggal' value={data.date} onChange={(e) => setData('date', e.target.value)}/>
                             </div>
                             <div className='gap-2'>
-                                <Label htmlFor='Invoice'> No. Invoice </Label>
-                                <Input placeholder='Invoice' value={data.no_invoice} onChange={(e) => setData('no_invoice', e.target.value)} />
+                                <Label htmlFor='No. Bukti'> No. Bukti </Label>
+                                <Input placeholder='No. Bukti' value={data.no_invoice} onChange={(e) => setData('no_invoice', e.target.value)} />
                             </div>
                             <div className='gap-2'>
                                 <Label htmlFor='Name Supplier'> Name Supplier </Label>
@@ -100,43 +110,59 @@ export default function index() {
                         </div>
                         
 
-                        <div className='grid grid-cols-3'>
-                            <div className='p-2 mt-3 col-span-3 bg-gray-900 rounded-md h-fit text-white'>
+                        <div className='grid lg:grid-cols-3'>
+                            <div className='p-2 mt-3 col-span-3 border-2  rounded-md h-fit '>
 
-                                <div className='grid grid-cols-2 gap-3 p-2'>
+                                <div className='grid md:grid-cols-2 sm:grid-cols-1 gap-3 p-2'>
 
-                                    <div className='gap-2 col-span-3'>
+                                    <div className='gap-2 sm:col-span-3'>
                                         <Label htmlFor='In'> MASUK </Label>
                                     </div>
 
-                                    <div className='gap-2'>
+                                    <div className='gap-2 md:col-span-1 sm:col-span-3'>
                                         <Label htmlFor='Quantity'> Quantity (Kg) </Label>
                                         <Input placeholder='Quantity' value={data.qty_kg} onChange={(e) => setData('qty_kg', e.target.value)}/>
                                     </div>
-                                    <div className='gap-2'>
+                                    <div className='gap-2 md:col-span-1 sm:col-span-3'>
                                         <Label htmlFor='Price'> Price /Qty </Label>
                                         <Input placeholder='Price' value={data.price_qty} onChange={(e) => setData('price_qty', e.target.value)}/>
                                     </div>
-                                    <div className='gap-2'>
+                                    <div className='gap-2 md:col-span-1 sm:col-span-3'>
                                         <Label htmlFor='Amount'> Amount </Label>
                                         <Input placeholder='Amount' value={data.amount} onChange={(e) => setData('amount', e.target.value)}/>
                                     </div>
+                                    <div className='gap-2 md:col-span-1 sm:col-span-3'>
+                                        <Label htmlFor='Keping'> Keping </Label>
+                                        <Input placeholder='Keping' value={data.keping} onChange={(e) => setData('keping', e.target.value)}/>
+                                    </div>
+                                    <div className='gap-2 md:col-span-1 sm:col-span-3'>
+                                        <Label htmlFor='Kualitas'> Kualitas </Label>
+                                        <Input placeholder='Kualitas' value={data.kualitas} onChange={(e) => setData('kualitas', e.target.value)}/>
+                                    </div>
 
-                                    <div className='gap-2 col-span-3 mt-5'>
+                                    <div className='gap-2 sm:col-span-3 mt-5'>
                                         <Label htmlFor='In'> KELUAR </Label>
                                     </div>
 
-                                    <div className='gap-2'>
+                                    <div className='gap-2 md:col-span-1 sm:col-span-3'>
                                         <Label htmlFor='Quantity'> Quantity (Kg) </Label>
                                         <Input placeholder='Quantity' value={data.qty_out} onChange={(e) => setData('qty_out', e.target.value)}/>
                                     </div>
-                                    <div className='gap-2'>
+                                    <div className='gap-2 md:col-span-1 sm:col-span-3'>
                                         <Label htmlFor='Price'> Price /Qty </Label>
                                         <Input placeholder='Price' value={data.price_out} onChange={(e) => setData('price_out', e.target.value)}/>
                                     </div>
-                                    <div className='gap-2'>
+                                    <div className='gap-2 md:col-span-1 sm:col-span-3'>
                                         <Label htmlFor='Amount'> Amount </Label>
                                         <Input placeholder='Amount' value={data.amount_out} onChange={(e) => setData('amount_out', e.target.value)}/>
+                                    </div>
+                                    <div className='gap-2 md:col-span-1 sm:col-span-3'>
+                                        <Label htmlFor='Keping'> Keping </Label>
+                                        <Input placeholder='Keping Keluar' value={data.keping_out} onChange={(e) => setData('keping_out', e.target.value)}/>
+                                    </div>
+                                    <div className='gap-2 md:col-span-1 sm:col-span-3'>
+                                        <Label htmlFor='Kualitas'> Kualitas </Label>
+                                        <Input placeholder='Kualitas' value={data.kualitas_out} onChange={(e) => setData('kualitas_out', e.target.value)}/>
                                     </div>
                                                                         
                                 </div>
@@ -147,7 +173,7 @@ export default function index() {
                         </div>
 
                         <div className=''>
-                            <Button type='submit'>
+                            <Button type='submit' disabled={processing} className='bg-green-600 hover:bg-green-500'>
                                 Add Product
                             </Button>
                         </div>

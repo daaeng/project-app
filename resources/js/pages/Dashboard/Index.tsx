@@ -11,7 +11,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -87,7 +87,7 @@ const Dashboard = () => {
             <div className="min-h-screen p-6">
                 <div className="mb-8">
                     <h1 className="mb-2 text-3xl font-bold ">Dashboard</h1>
-                    <p className="text-gray-500">Welcome back! Here's an overview of your store.</p>
+                    {/* <p className="text-gray-500">Welcome back! Here's an overview of your store.</p> */}
                 </div>
 
                 {/* Analytics Cards */}
@@ -187,7 +187,6 @@ const Dashboard = () => {
                                     <Button>Add Product</Button>
                                 </div>
                             </div>
-                            <CardDescription>A list of your recent products</CardDescription>
                         </CardHeader>
                         <CardContent>
                             <Table>
@@ -278,7 +277,6 @@ const Dashboard = () => {
                                     </Button>
                                 </div>
                             </div>
-                            <CardDescription>A list of your recent sales</CardDescription>
                         </CardHeader>
                         <CardContent>
                             <Table>

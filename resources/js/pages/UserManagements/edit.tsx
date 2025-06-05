@@ -11,19 +11,30 @@ import { CircleAlert, Undo2 } from 'lucide-react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Add Users',
+        title: 'Edit Users',
         href: '/usermanagements',
     },
 ];
 
-export default function index({ roles }) {
+interface User{
+    id: number,
+    name: string,
+    email: string,
+    password: string,
+}
 
-    const {data, setData, post, processing, errors } = useForm({
+interface props{
+    user : User
+}
 
-        name: '',
-        email: '',
-        password: '',
-        roles: []
+export default function index({user, userRoles, roles} : props) {
+
+    const {data, setData, put, processing, errors } = useForm({
+
+        name: user.name || '',
+        email: user.email || '',
+        password: user.password,
+        roles: userRoles || []
 
     })
 
@@ -35,18 +46,18 @@ export default function index({ roles }) {
         }
     }
 
-    const handleSubmit = (e: React.FormEvent) =>{
+    const handleUpdate = (e: React.FormEvent) =>{
         e.preventDefault();
-        post(route('usermanagements.store'));
+        put(route('usermanagements.update', user.id));
     }
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Add Users" />
+            <Head title="Edit Users" />
 
             <div className="h-full flex-col rounded-xl p-4">
             
-                <Heading title='Add Users'/>
+                <Heading title='Edit Users'/>
 
                     <div className='w-full mb-2  h-auto'>
                         <Link href={route('usermanagements.index')}>
@@ -80,9 +91,9 @@ export default function index({ roles }) {
 
                     </div>
 
-                    <form onSubmit={handleSubmit} className='space-y-3 gap-2'>
+                    <form onSubmit={handleUpdate} className='space-y-3 gap-2'>
 
-                        <div className='space-y-2 w-100'>
+                        <div className='space-y-2 w-full'>
                             <div className='gap-2'>
                                 <Label htmlFor=' Name'> Name </Label>
                                 <Input placeholder=' Name' value={data.name} onChange={(e) => setData('name', e.target.value)} />
@@ -94,9 +105,9 @@ export default function index({ roles }) {
                             </div>
                             <div className='gap-2'>
                                 <Label htmlFor='Password'> Password </Label>
-                                <Input type='password' placeholder='Password' value={data.password} onChange={(e) => setData('password', e.target.value)}/>
+                                <Input type='password' placeholder='Password Baru' value={data.password} onChange={(e) => setData('password', e.target.value)}/>
                             </div>
-
+                            
                             <div className='space-y-2 w-100'>
                                 <div className='gap-2'>
                                     <Label htmlFor=' roles'> Roles </Label>
@@ -107,6 +118,7 @@ export default function index({ roles }) {
                                                 type='checkbox' 
                                                 value={'role'} 
                                                 onChange={(e) => handleCheckBox(role, e.target.checked)}
+                                                checked={data.roles.includes(role)}
                                                 id={role} 
                                                 className='form-checkbox rounded focus:ring-2 h-5 w-5  text-blue-600' />
                                             <span> {role} </span>
@@ -118,13 +130,13 @@ export default function index({ roles }) {
                         </div>
 
                         <div className=''>
-                            <Button type='submit' disabled={processing} className='bg-green-600 hover:bg-green-400'>
-                                Add User
+                            <Button type='submit' disabled={processing} className='bg-blue-600 hover:bg-blue-400'>
+                                Update User
                             </Button>
                         </div>
-
-                    </form>
                     
+                    </form>
+
                 </div>
 
                 

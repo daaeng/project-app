@@ -12,12 +12,12 @@ import { can } from '@/lib/can';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'User Management',
-        href: '/usermanagements',
+        title: 'Roles',
+        href: '/roles',
     },
 ];
 
-interface User {
+interface Role {
     name : string,
 
 }
@@ -26,41 +26,41 @@ interface PageProps{
     flash:{
         message?: string
     }, 
-    usermanagements: User[]
+    roles: Role[]
 }
 
 export default function index() {
 
-    const { usermanagements,  flash } = usePage().props as PageProps;
+    const { roles,  flash } = usePage().props as PageProps;
 
     const {processing, delete: destroy} = useForm();
     
     const handleDelete = (id:number, name:string) => {
         if(confirm(`Do you want delete this  - ${id}. ${name} ` )){
-            destroy(route('usermanagements.destroy', id))
+            destroy(route('roles.destroy', id))
         }
     }
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="User Management" />
+            <Head title="Roles" />
 
             <div className="h-full flex-col rounded-xl p-4">
             
-                <Heading title='User Management'/>
+                <Heading title='Roles User Management'/>
 
                 <div className='border h-auto p-3 rounded-lg'>
 
-                    {/* {can('usermanagements.create') &&  */}
+                    {/* {can('roles.create') &&  */}
+                    
                         <div className='w-full mb-2 justify-end h-auto flex gap-2'>
-                            <Link href={route('usermanagements.create')}>
+                            <Link href={route('roles.create')}>
                                 <Button className='bg-blue-600 w-25 hover:bg-blue-500 text-white'>
                                     <CirclePlus />
-                                    Add User
+                                    User
                                 </Button>
                             </Link>
                         </div>
-                    
                     {/* } */}
 
                     <div>
@@ -84,51 +84,51 @@ export default function index() {
                                 <TableHeader>
                                     <TableRow>
                                         <TableHead>ID</TableHead>
-                                        <TableHead>NAME</TableHead>
-                                        <TableHead>EMAIL</TableHead>
-                                        <TableHead>ROLES</TableHead>
-                                        <TableHead className="text-center">ACTION</TableHead>
+                                        <TableHead>Name</TableHead>
+                                        <TableHead>Permission</TableHead>
+                                    
+                                        <TableHead className="text-center">Action</TableHead>
                                     </TableRow>
                                 </TableHeader>
 
-                                {usermanagements.map(({id, name, email, roles}) =>
+                                {roles.map(({id, name, permissions}) =>
                                     <TableBody>
 
                                         <TableRow>
                                             <TableCell>{id}</TableCell>
                                             <TableCell>{name}</TableCell>
-                                            <TableCell>{email}</TableCell>
-                                            <TableCell> 
-                                                {roles.map((role) =>
+                                            <TableCell>
+                                                {permissions.map((permission) =>
                                                     <span className='mr-1 bg-green-100 text-green-800 text-xs font-medium rounded-lg p-1.5 w-auto'>
-                                                        {role.name}
+                                                        {permission.name}
                                                     </span>
                                                 
-                                                )}     
+                                                )}
                                             </TableCell>
                                             
                                             <TableCell className="text-center space-x-2">
-                                                 
-                                                    <Link href={route('usermanagements.show', id)}>
+                                                
+                                                    <Link href={route('roles.show', id)}>
                                                         <Button className='bg-transparent hover:bg-gray-700'>
                                                             <Eye color='gray'/>
                                                         </Button>
                                                     </Link>
                                                 
-                                                {/* {can('usermanagements.edit') &&  */}
-                                                    <Link href={route('usermanagements.edit', id)}>
+                                                {/* {can('roles.edit') &&  */}
+                                                    <Link href={route('roles.edit', id)}>
                                                         <Button className='bg-transparent hover:bg-gray-700'>
                                                             <Pencil color='blue'/>
                                                         </Button>
                                                     </Link>
+                                                
                                                 {/* } */}
-
-                                                {can('usermanagements.delete') && 
+                                                
+                                                {can('roles.delete') && 
                                                     <Button disabled={processing} onClick={() => handleDelete(id, name)} className='bg-transparent hover:bg-gray-700'>
                                                         <Trash color='red'/>
                                                     </Button>
+                                                
                                                 }
-
                                             </TableCell>
                                         </TableRow>
                                     </TableBody>

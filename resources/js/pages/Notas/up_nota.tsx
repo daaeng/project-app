@@ -6,43 +6,56 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head, useForm } from '@inertiajs/react';
-import { CircleAlert, File } from 'lucide-react';
+import { Head, Link, useForm } from '@inertiajs/react';
+import { CircleAlert, Image, Undo2 } from 'lucide-react';
+import { useState } from 'react';
 
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Create Request',
-        href: '/requests?create',
+        title: 'Upload Nota',
+        href: '/requests?nota',
     },
 ];
 
 export default function index() {
 
-    const {data, setData, post, processing, errors } = useForm({
-
+    const {data, setData, post, errors } = useForm({
+    
         name: '',
         date: '',
         devisi: '',
-        j_pengajuan: '',
         mengetahui: '',
         desk: '',
-        file: '',
+        file: null,
 
     })
 
-    const handleSubmit = (e: React.FormEvent) =>{
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const handleSubmit = (e) => {
         e.preventDefault();
-        post(route('requests.surat'));
-    }
+        setIsSubmitting(true);
+        
+        post(route('notas.c_nota'), {
+            onFinish: () => setIsSubmitting(false),
+            // preserveScroll: true
+        });
+    };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Create Request" />
+            <Head title="Upload Nota" />
 
             <div className="h-full flex-col rounded-xl p-4">
             
-                <Heading title='Form Pengajuan'/>
+                <Heading title='Nota Pembelian'/>
+
+                <Link href={route('notas.index')}>
+                    <Button className='bg-auto w-25 hover:bg-accent hover:text-black'>
+                        <Undo2 />
+                        Back
+                    </Button>
+                </Link>
 
                 <div className='w-full p-4'>
 
@@ -77,15 +90,11 @@ export default function index() {
                             </div>
                             <div className='gap-2'>
                                 <Label htmlFor='Devisi'> Devisi </Label>
-                                <Input placeholder='Devisi' value={data.devisi} onChange={(e) => setData('devisi', e.target.value)}/>
-                            </div>
-                            <div className='gap-2'>
-                                <Label htmlFor='Jenis Pengajuan'> Jenis Pengajuan </Label>
-                                <Input placeholder='Jenis Pengajuan' value={data.j_pengajuan} onChange={(e) => setData('j_pengajuan', e.target.value)}/>
+                                <Input placeholder='Devisi' value={data.devisi} onChange={(e) => setData('devisi', e.target.value)} />
                             </div>
                             <div className='gap-2'>
                                 <Label htmlFor='Mengetahui'> Mengetahui </Label>
-                                <Input placeholder='Mengetahui' value={data.mengetahui} onChange={(e) => setData('mengetahui', e.target.value)}/>
+                                <Input placeholder='Mengetahui'  value={data.mengetahui} onChange={(e) => setData('mengetahui', e.target.value)}/>
                             </div>                        
                             <div className='gap-2'>
                                 <Label htmlFor='Description'> Description </Label>
@@ -93,19 +102,28 @@ export default function index() {
                             </div>
                             
                             <div className='gap-2'>
-                                <Label htmlFor='File Pengajuan'> File Pengajuan </Label>
+                                <Label htmlFor='Foto Nota'> Foto Nota </Label>
                                 <div className='flex'>
-                                <File className='p-1'/>
-                                <Input type='file' className='bg-blue-200 p-1 w-auto' placeholder='File Pengajuan' value={data.file} onChange={(e) => setData('file', e.target.value)}/>
-
+                                    <Image className='p-1'/>
+                                    <input 
+                                        type="file" 
+                                        onChange={(e) => setData('file', e.target.files[0])}
+                                        disabled={isSubmitting}
+                                        className='w-auto bg-blue-100 p-1 ml-1 rounded-xl'
+                                    />
                                 </div>
                             </div>                        
 
                         </div>
 
                         <div className=''>
-                            <Button type='submit'>
-                                Add Product
+                            <Button 
+                                type="submit" 
+                                disabled={isSubmitting}
+                                className='bg-green-600 hover:bg-green-500'
+                                // disabled={processing}
+                            >
+                                Upload Nota
                             </Button>
                         </div>
 
