@@ -104,7 +104,7 @@ export default function index() {
                         </div>
 
                         <div className=''>
-                            <Button type='submit'>
+                            <Button type='submit' disabled={processing}>
                                 Add Product
                             </Button>
                         </div>
