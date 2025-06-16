@@ -27,6 +27,7 @@ export default function index() {
         devisi: '',
         mengetahui: '',
         desk: '',
+        dana: '',
         file: null,
 
     })
@@ -100,6 +101,15 @@ export default function index() {
                                 <Label htmlFor='Description'> Description </Label>
                                 <Textarea placeholder='Description' value={data.desk} onChange={(e) => setData('desk', e.target.value)}/>
                             </div>
+                            <div className='gap-2'>
+                                <Label htmlFor='Dana'> Dana </Label>
+                                <div className='flex'>
+                                    <div className='mt-1'>
+                                        Rp.     
+                                    </div>
+                                    <Input placeholder='Dana' value={data.dana} onChange={(e) => setData('dana', e.target.value)}/>
+                                </div>
+                            </div>
                             
                             <div className='gap-2'>
                                 <Label htmlFor='Foto Nota'> Foto Nota </Label>
@@ -123,7 +133,7 @@ export default function index() {
                                 className='bg-green-600 hover:bg-green-500'
                                 // disabled={processing}
                             >
-                                Upload Nota
+                                Add Nota
                             </Button>
                         </div>
 

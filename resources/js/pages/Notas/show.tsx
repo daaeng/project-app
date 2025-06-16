@@ -7,6 +7,7 @@ import AppLayout from '@/layouts/app-layout';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { Undo2 } from 'lucide-react';
 import { type BreadcrumbItem } from '@/types';
+import Tag from '@/components/ui/tag';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -17,16 +18,25 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 interface Nota{
     name: string,
-    date: date,
+    date: string,
     devisi: string,
     mengetahui: string,
     desk: string,
+    dana: string,
     file: string,
 }
 
 interface props{
     nota : Nota
 }
+
+const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'IDR',
+        minimumFractionDigits: 2,
+    }).format(value);
+};
 
 export default function edit({nota} : props) {
 
@@ -37,6 +47,8 @@ export default function edit({nota} : props) {
         devisi: nota.devisi,
         mengetahui: nota.mengetahui,
         desk: nota.desk,
+        dana: nota.dana,
+        status: nota.status,
         file: nota.file,
 
     })
@@ -57,9 +69,9 @@ export default function edit({nota} : props) {
                     </Button>
                 </Link>
 
-                <div className='w-full p-4'>
+                <div className='w-5xl p-4'>
 
-                    <form className='space-y-3 grid lg:grid-cols-2 md:grid-cols-1 gap-2'>
+                    <form className='space-y-3 grid lg:grid-cols-2 md:grid-cols-1 gap-8'>
 
                         <div className='space-y-2'>
                             <div className='gap-2'>
@@ -82,13 +94,33 @@ export default function edit({nota} : props) {
                                 <Label htmlFor='Description'> Description </Label>
                                 <Textarea placeholder='Description' value={data.desk} readOnly className='bg-gray-50'/>
                             </div>
+                            
+                            <div className='gap-2'>
+                                <Label htmlFor='Description'> Status </Label>
+                                <div>
+                                    <Tag status={data.status} />
+                                </div>
+                            </div>
+                            <div className='gap-2'>
+                                <Label htmlFor='Name Supplier'> Mengetahui </Label>
+                                <Input placeholder='Name Supplier' value={data.mengetahui} readOnly className='bg-gray-50'/>
+                            </div>
 
                         </div>
                         
                         <div>
+                            <div>
+                                <div className='gap-2'>
+                                    <Label htmlFor='Dana'> Dana </Label>
+                                    <div className='flex'>
+                                        
+                                        <Input placeholder='Dana' value={formatCurrency(data.dana)} onChange={(e) => setData('dana', e.target.value)} readOnly className='bg-gray-50'/>
+                                    </div>
+                                </div>
+                            </div>
 
                             <div className='gap-2'>
-                                <Label htmlFor='Jenis Barang'> Image </Label>
+                                <Label htmlFor='Image'> Image </Label>
                                 {/* <Input placeholder='Jenis Barang' value={data.file} readOnly className='bg-gray-50'/> */}
                                 <img 
                                     src={`/storage/${data.file.replace('storage/', '')}`} 

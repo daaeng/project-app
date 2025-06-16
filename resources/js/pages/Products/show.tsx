@@ -18,7 +18,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 interface Product{
     product: string,
-    date: date,
+    date: string,
     no_invoice: number,
     nm_supplier: string,
     j_brg: string,

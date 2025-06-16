@@ -13,6 +13,7 @@ class Nota extends Model
         'devisi', 
         'mengetahui', 
         'desk', 
+        'dana', 
         'file', 
         'status', 
         'reason', 

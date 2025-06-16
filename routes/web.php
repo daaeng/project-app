@@ -45,14 +45,20 @@ Route::middleware(['auth', 'verified'])->group(function () {
     route::get('/requests', [RequestController::class, 'index'])->name('requests.index');
     route::post('/requests', [RequestController::class, 'surat'])->name('requests.surat');
     route::get('/requests/create', [RequestController::class, 'create'])->name('requests.create');
+    route::get('/requests/{requested}/edit', [RequestController::class, 'edit'])->name('requests.edit');
+    route::put('/requests/{requested}', [RequestController::class, 'update'])->name('requests.update');
+    route::get('/requests/{requested}/show', [RequestController::class, 'show'])->name('requests.show');
     route::delete('/requests/{requested}', [RequestController::class, 'destroy'])->name('requests.destroy');
 
     
     // ~~~~~~~~~~~~~ Invoice ~~~~~~~~~~~~~
+    // Route::resource('notas', NotaController::class);
+
     route::get('/notas', [NotaController::class, 'index'])->name('notas.index');
     route::post('/notas', [NotaController::class, 'c_nota'])->name('notas.c_nota');
     route::get('/notas/up_nota', [NotaController::class, 'up_nota'])->name('notas.up_nota');
     route::get('/notas/{nota}/edit', [NotaController::class, 'edit'])->name('notas.edit');
+    route::put('/notas/{nota}', [NotaController::class, 'update'])->name('notas.update');
     route::get('/notas/{nota}/show', [NotaController::class, 'show'])->name('notas.show');
     route::delete('/notas/{nota}', [NotaController::class, 'destroy'])->name('notas.destroy');
 

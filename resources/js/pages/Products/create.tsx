@@ -84,7 +84,13 @@ export default function index() {
                         <div className='space-y-2'>
                             <div className='gap-2'>
                                 <Label htmlFor='Product Name'> Product </Label>
-                                <Input placeholder='Product Name' value={data.product} onChange={(e) => setData('product', e.target.value)} />
+                                {/* <Input placeholder='Product Name' value={data.product} onChange={(e) => setData('product', e.target.value)} /> */}
+                                <select value={data.product} onChange={(e) => setData('product', e.target.value)} className='w-full border p-1 rounded-md' required>
+                                    <option value="" disabled selected>Pilih Jenis Product</option>
+                                    <option value="Karet" >Karet</option>
+                                    <option value="Kelapa" >Kelapa</option>
+                                    <option value="Pupuk" >Pupuk</option>
+                                </select>
                             </div>
                             <div className='gap-2'>
                                 <Label htmlFor='Tanggal'> Tanggal </Label>

@@ -4,8 +4,9 @@ import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { LayoutDashboard, ChartArea, UserCog2, PackageIcon, BookText, ReceiptText, Notebook} from 'lucide-react';
+import { LayoutDashboard, ChartArea, UserCog2, PackageIcon, BookText, ReceiptText, Notebook, HandCoins} from 'lucide-react';
 import AppLogo from './app-logo';
+// import { FaHandHoldingDollar } from "react-icons/fa6";
 
 const mainNavItems: NavItem[] = [
     {
@@ -37,10 +38,17 @@ const mainNavItems: NavItem[] = [
         href: '/requests',
         icon: BookText ,
     },
+    
     {
         title: 'Invoice',
         href: '/notas',
         icon: ReceiptText ,
+    },
+    
+    {
+        title: 'Cash Receipt',
+        href: '/',
+        icon: HandCoins,
     },
     
     {

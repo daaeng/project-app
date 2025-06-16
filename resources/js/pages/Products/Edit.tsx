@@ -9,21 +9,22 @@ import { Head, Link, useForm } from '@inertiajs/react';
 import { CircleAlert, Undo2 } from 'lucide-react';
 
 interface Product{
+    id: number,
     product: string,
-    date: date,
-    no_invoice: number,
+    date: string,
+    no_invoice: string,
     nm_supplier: string,
     j_brg: string,
     desk: string,
     qty_kg: string,
-    price_qty: number,
-    amount: number,
-    keping: number,
+    price_qty: string,
+    amount: string,
+    keping: string,
     kualitas: string,
-    qty_out: number,
-    price_out: number,
-    amount_out: number,
-    keping_out: number,
+    qty_out: string,
+    price_out: string,
+    amount_out: string,
+    keping_out: string,
     kualitas_out: string,
 }
 
@@ -99,7 +100,13 @@ export default function edit({product} : props) {
                         <div className='space-y-2'>
                             <div className='gap-2'>
                                 <Label htmlFor='Product Name'> Product </Label>
-                                <Input placeholder='Product Name' value={data.product} onChange={(e) => setData('product', e.target.value)} />
+                                {/* <Input placeholder='Product Name' value={data.product} onChange={(e) => setData('product', e.target.value)} /> */}
+                                <select value={data.product} onChange={(e) => setData('product', e.target.value)} className='w-full border p-1 rounded-md' required>
+                                    <option value="" disabled selected>Pilih Jenis Product</option>
+                                    <option value="Karet" >Karet</option>
+                                    <option value="Kelapa" >Kelapa</option>
+                                    <option value="Pupuk" >Pupuk</option>
+                                </select>
                             </div>
                             <div className='gap-2'>
                                 <Label htmlFor='Tanggal'> Tanggal </Label>
@@ -188,7 +195,7 @@ export default function edit({product} : props) {
                         </div>
 
                         <div className=''>
-                            <Button type='submit' disabled={processing}>
+                            <Button type='submit' disabled={processing} className='bg-green-600 hover:bg-green-500'>
                                 Update Product
                             </Button>
                         </div>

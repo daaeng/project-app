@@ -5,8 +5,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, useForm, usePage, } from '@inertiajs/react';
-import { CirclePlus, Megaphone, Pencil, Trash } from 'lucide-react';
+import { CirclePlus, Eye, Megaphone, Pencil, Trash } from 'lucide-react';
 import { can } from '@/lib/can';
+import Tag from '@/components/ui/tag';
 
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -101,9 +102,9 @@ export default function index() {
                                         <TableHead>Devisi</TableHead>
                                         <TableHead>Jenis Pengajuan</TableHead>
                                         <TableHead>Mengetahui</TableHead>
-                                        <TableHead>Deskripsi</TableHead>
+                                        {/* <TableHead>Deskripsi</TableHead> */}
                                         <TableHead>Status</TableHead>
-                                        <TableHead>file</TableHead>
+                                        {/* <TableHead>file</TableHead> */}
                                         <TableHead className="text-center">Action</TableHead>
                                     </TableRow>
                                 </TableHeader>
@@ -117,20 +118,47 @@ export default function index() {
                                             <TableCell>{requests.devisi}</TableCell>
                                             <TableCell>{requests.j_pengajuan}</TableCell>
                                             <TableCell>{requests.mengetahui}</TableCell>
-                                            <TableCell>{requests.desk}</TableCell>
-                                            <TableCell>{requests.status}</TableCell>
-                                            <TableCell>{requests.file}</TableCell>
+                                            {/* <TableCell>{requests.desk}</TableCell> */}
+                                            <TableCell>
+                                                <Tag status={requests.status} />
+                                            </TableCell>
+                                            
+                                            {/* Gambar */}
+                                            {/* <TableCell>
+                                                {requests.file && (
+                                                    <a 
+                                                        href={`/storage/${requests.file.replace('storage/', '')}`} 
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                    >
+                                                        <img 
+                                                            src={`/storage/${requests.file.replace('storage/', '')}`} 
+                                                            alt={requests.name || 'Requested'}
+                                                            className="h-12 object-contain"
+                                                        />
+                                                    </a>
+                                                )}
+                                            </TableCell> */}
                                             <TableCell className="text-center space-x-2">
-
-                                                <Link href={''}>
-                                                    <Button className='bg-amber-500 hover:bg-amber-400'>
-                                                        <Pencil />
-                                                    </Button>
-                                                </Link>
+                                                {can('requests.view') && 
+                                                    <Link href={route('requests.show', requests.id)}>
+                                                        <Button className='bg-transparent hover:bg-gray-700'>
+                                                            <Eye color='gray'/>
+                                                        </Button>
+                                                    </Link>
+                                                }
+                                                
+                                                {can('requests.edit') && 
+                                                    <Link href={route('requests.edit', requests.id)}>
+                                                        <Button className='bg-transparent hover:bg-gray-700'>
+                                                            <Pencil color='blue'/>
+                                                        </Button>
+                                                    </Link>
+                                                }
 
                                                 {can('requests.delete') && 
-                                                    <Button disabled={processing} onClick={() => handleDelete(requests.id, requests.name)} className='bg-red-600 hover:bg-red-500'>
-                                                        <Trash/>
+                                                    <Button disabled={processing} onClick={() => handleDelete(requests.id, requests.name)} className='bg-transparent hover:bg-gray-700'>
+                                                        <Trash color='red'/>
                                                     </Button>
                                                 }
                                             </TableCell>

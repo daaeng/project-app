@@ -6,8 +6,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head, useForm } from '@inertiajs/react';
-import { CircleAlert, File } from 'lucide-react';
+import { Head, Link, useForm } from '@inertiajs/react';
+import { CircleAlert, Image, Undo2 } from 'lucide-react';
 
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -44,6 +44,13 @@ export default function index() {
             
                 <Heading title='Form Pengajuan'/>
 
+                <Link href={route('requests.index')}>
+                    <Button className='bg-auto w-25 hover:bg-accent hover:text-black'>
+                        <Undo2 />
+                        Back
+                    </Button>
+                </Link>
+
                 <div className='w-full p-4'>
 
                     {Object.keys(errors). length > 0 && (
@@ -64,7 +71,7 @@ export default function index() {
                         </Alert>
                     )}
 
-                    <form onSubmit={handleSubmit} className='space-y-3 w-3xl gap-2'>
+                    <form onSubmit={handleSubmit} className='space-y-3 w-5xl gap-2 grid grid-cols-2'>
 
                         <div className='space-y-2'>
                             <div className='gap-2'>
@@ -91,21 +98,32 @@ export default function index() {
                                 <Label htmlFor='Description'> Description </Label>
                                 <Textarea placeholder='Description' value={data.desk} onChange={(e) => setData('desk', e.target.value)}/>
                             </div>
-                            
+                        
+                        </div>
+                        
+                        <div>
                             <div className='gap-2'>
-                                <Label htmlFor='File Pengajuan'> File Pengajuan </Label>
+                                <Label htmlFor='File Pengajuan'> Foto </Label>
                                 <div className='flex'>
-                                <File className='p-1'/>
-                                <Input type='file' className='bg-blue-200 p-1 w-auto' placeholder='File Pengajuan' value={data.file} onChange={(e) => setData('file', e.target.value)}/>
-
+                                    <Image className='p-1'/>
+                                    <input 
+                                            type="file" 
+                                            onChange={(e) => setData('file', e.target.files[0])}
+                                            disabled={processing}
+                                            className='w-auto bg-blue-100 p-1 ml-1 rounded-xl'
+                                        />
+                                    {/* <Input type='file' className='bg-blue-200 p-1 w-auto' placeholder='Screen Shot File' value={data.file} onChange={(e) => setData('file', e.target.value)}/> */}
+                                </div>
+                                <div className='text-amber-600 ml-7' style={{ fontSize:12 }}>
+                                    *Screenshots File
                                 </div>
                             </div>                        
 
                         </div>
 
                         <div className=''>
-                            <Button type='submit' disabled={processing}>
-                                Add Product
+                            <Button type='submit' disabled={processing} className='bg-green-600 hover:bg-green-500'>
+                                Add Pengajuan
                             </Button>
                         </div>
 

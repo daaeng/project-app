@@ -4,17 +4,16 @@ import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
-import { ArrowRight, CirclePlus, Eye, FileDown, Megaphone, Package, Pencil, Search, Trash, TreePalm, Users } from 'lucide-react';
+import { CirclePlus, Eye, FileDown, Megaphone, Package, Pencil, Search, Trash, TreePalm } from 'lucide-react';
 import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { can } from '@/lib/can';
@@ -22,21 +21,7 @@ import { can } from '@/lib/can';
 // interface Product {
 //   id: number;
 //   product: string;
-//   date: string;
-//   no_invoice: string;
-//   nm_supplier: string;
-//   j_brg: string;
-//   desk: string;
-//   qty_kg: number;
-//   price_qty: number;
-//   amount: number;
-//   keping: number;
-//   kualitas: string;
-//   qty_out: number;
-//   price_out: number;
-//   amount_out: number;
-//   keping_out: number;
-//   kualitas_out: string;
+
   
 //   created_at: string;
 //   creator: {
@@ -62,8 +47,23 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 interface Product {
+    id: number;
     product : string,
-
+    date: string;
+    no_invoice: string;
+    nm_supplier: string;
+    j_brg: string;
+    desk: string;
+    qty_kg: number;
+    price_qty: number;
+    amount: number;
+    keping: number;
+    kualitas: string;
+    qty_out: number;
+    price_out: number;
+    amount_out: number;
+    keping_out: number;
+    kualitas_out: string;
 }
 
 interface PageProps{
@@ -84,7 +84,7 @@ const formatCurrency = (value: number) => {
 
 export default function index({hsl_karet, saldoin, saldoout, hsl_kelapa, saldoinklp, saldooutklp}) {
     
-//     const handleSearch = (search: string) => {
+//   const handleSearch = (search: string) => {
 //     router.get(route('products.index'), { search }, {
 //       preserveState: true,
 //       replace: true
@@ -120,7 +120,7 @@ export default function index({hsl_karet, saldoin, saldoout, hsl_kelapa, saldoin
                                 </div>
                             </div>
                         </CardHeader>
-                        <CardContent className='lg:-mt-4'>
+                        <CardContent className='lg:-mt-4 text-blue-700'>
                             <div className="text-2xl font-bold">{hsl_karet}</div>
                             <div className='flex gap-2'> <p className='text-green-400'>IN</p> {formatCurrency(saldoin)}</div>
                             <div className='flex gap-2'> <p className='text-red-400'>Out</p> {formatCurrency(saldoout)}</div>
@@ -135,13 +135,13 @@ export default function index({hsl_karet, saldoin, saldoout, hsl_kelapa, saldoin
                     <Card className="shadow-sm transition-shadow hover:shadow-md bg-amber-50">
                         <CardHeader className="bg-amber-300 ">
                             <div className="flex items-center p-1 justify-between">
-                                <CardTitle className="text-sm font-medium text-gray-500">Available Stock Karet</CardTitle>
+                                <CardTitle className="text-sm font-medium text-gray-500">Available Stock Kelapa</CardTitle>
                                 <div className="rounded-lg bg-amber-100 p-2">
                                     <TreePalm size={18} className="text-amber-600" />
                                 </div>
                             </div>
                         </CardHeader>
-                        <CardContent className='lg:-mt-4'>
+                        <CardContent className='lg:-mt-4 text-amber-700'>
                             <div className="text-2xl font-bold">{hsl_kelapa}</div>
                             <div className='flex gap-2'> <p className='text-green-400'>IN</p> {formatCurrency(saldoinklp)}</div>
                             <div className='flex gap-2'> <p className='text-red-400'>Out</p> {formatCurrency(saldooutklp)}</div>

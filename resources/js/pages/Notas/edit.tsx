@@ -19,11 +19,13 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 interface Nota{
+    id: number,
     name: string,
-    date: date,
+    date: string,
     devisi: string,
     mengetahui: string,
     desk: string,
+    dana: number,
     file: string,
 }
 
@@ -40,13 +42,14 @@ export default function index({nota} : props) {
         devisi: nota.devisi || '',
         mengetahui: nota.mengetahui || '',
         desk: nota.desk || '',
+        dana: nota.dana || '',
         file: nota.file || '',
 
     })
 
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const handleSubmit = (e) => {
+    const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         setIsSubmitting(true);
         
@@ -62,7 +65,7 @@ export default function index({nota} : props) {
 
             <div className="h-full flex-col rounded-xl p-4">
             
-                <Heading title='Ubah Pembelian'/>
+                <Heading title='Ubah Nota / Struk / Resi'/>
 
                 <Link href={route('notas.index')}>
                     <Button className='bg-auto w-25 hover:bg-accent hover:text-black'>
@@ -91,7 +94,7 @@ export default function index({nota} : props) {
                         </Alert>
                     )}
 
-                    <form onSubmit={handleSubmit} className='space-y-3 w-3xl gap-2'>
+                    <form onSubmit={handleSubmit} className='space-y-3 w-full gap-2 grid grid-cols-2'>
 
                         <div className='space-y-2'>
                             <div className='gap-2'>
@@ -114,29 +117,34 @@ export default function index({nota} : props) {
                                 <Label htmlFor='Description'> Description </Label>
                                 <Textarea placeholder='Description' value={data.desk} onChange={(e) => setData('desk', e.target.value)}/>
                             </div>
-                            
                             <div className='gap-2'>
-                                <Label htmlFor='Foto Nota'> Foto Nota </Label>
-                                <div className='flex'>
-                                    <Image className='p-1'/>
-                                    <input 
-                                        type="file" 
-                                        onChange={(e) => setData('file', e.target.files[0])}
-                                        disabled={isSubmitting}
-                                        className='w-auto bg-gray-100 p-1 ml-1 rounded-xl'
-                                    />
-                                </div>
-
-
-                            </div>                        
+                                <Label htmlFor='Dana'> Dana </Label>
+                                <Input placeholder='Dana' value={data.dana} onChange={(e) => setData('dana', e.target.value)}/>
+                            </div>
+                            
 
                         </div>
+
+                        <div className='gap-2'>
+                            <Label htmlFor='Foto Nota'> Foto Nota </Label>
+                            <div>
+                                <div className='flex'>
+                                    <Image className='p-1'/> 
+                                    Tidak Dapat Ubah Gambar
+                                </div>
+                                <img 
+                                src={`/storage/${data.file.replace('storage/', '')}`} 
+                                alt={data.name || 'Nota'}
+                                className="h-100 object-contain"
+                                />
+                            </div>
+                        </div>                        
 
                         <div className=''>
                             <Button 
                                 type="submit" 
                                 disabled={isSubmitting}
-                                className={isSubmitting ? 'opacity-50' : ''} 
+                                className={isSubmitting ? 'opacity-50' : '' + 'bg-green-600 hover:bg-green-500'} 
                             >
                                 Upload Nota
                             </Button>

@@ -7,6 +7,7 @@ import { type BreadcrumbItem } from '@/types';
 import { Head, Link, useForm, usePage, } from '@inertiajs/react';
 import { Eye, Megaphone, Pencil, Trash, Upload } from 'lucide-react';
 import { can } from '@/lib/can';
+import Tag from '@/components/ui/tag';
 
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -22,6 +23,7 @@ interface Nota {
     devisi : string,
     mengetahui : string,
     desk : string,
+    dana : number,
     status : string,
     file : string,
 }
@@ -32,6 +34,14 @@ interface PageProps{
     }, 
     notas: Nota[]
 }
+
+const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'IDR',
+        minimumFractionDigits: 2,
+    }).format(value);
+};
 
 export default function index() {
 
@@ -100,8 +110,8 @@ export default function index() {
                                         <TableHead>Devisi</TableHead>
                                         <TableHead>Mengetahui</TableHead>
                                         <TableHead>Deskripsi</TableHead>
+                                        <TableHead>dana</TableHead>
                                         <TableHead>Status</TableHead>
-                                        <TableHead>Image</TableHead>
                                         <TableHead className="text-center">Action</TableHead>
                                     </TableRow>
                                 </TableHeader>
@@ -115,10 +125,9 @@ export default function index() {
                                             <TableCell>{notas.devisi}</TableCell>
                                             <TableCell>{notas.mengetahui}</TableCell>
                                             <TableCell>{notas.desk}</TableCell>
-                                            <TableCell>{notas.status}</TableCell>
                                             <TableCell>
-                                                {/* {notas.file} */}
-                                                {notas.file && (
+                                                {formatCurrency(notas.dana)}
+                                                {/* {notas.file && (
                                                     <a 
                                                         href={`/storage/${notas.file.replace('storage/', '')}`} 
                                                         target="_blank"
@@ -130,20 +139,27 @@ export default function index() {
                                                             className="h-12 object-contain"
                                                         />
                                                     </a>
-                                                )}
+                                                )} */}
+                                            </TableCell>
+                                            <TableCell>
+                                                <Tag status={notas.status} />
                                             </TableCell>
                                             <TableCell className="text-center space-x-2">
-
-                                                <Link href={route('notas.show', notas.id)}>
+                                                {can('notas.view') && 
+                                                    <Link href={route('notas.show', notas.id)}>
                                                         <Button className='bg-transparent hover:bg-gray-700'>
                                                             <Eye color='gray'/>
                                                         </Button>
                                                     </Link>
-                                                <Link href={route('notas.edit', notas.id)}>
-                                                    <Button className='bg-transparent hover:bg-gray-700'>
-                                                        <Pencil color='blue'/>
-                                                    </Button>
-                                                </Link>
+                                                }
+                                                {can('notas.edit') && 
+                                                    <Link href={route('notas.edit', notas.id)}>
+                                                        <Button className='bg-transparent hover:bg-gray-700'>
+                                                            <Pencil color='blue'/>
+                                                        </Button>
+                                                    </Link>
+                                                }
+
                                                 {can('notas.delete') &&
                                                     <Button disabled={processing} onClick={() => handleDelete(notas.id, notas.name)} className='bg-transparent hover:bg-gray-700'>
                                                         <Trash color='red'/>

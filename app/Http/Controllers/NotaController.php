@@ -8,6 +8,7 @@ use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class NotaController extends Controller
 {
@@ -34,6 +35,7 @@ class NotaController extends Controller
             'devisi' => 'required|string',
             'mengetahui' => 'required|string|max:250',
             'desk' => 'nullable|string',
+            'dana' => 'required|numeric',
             'file' => 'nullable|image|mimes:jpeg,png,jpg,gif,pdf,csv,xls|max:2048',
         ]);
 
@@ -42,6 +44,7 @@ class NotaController extends Controller
         $existing = Nota::where('name', $request->name)
                     ->where('date', $request->date)
                     ->where('devisi', $request->devisi)
+                    ->where('dana', $request->dana)
                     ->where('file_hash', $fileHash)
                     ->exists();
 
@@ -78,6 +81,7 @@ class NotaController extends Controller
                 'devisi' => $request->devisi,
                 'mengetahui' => $request->mengetahui,
                 'desk' => $request->desk,
+                'dana' => $request->dana,
                 'file' => 'storage/notas/'.$filename,
                 'file_hash' => md5_file($file->getRealPath()),
                 // 'status' => 'belum ACC'
@@ -105,56 +109,39 @@ class NotaController extends Controller
 
     public function update(Request $request, Nota $nota)
     {
+        Log::info('Memulai fungsi update untuk nota ID: ' . $nota->id);
+
+        // Validasi input
         $request->validate([
             'name' => 'required|string|max:250',
             'date' => 'required|date',
             'devisi' => 'required|string',
             'mengetahui' => 'required|string|max:250',
             'desk' => 'nullable|string',
-            'file' => 'nullable|image|mimes:jpeg,png,jpg,gif,pdf,csv,xls|max:2048',
+            'dana' => 'required|numeric',
+            
         ]);
 
-        $nota->update([
-            'name' => $request->input('name'),
-            'date' => $request->input('date'),
-            'devisi' => $request->input('devisi'),
-            'mengetahui' => $request->input('mengetahui'),
-            'desk' => $request->input('desk'),
-            'file' => $request->input('file'),
-        ]);
-
-        // Cek duplikasi berdasarkan hash file
-        $fileHash = md5_file($nota->file('file')->getRealPath());
-        $existing = Nota::where('name', $nota->name)
-                    ->where('date', $nota->date)
-                    ->where('devisi', $nota->devisi)
-                    ->where('file_hash', $fileHash)
-                    ->exists();
-
-        if ($existing) {
-            return back()->with('error', 'Data file yang sama sudah ada!, Jika baru ganti nama file nya ya :)');
-        }
+        Log::info('Validasi input selesai');
 
         // Gunakan DB transaction
-        return DB::transaction(function () use ($nota) {
-            // Proses file
-            $file = $nota->file('file');
-            $filename = 'nota_'.time().'_'.Str::slug($file->getClientOriginalName());
-            $path = $file->storeAs('public/notas', $filename);
+        return DB::transaction(function () use ($request, $nota) {
+            Log::info('Memulai transaksi database');
             
-            // Simpan data SEKALI saja
-            $nota = Nota::create([
-                'name' => $nota->name,
-                'date' => $nota->date,
-                'devisi' => $nota->devisi,
-                'mengetahui' => $nota->mengetahui,
-                'desk' => $nota->desk,
-                'file' => 'storage/notas/'.$filename,
-                'file_hash' => md5_file($file->getRealPath()),
-                // 'status' => 'belum ACC'
+            // Perbarui data
+            $nota->update([
+                'name' => $request->input('name'),
+                'date' => $request->input('date'),
+                'devisi' => $request->input('devisi'),
+                'mengetahui' => $request->input('mengetahui'),
+                'desk' => $request->input('desk'),
+                'dana' => $request->input('dana'),
+   
             ]);
 
-            return redirect()->route('notas.index')->with('success', 'Invoice Update Successfully!');
+            Log::info('Data nota ID: ' . $nota->id . ' berhasil diperbarui');
+
+            return redirect()->route('notas.index')->with('success', 'Nota Updated Successfully');
         });
     }
 
