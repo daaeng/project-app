@@ -23,7 +23,7 @@ export default function admin() {
                 <Heading title='Administrasi'/>
 
                 <div className='font-bold'>
-                    Kasbon
+                    Data Kasbon
                 </div>
 
                 
