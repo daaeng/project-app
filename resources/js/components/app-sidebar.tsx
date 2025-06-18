@@ -4,7 +4,7 @@ import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { LayoutDashboard, ChartArea, UserCog2, PackageIcon, BookText, ReceiptText, Notebook, HandCoins} from 'lucide-react';
+import { LayoutDashboard, ChartArea, UserCog2, PackageIcon, BookText, ReceiptText, Notebook, HandCoins, UsersRound, PackageOpen} from 'lucide-react';
 import AppLogo from './app-logo';
 // import { FaHandHoldingDollar } from "react-icons/fa6";
 
@@ -22,6 +22,12 @@ const mainNavItems: NavItem[] = [
     },
     
     {
+        title: 'Incisor',
+        href: '/incisors',
+        icon: UsersRound,
+    },
+    
+    {
         title: 'Role Management',
         href: '/roles',
         icon: Notebook,
@@ -31,6 +37,12 @@ const mainNavItems: NavItem[] = [
         title: 'Product',
         href: '/products',
         icon: PackageIcon,
+    },
+    
+    {
+        title: 'Incised Data',
+        href: '/inciseds',
+        icon: PackageOpen,
     },
     
     {

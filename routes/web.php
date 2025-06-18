@@ -7,6 +7,8 @@ use App\Http\Controllers\RequestController;
 use App\Http\Controllers\NotaController;
 use App\Http\Controllers\AdministrasiController;
 use App\Http\Controllers\UserManagementController;
+use App\Http\Controllers\IncisorController;
+use App\Http\Controllers\IncisedController;
 
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -88,6 +90,24 @@ Route::middleware(['auth', 'verified'])->group(function () {
     
 
     Route::resource('roles', RoleController::class);
+
+    // ~~~~~~~~~~~~~ Incisor ~~~~~~~~~~~~~
+    route::get('/incisors', [IncisorController::class, 'index'])->name('incisors.index');
+    route::post('/incisors', [IncisorController::class, 'store'])->name('incisors.store');
+    route::get('/incisors/create', [IncisorController::class, 'create'])->name('incisors.create');
+    route::get('/incisors/{incisor}/edit', [IncisorController::class, 'edit'])->name('incisors.edit');
+    route::put('/incisors/{incisor}', [IncisorController::class, 'update'])->name('incisors.update');
+    route::get('/incisors/{incisor}/show', [IncisorController::class, 'show'])->name('incisors.show');
+    route::delete('/incisors/{incisor}', [IncisorController::class, 'destroy'])->name('incisors.destroy');
+    
+    // ~~~~~~~~~~~~~ Inciseds ~~~~~~~~~~~~~
+    route::get('/inciseds', [IncisedController::class, 'index'])->name('inciseds.index');
+    route::post('/inciseds', [IncisedController::class, 'store'])->name('inciseds.store');
+    route::get('/inciseds/create', [IncisedController::class, 'create'])->name('inciseds.create');
+    route::get('/inciseds/{incised}/edit', [IncisedController::class, 'edit'])->name('inciseds.edit');
+    route::put('/inciseds/{incised}', [IncisedController::class, 'update'])->name('inciseds.update');
+    route::get('/inciseds/{incised}/show', [IncisedController::class, 'show'])->name('inciseds.show');
+    route::delete('/inciseds/{incised}', [IncisedController::class, 'destroy'])->name('inciseds.destroy');
 
 });
 

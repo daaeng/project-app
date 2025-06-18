@@ -68,27 +68,27 @@ export default function index({requests} : props) {
                         <div className='space-y-2'>
                             <div className='gap-2'>
                                 <Label htmlFor='Name'> Name </Label>
-                                <Input placeholder='Yang mengajukan' value={data.name} onChange={(e) => setData('name', e.target.value)} readOnly className='bg-gray-50'/>
+                                <Input placeholder='Yang mengajukan' value={data.name} onChange={(e) => setData('name', e.target.value)} readOnly />
                             </div>
                             <div className='gap-2'>
                                 <Label htmlFor='Tanggal'> Tanggal </Label>
-                                <Input type='date' placeholder='Tanggal' value={data.date} onChange={(e) => setData('date', e.target.value)} readOnly className='bg-gray-50'/>
+                                <Input type='date' placeholder='Tanggal' value={data.date} onChange={(e) => setData('date', e.target.value)} readOnly />
                             </div>
                             <div className='gap-2'>
                                 <Label htmlFor='Devisi'> Devisi </Label>
-                                <Input placeholder='Devisi' value={data.devisi} onChange={(e) => setData('devisi', e.target.value)} readOnly className='bg-gray-50'/>
+                                <Input placeholder='Devisi' value={data.devisi} onChange={(e) => setData('devisi', e.target.value)} readOnly />
                             </div>
                             <div className='gap-2'>
                                 <Label htmlFor='Jenis Pengajuan'> Jenis Pengajuan </Label>
-                                <Input placeholder='Jenis Pengajuan' value={data.j_pengajuan} onChange={(e) => setData('j_pengajuan', e.target.value)} readOnly className='bg-gray-50'/>
+                                <Input placeholder='Jenis Pengajuan' value={data.j_pengajuan} onChange={(e) => setData('j_pengajuan', e.target.value)} readOnly />
                             </div>
                             <div className='gap-2'>
                                 <Label htmlFor='Mengetahui'> Mengetahui </Label>
-                                <Input placeholder='Mengetahui' value={data.mengetahui} onChange={(e) => setData('mengetahui', e.target.value)} readOnly className='bg-gray-50'/>
+                                <Input placeholder='Mengetahui' value={data.mengetahui} onChange={(e) => setData('mengetahui', e.target.value)} readOnly />
                             </div>                        
                             <div className='gap-2'>
                                 <Label htmlFor='Description'> Description </Label>
-                                <Textarea placeholder='Description' value={data.desk} onChange={(e) => setData('desk', e.target.value)}readOnly className='bg-gray-50'/>
+                                <Textarea placeholder='Description' value={data.desk} onChange={(e) => setData('desk', e.target.value)}readOnly />
                             </div>                      
 
                         </div>

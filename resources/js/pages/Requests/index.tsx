@@ -123,22 +123,6 @@ export default function index() {
                                                 <Tag status={requests.status} />
                                             </TableCell>
                                             
-                                            {/* Gambar */}
-                                            {/* <TableCell>
-                                                {requests.file && (
-                                                    <a 
-                                                        href={`/storage/${requests.file.replace('storage/', '')}`} 
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                    >
-                                                        <img 
-                                                            src={`/storage/${requests.file.replace('storage/', '')}`} 
-                                                            alt={requests.name || 'Requested'}
-                                                            className="h-12 object-contain"
-                                                        />
-                                                    </a>
-                                                )}
-                                            </TableCell> */}
                                             <TableCell className="text-center space-x-2">
                                                 {can('requests.view') && 
                                                     <Link href={route('requests.show', requests.id)}>
@@ -178,3 +162,22 @@ export default function index() {
         </AppLayout>
     );
 }
+
+
+
+                                            {/* Gambar */}
+                                            {/* <TableCell>
+                                                {requests.file && (
+                                                    <a 
+                                                        href={`/storage/${requests.file.replace('storage/', '')}`} 
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                    >
+                                                        <img 
+                                                            src={`/storage/${requests.file.replace('storage/', '')}`} 
+                                                            alt={requests.name || 'Requested'}
+                                                            className="h-12 object-contain"
+                                                        />
+                                                    </a>
+                                                )}
+                                            </TableCell> */}

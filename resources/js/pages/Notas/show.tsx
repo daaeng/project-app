@@ -76,23 +76,23 @@ export default function edit({nota} : props) {
                         <div className='space-y-2'>
                             <div className='gap-2'>
                                 <Label htmlFor='nota Name'> Name </Label>
-                                <Input placeholder='nota Name' value={data.name} readOnly className='bg-gray-50'/>
+                                <Input placeholder='nota Name' value={data.name} readOnly />
                             </div>
                             <div className='gap-2'>
                                 <Label htmlFor='Tanggal'> Tanggal </Label>
-                                <Input type='date' placeholder='Tanggal' value={data.date} readOnly className='bg-gray-50'/>
+                                <Input type='date' placeholder='Tanggal' value={data.date} readOnly />
                             </div>
                             <div className='gap-2'>
                                 <Label htmlFor='Invoice'> Devisi </Label>
-                                <Input placeholder='Invoice' value={data.devisi} readOnly className='bg-gray-50'/>
+                                <Input placeholder='Invoice' value={data.devisi} readOnly  />
                             </div>
                             <div className='gap-2'>
                                 <Label htmlFor='Name Supplier'> Mengetahui </Label>
-                                <Input placeholder='Name Supplier' value={data.mengetahui} readOnly className='bg-gray-50'/>
+                                <Input placeholder='Name Supplier' value={data.mengetahui} readOnly />
                             </div>
                             <div className='gap-2'>
                                 <Label htmlFor='Description'> Description </Label>
-                                <Textarea placeholder='Description' value={data.desk} readOnly className='bg-gray-50'/>
+                                <Textarea placeholder='Description' value={data.desk} readOnly/>
                             </div>
                             
                             <div className='gap-2'>
@@ -103,7 +103,7 @@ export default function edit({nota} : props) {
                             </div>
                             <div className='gap-2'>
                                 <Label htmlFor='Name Supplier'> Mengetahui </Label>
-                                <Input placeholder='Name Supplier' value={data.mengetahui} readOnly className='bg-gray-50'/>
+                                <Input placeholder='Name Supplier' value={data.mengetahui} readOnly />
                             </div>
 
                         </div>
@@ -114,7 +114,7 @@ export default function edit({nota} : props) {
                                     <Label htmlFor='Dana'> Dana </Label>
                                     <div className='flex'>
                                         
-                                        <Input placeholder='Dana' value={formatCurrency(data.dana)} onChange={(e) => setData('dana', e.target.value)} readOnly className='bg-gray-50'/>
+                                        <Input placeholder='Dana' value={formatCurrency(data.dana)} onChange={(e) => setData('dana', e.target.value)} readOnly />
                                     </div>
                                 </div>
                             </div>

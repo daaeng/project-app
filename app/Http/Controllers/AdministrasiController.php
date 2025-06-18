@@ -12,4 +12,6 @@ class AdministrasiController extends Controller
        return Inertia('Administrasis/index');
     }
 
+    
+
 }

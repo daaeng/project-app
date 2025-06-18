@@ -103,27 +103,27 @@ export default function edit({product} : props) {
                         <div className='space-y-2'>
                             <div className='gap-2'>
                                 <Label htmlFor='Product Name'> Product </Label>
-                                <Input placeholder='Product Name' value={data.product} readOnly className='bg-gray-50'/>
+                                <Input placeholder='Product Name' value={data.product} readOnly />
                             </div>
                             <div className='gap-2'>
                                 <Label htmlFor='Tanggal'> Tanggal </Label>
-                                <Input type='date' placeholder='Tanggal' value={data.date} readOnly className='bg-gray-50'/>
+                                <Input type='date' placeholder='Tanggal' value={data.date} readOnly/>
                             </div>
                             <div className='gap-2'>
                                 <Label htmlFor='Invoice'> No. Invoice </Label>
-                                <Input placeholder='Invoice' value={data.no_invoice} readOnly className='bg-gray-50'/>
+                                <Input placeholder='Invoice' value={data.no_invoice} readOnly />
                             </div>
                             <div className='gap-2'>
                                 <Label htmlFor='Name Supplier'> Name Supplier </Label>
-                                <Input placeholder='Name Supplier' value={data.nm_supplier} readOnly className='bg-gray-50'/>
+                                <Input placeholder='Name Supplier' value={data.nm_supplier} readOnly />
                             </div>
                             <div className='gap-2'>
                                 <Label htmlFor='Jenis Barang'> Jenis Barang </Label>
-                                <Input placeholder='Jenis Barang' value={data.j_brg} readOnly className='bg-gray-50'/>
+                                <Input placeholder='Jenis Barang' value={data.j_brg} readOnly />
                             </div>                        
                             <div className='gap-2'>
                                 <Label htmlFor='Description'> Description </Label>
-                                <Textarea placeholder='Description' value={data.desk} readOnly className='bg-gray-50'/>
+                                <Textarea placeholder='Description' value={data.desk} readOnly />
                             </div>
 
                         </div>
@@ -140,23 +140,23 @@ export default function edit({product} : props) {
 
                                     <div className='gap-2 md:col-span-1 sm:col-span-3'>
                                         <Label htmlFor='Quantity'> Quantity (Kg) </Label>
-                                        <Input placeholder='Quantity' value={data.qty_kg} readOnly className='bg-gray-50'/>
+                                        <Input placeholder='Quantity' value={data.qty_kg} readOnly />
                                     </div>
                                     <div className='gap-2 md:col-span-1 sm:col-span-3'>
                                         <Label htmlFor='Price'> Price /Qty </Label>
-                                        <Input placeholder='Price' value={data.price_qty} readOnly className='bg-gray-50'/>
+                                        <Input placeholder='Price' value={data.price_qty} readOnly />
                                     </div>
                                     <div className='gap-2 md:col-span-1 sm:col-span-3'>
                                         <Label htmlFor='Amount'> Amount </Label>
-                                        <Input placeholder='Amount' value={data.amount} readOnly className='bg-gray-50'/>
+                                        <Input placeholder='Amount' value={data.amount} readOnly />
                                     </div>
                                     <div className='gap-2 md:col-span-1 sm:col-span-3'>
                                         <Label htmlFor='Keping'> Keping / Buah</Label>
-                                        <Input placeholder='Keping' value={data.keping} readOnly className='bg-gray-50'/>
+                                        <Input placeholder='Keping' value={data.keping} readOnly />
                                     </div>
                                     <div className='gap-2 md:col-span-1 sm:col-span-3'>
                                         <Label htmlFor='Kualitas'> Kualitas </Label>
-                                        <Input placeholder='Kualitas' value={data.kualitas} readOnly className='bg-gray-50'/>
+                                        <Input placeholder='Kualitas' value={data.kualitas} readOnly />
                                     </div>
 
                                     <div className='gap-2 sm:col-span-3 mt-5'>
@@ -165,23 +165,23 @@ export default function edit({product} : props) {
 
                                     <div className='gap-2 md:col-span-1 sm:col-span-3'>
                                         <Label htmlFor='Quantity'> Quantity (Kg) </Label>
-                                        <Input placeholder='Quantity' value={data.qty_out} readOnly className='bg-gray-50'/>
+                                        <Input placeholder='Quantity' value={data.qty_out} readOnly />
                                     </div>
                                     <div className='gap-2 md:col-span-1 sm:col-span-3'>
                                         <Label htmlFor='Price'> Price /Qty </Label>
-                                        <Input placeholder='Price' value={data.price_out} readOnly className='bg-gray-50'/>
+                                        <Input placeholder='Price' value={data.price_out} readOnly />
                                     </div>
                                     <div className='gap-2 md:col-span-1 sm:col-span-3'>
                                         <Label htmlFor='Amount'> Amount </Label>
-                                        <Input placeholder='Amount' value={data.amount_out} readOnly className='bg-gray-50'/>
+                                        <Input placeholder='Amount' value={data.amount_out} readOnly />
                                     </div>
                                     <div className='gap-2 md:col-span-1 sm:col-span-3'>
                                         <Label htmlFor='Keping'> Keping / Buah </Label>
-                                        <Input placeholder='Keping Keluar' value={data.keping_out} readOnly className='bg-gray-50'/>
+                                        <Input placeholder='Keping Keluar' value={data.keping_out} readOnly />
                                     </div>
                                     <div className='gap-2 md:col-span-1 sm:col-span-3'>
                                         <Label htmlFor='Kualitas'> Kualitas </Label>
-                                        <Input placeholder='Kualitas' value={data.kualitas_out} readOnly className='bg-gray-50'/>
+                                        <Input placeholder='Kualitas' value={data.kualitas_out} readOnly />
                                     </div>
                                                                         
                                 </div>
