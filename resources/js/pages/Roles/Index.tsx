@@ -51,7 +51,7 @@ export default function index() {
 
                 <div className='border h-auto p-3 rounded-lg'>
 
-                    {/* {can('roles.create') &&  */}
+                    {can('roles.create') && 
                     
                         <div className='w-full mb-2 justify-end h-auto flex gap-2'>
                             <Link href={route('roles.create')}>
@@ -61,7 +61,7 @@ export default function index() {
                                 </Button>
                             </Link>
                         </div>
-                    {/* } */}
+                    }
 
                     <div>
                         {flash.message && (
@@ -108,20 +108,22 @@ export default function index() {
                                             
                                             <TableCell className="text-center space-x-2">
                                                 
+                                                {can('roles.view') &&
                                                     <Link href={route('roles.show', id)}>
                                                         <Button className='bg-transparent hover:bg-gray-700'>
                                                             <Eye color='gray'/>
                                                         </Button>
                                                     </Link>
+                                                }
                                                 
-                                                {/* {can('roles.edit') &&  */}
+                                                {can('roles.edit') && 
                                                     <Link href={route('roles.edit', id)}>
                                                         <Button className='bg-transparent hover:bg-gray-700'>
                                                             <Pencil color='blue'/>
                                                         </Button>
                                                     </Link>
                                                 
-                                                {/* } */}
+                                                }
                                                 
                                                 {can('roles.delete') && 
                                                     <Button disabled={processing} onClick={() => handleDelete(id, name)} className='bg-transparent hover:bg-gray-700'>

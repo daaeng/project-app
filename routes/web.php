@@ -33,6 +33,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     route::put('/products/{product}', [ProductController::class, 'update'])->name('products.update');
     route::delete('/products/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
 
+    // route::get('/products/gka', [ProductController::class, 'gka'])->name('products.gka');
+    
+
     
     // ~~~~~~~~~~~~~ UserManagement ~~~~~~~~~~~~~
     route::get('/usermanagements', [UserManagementController::class, 'index'])->name('usermanagements.index');

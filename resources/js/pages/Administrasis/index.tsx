@@ -4,8 +4,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import Tag from '@/components/ui/tag';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head, Link} from '@inertiajs/react';
-import { Eye, Pencil, Trash } from 'lucide-react';
+import { Head, Link, usePage} from '@inertiajs/react';
+import { Eye, Pencil } from 'lucide-react';
 
 
 
@@ -16,7 +16,35 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
+interface Request{
+    id: number;
+    date: string;
+    devisi: string;
+    j_pengajuan: string;
+    mengetahui: string;
+    status: string;
+    
+}
+
+interface Nota{
+    id: number;
+    name: string;
+    date: string;
+    devisi: string;
+    desk: string;
+    dana: string;
+    status: string;
+    
+}
+
+interface PageProps{
+    requests : Request[];
+    notas: Nota[];
+}
+
 export default function admin() {
+
+     const { requests, notas } =usePage().props as PageProps;
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -26,13 +54,12 @@ export default function admin() {
             
                 <Heading title='Administrasi'/>
 
-                <div className='font-bold'>
-                    Administrasi Request Latter
-                </div>
-
-                <div className=' bg-amber-300 w-full gap-2 grid grid-cols-2'>
+                <div className='w-full gap-2 grid grid-cols-2 p-1'>
                     
-                    <div className=' bg-amber-500 w-full gap-2 p-2'>
+                    <div className='border w-full gap-2 p-2'>
+                        <div className='font-bold mb-3'>
+                            Administrasi Request Latter
+                        </div>
                         <Table>
                                 <TableHeader>
                                     <TableRow>
@@ -45,14 +72,16 @@ export default function admin() {
                                     </TableRow>
                                 </TableHeader>
 
+                            {requests.map((requests) =>
+                            
                                 <TableBody>
                                         <TableRow>
-                                            <TableCell>11/08/2025</TableCell>
-                                            <TableCell>Accounting</TableCell>
-                                            <TableCell>Pengajuan Dana</TableCell>
-                                            <TableCell>Orista Miranti</TableCell>
+                                            <TableCell>{requests.date}</TableCell>
+                                            <TableCell>{requests.devisi}</TableCell>
+                                            <TableCell>{requests.j_pengajuan}</TableCell>
+                                            <TableCell>{requests.mengetahui}</TableCell>
                                             <TableCell>
-                                                <Tag status={'belum ACC'} />
+                                                <Tag status={requests.status} />
                                             </TableCell>
                                             
                                             <TableCell className="text-center space-x-2">
@@ -66,538 +95,63 @@ export default function admin() {
                                                             <Pencil color='blue'/>
                                                         </Button>
                                                     </Link>
-                                                    <Button className='bg-transparent hover:bg-gray-700'>
-                                                        <Trash color='red'/>
-                                                    </Button>
-                                                
-                                            </TableCell>
-                                        </TableRow>
-                                        <TableRow>
-                                            <TableCell>11/08/2025</TableCell>
-                                            <TableCell>Accounting</TableCell>
-                                            <TableCell>Pengajuan Dana</TableCell>
-                                            <TableCell>Orista Miranti</TableCell>
-                                            <TableCell>
-                                                <Tag status={'belum ACC'} />
-                                            </TableCell>
-                                            
-                                            <TableCell className="text-center space-x-2">
-                                                    <Link href={''}>
-                                                        <Button className='bg-transparent hover:bg-gray-700'>
-                                                            <Eye color='gray'/>
-                                                        </Button>
-                                                    </Link>
-                                                    <Link href={''}>
-                                                        <Button className='bg-transparent hover:bg-gray-700'>
-                                                            <Pencil color='blue'/>
-                                                        </Button>
-                                                    </Link>
-                                                    <Button className='bg-transparent hover:bg-gray-700'>
-                                                        <Trash color='red'/>
-                                                    </Button>
-                                                
-                                            </TableCell>
-                                        </TableRow>
-                                        <TableRow>
-                                            <TableCell>11/08/2025</TableCell>
-                                            <TableCell>Accounting</TableCell>
-                                            <TableCell>Pengajuan Dana</TableCell>
-                                            <TableCell>Orista Miranti</TableCell>
-                                            <TableCell>
-                                                <Tag status={'belum ACC'} />
-                                            </TableCell>
-                                            
-                                            <TableCell className="text-center space-x-2">
-                                                    <Link href={''}>
-                                                        <Button className='bg-transparent hover:bg-gray-700'>
-                                                            <Eye color='gray'/>
-                                                        </Button>
-                                                    </Link>
-                                                    <Link href={''}>
-                                                        <Button className='bg-transparent hover:bg-gray-700'>
-                                                            <Pencil color='blue'/>
-                                                        </Button>
-                                                    </Link>
-                                                    <Button className='bg-transparent hover:bg-gray-700'>
-                                                        <Trash color='red'/>
-                                                    </Button>
-                                                
-                                            </TableCell>
-                                        </TableRow>
-                                        <TableRow>
-                                            <TableCell>11/08/2025</TableCell>
-                                            <TableCell>Accounting</TableCell>
-                                            <TableCell>Pengajuan Dana</TableCell>
-                                            <TableCell>Orista Miranti</TableCell>
-                                            <TableCell>
-                                                <Tag status={'belum ACC'} />
-                                            </TableCell>
-                                            
-                                            <TableCell className="text-center space-x-2">
-                                                    <Link href={''}>
-                                                        <Button className='bg-transparent hover:bg-gray-700'>
-                                                            <Eye color='gray'/>
-                                                        </Button>
-                                                    </Link>
-                                                    <Link href={''}>
-                                                        <Button className='bg-transparent hover:bg-gray-700'>
-                                                            <Pencil color='blue'/>
-                                                        </Button>
-                                                    </Link>
-                                                    <Button className='bg-transparent hover:bg-gray-700'>
-                                                        <Trash color='red'/>
-                                                    </Button>
-                                                
-                                            </TableCell>
-                                        </TableRow>
-                                        <TableRow>
-                                            <TableCell>11/08/2025</TableCell>
-                                            <TableCell>Accounting</TableCell>
-                                            <TableCell>Pengajuan Dana</TableCell>
-                                            <TableCell>Orista Miranti</TableCell>
-                                            <TableCell>
-                                                <Tag status={'belum ACC'} />
-                                            </TableCell>
-                                            
-                                            <TableCell className="text-center space-x-2">
-                                                    <Link href={''}>
-                                                        <Button className='bg-transparent hover:bg-gray-700'>
-                                                            <Eye color='gray'/>
-                                                        </Button>
-                                                    </Link>
-                                                    <Link href={''}>
-                                                        <Button className='bg-transparent hover:bg-gray-700'>
-                                                            <Pencil color='blue'/>
-                                                        </Button>
-                                                    </Link>
-                                                    <Button className='bg-transparent hover:bg-gray-700'>
-                                                        <Trash color='red'/>
-                                                    </Button>
-                                                
-                                            </TableCell>
-                                        </TableRow>
-                                        <TableRow>
-                                            <TableCell>11/08/2025</TableCell>
-                                            <TableCell>Accounting</TableCell>
-                                            <TableCell>Pengajuan Dana</TableCell>
-                                            <TableCell>Orista Miranti</TableCell>
-                                            <TableCell>
-                                                <Tag status={'belum ACC'} />
-                                            </TableCell>
-                                            
-                                            <TableCell className="text-center space-x-2">
-                                                    <Link href={''}>
-                                                        <Button className='bg-transparent hover:bg-gray-700'>
-                                                            <Eye color='gray'/>
-                                                        </Button>
-                                                    </Link>
-                                                    <Link href={''}>
-                                                        <Button className='bg-transparent hover:bg-gray-700'>
-                                                            <Pencil color='blue'/>
-                                                        </Button>
-                                                    </Link>
-                                                    <Button className='bg-transparent hover:bg-gray-700'>
-                                                        <Trash color='red'/>
-                                                    </Button>
-                                                
-                                            </TableCell>
-                                        </TableRow>
-                                        <TableRow>
-                                            <TableCell>11/08/2025</TableCell>
-                                            <TableCell>Accounting</TableCell>
-                                            <TableCell>Pengajuan Dana</TableCell>
-                                            <TableCell>Orista Miranti</TableCell>
-                                            <TableCell>
-                                                <Tag status={'belum ACC'} />
-                                            </TableCell>
-                                            
-                                            <TableCell className="text-center space-x-2">
-                                                    <Link href={''}>
-                                                        <Button className='bg-transparent hover:bg-gray-700'>
-                                                            <Eye color='gray'/>
-                                                        </Button>
-                                                    </Link>
-                                                    <Link href={''}>
-                                                        <Button className='bg-transparent hover:bg-gray-700'>
-                                                            <Pencil color='blue'/>
-                                                        </Button>
-                                                    </Link>
-                                                    <Button className='bg-transparent hover:bg-gray-700'>
-                                                        <Trash color='red'/>
-                                                    </Button>
-                                                
-                                            </TableCell>
-                                        </TableRow>
-                                        <TableRow>
-                                            <TableCell>11/08/2025</TableCell>
-                                            <TableCell>Accounting</TableCell>
-                                            <TableCell>Pengajuan Dana</TableCell>
-                                            <TableCell>Orista Miranti</TableCell>
-                                            <TableCell>
-                                                <Tag status={'belum ACC'} />
-                                            </TableCell>
-                                            
-                                            <TableCell className="text-center space-x-2">
-                                                    <Link href={''}>
-                                                        <Button className='bg-transparent hover:bg-gray-700'>
-                                                            <Eye color='gray'/>
-                                                        </Button>
-                                                    </Link>
-                                                    <Link href={''}>
-                                                        <Button className='bg-transparent hover:bg-gray-700'>
-                                                            <Pencil color='blue'/>
-                                                        </Button>
-                                                    </Link>
-                                                    <Button className='bg-transparent hover:bg-gray-700'>
-                                                        <Trash color='red'/>
-                                                    </Button>
-                                                
-                                            </TableCell>
-                                        </TableRow>
-                                        <TableRow>
-                                            <TableCell>11/08/2025</TableCell>
-                                            <TableCell>Accounting</TableCell>
-                                            <TableCell>Pengajuan Dana</TableCell>
-                                            <TableCell>Orista Miranti</TableCell>
-                                            <TableCell>
-                                                <Tag status={'belum ACC'} />
-                                            </TableCell>
-                                            
-                                            <TableCell className="text-center space-x-2">
-                                                    <Link href={''}>
-                                                        <Button className='bg-transparent hover:bg-gray-700'>
-                                                            <Eye color='gray'/>
-                                                        </Button>
-                                                    </Link>
-                                                    <Link href={''}>
-                                                        <Button className='bg-transparent hover:bg-gray-700'>
-                                                            <Pencil color='blue'/>
-                                                        </Button>
-                                                    </Link>
-                                                    <Button className='bg-transparent hover:bg-gray-700'>
-                                                        <Trash color='red'/>
-                                                    </Button>
-                                                
-                                            </TableCell>
-                                        </TableRow>
-                                        <TableRow>
-                                            <TableCell>11/08/2025</TableCell>
-                                            <TableCell>Accounting</TableCell>
-                                            <TableCell>Pengajuan Dana</TableCell>
-                                            <TableCell>Orista Miranti</TableCell>
-                                            <TableCell>
-                                                <Tag status={'belum ACC'} />
-                                            </TableCell>
-                                            
-                                            <TableCell className="text-center space-x-2">
-                                                    <Link href={''}>
-                                                        <Button className='bg-transparent hover:bg-gray-700'>
-                                                            <Eye color='gray'/>
-                                                        </Button>
-                                                    </Link>
-                                                    <Link href={''}>
-                                                        <Button className='bg-transparent hover:bg-gray-700'>
-                                                            <Pencil color='blue'/>
-                                                        </Button>
-                                                    </Link>
-                                                    <Button className='bg-transparent hover:bg-gray-700'>
-                                                        <Trash color='red'/>
-                                                    </Button>
-                                                
-                                            </TableCell>
-                                        </TableRow>
-                                        <TableRow>
-                                            <TableCell>11/08/2025</TableCell>
-                                            <TableCell>Accounting</TableCell>
-                                            <TableCell>Pengajuan Dana</TableCell>
-                                            <TableCell>Orista Miranti</TableCell>
-                                            <TableCell>
-                                                <Tag status={'belum ACC'} />
-                                            </TableCell>
-                                            
-                                            <TableCell className="text-center space-x-2">
-                                                    <Link href={''}>
-                                                        <Button className='bg-transparent hover:bg-gray-700'>
-                                                            <Eye color='gray'/>
-                                                        </Button>
-                                                    </Link>
-                                                    <Link href={''}>
-                                                        <Button className='bg-transparent hover:bg-gray-700'>
-                                                            <Pencil color='blue'/>
-                                                        </Button>
-                                                    </Link>
-                                                    <Button className='bg-transparent hover:bg-gray-700'>
-                                                        <Trash color='red'/>
-                                                    </Button>
-                                                
-                                            </TableCell>
-                                        </TableRow>
-                                        <TableRow>
-                                            <TableCell>11/08/2025</TableCell>
-                                            <TableCell>Accounting</TableCell>
-                                            <TableCell>Pengajuan Dana</TableCell>
-                                            <TableCell>Orista Miranti</TableCell>
-                                            <TableCell>
-                                                <Tag status={'belum ACC'} />
-                                            </TableCell>
-                                            
-                                            <TableCell className="text-center space-x-2">
-                                                    <Link href={''}>
-                                                        <Button className='bg-transparent hover:bg-gray-700'>
-                                                            <Eye color='gray'/>
-                                                        </Button>
-                                                    </Link>
-                                                    <Link href={''}>
-                                                        <Button className='bg-transparent hover:bg-gray-700'>
-                                                            <Pencil color='blue'/>
-                                                        </Button>
-                                                    </Link>
-                                                    <Button className='bg-transparent hover:bg-gray-700'>
-                                                        <Trash color='red'/>
-                                                    </Button>
-                                                
-                                            </TableCell>
-                                        </TableRow>
-                                        <TableRow>
-                                            <TableCell>11/08/2025</TableCell>
-                                            <TableCell>Accounting</TableCell>
-                                            <TableCell>Pengajuan Dana</TableCell>
-                                            <TableCell>Orista Miranti</TableCell>
-                                            <TableCell>
-                                                <Tag status={'belum ACC'} />
-                                            </TableCell>
-                                            
-                                            <TableCell className="text-center space-x-2">
-                                                    <Link href={''}>
-                                                        <Button className='bg-transparent hover:bg-gray-700'>
-                                                            <Eye color='gray'/>
-                                                        </Button>
-                                                    </Link>
-                                                    <Link href={''}>
-                                                        <Button className='bg-transparent hover:bg-gray-700'>
-                                                            <Pencil color='blue'/>
-                                                        </Button>
-                                                    </Link>
-                                                    <Button className='bg-transparent hover:bg-gray-700'>
-                                                        <Trash color='red'/>
-                                                    </Button>
-                                                
-                                            </TableCell>
-                                        </TableRow>
-                                        <TableRow>
-                                            <TableCell>11/08/2025</TableCell>
-                                            <TableCell>Accounting</TableCell>
-                                            <TableCell>Pengajuan Dana</TableCell>
-                                            <TableCell>Orista Miranti</TableCell>
-                                            <TableCell>
-                                                <Tag status={'belum ACC'} />
-                                            </TableCell>
-                                            
-                                            <TableCell className="text-center space-x-2">
-                                                    <Link href={''}>
-                                                        <Button className='bg-transparent hover:bg-gray-700'>
-                                                            <Eye color='gray'/>
-                                                        </Button>
-                                                    </Link>
-                                                    <Link href={''}>
-                                                        <Button className='bg-transparent hover:bg-gray-700'>
-                                                            <Pencil color='blue'/>
-                                                        </Button>
-                                                    </Link>
-                                                    <Button className='bg-transparent hover:bg-gray-700'>
-                                                        <Trash color='red'/>
-                                                    </Button>
-                                                
-                                            </TableCell>
-                                        </TableRow>
-                                        <TableRow>
-                                            <TableCell>11/08/2025</TableCell>
-                                            <TableCell>Accounting</TableCell>
-                                            <TableCell>Pengajuan Dana</TableCell>
-                                            <TableCell>Orista Miranti</TableCell>
-                                            <TableCell>
-                                                <Tag status={'belum ACC'} />
-                                            </TableCell>
-                                            
-                                            <TableCell className="text-center space-x-2">
-                                                    <Link href={''}>
-                                                        <Button className='bg-transparent hover:bg-gray-700'>
-                                                            <Eye color='gray'/>
-                                                        </Button>
-                                                    </Link>
-                                                    <Link href={''}>
-                                                        <Button className='bg-transparent hover:bg-gray-700'>
-                                                            <Pencil color='blue'/>
-                                                        </Button>
-                                                    </Link>
-                                                    <Button className='bg-transparent hover:bg-gray-700'>
-                                                        <Trash color='red'/>
-                                                    </Button>
-                                                
-                                            </TableCell>
-                                        </TableRow>
-                                        <TableRow>
-                                            <TableCell>11/08/2025</TableCell>
-                                            <TableCell>Accounting</TableCell>
-                                            <TableCell>Pengajuan Dana</TableCell>
-                                            <TableCell>Orista Miranti</TableCell>
-                                            <TableCell>
-                                                <Tag status={'belum ACC'} />
-                                            </TableCell>
-                                            
-                                            <TableCell className="text-center space-x-2">
-                                                    <Link href={''}>
-                                                        <Button className='bg-transparent hover:bg-gray-700'>
-                                                            <Eye color='gray'/>
-                                                        </Button>
-                                                    </Link>
-                                                    <Link href={''}>
-                                                        <Button className='bg-transparent hover:bg-gray-700'>
-                                                            <Pencil color='blue'/>
-                                                        </Button>
-                                                    </Link>
-                                                    <Button className='bg-transparent hover:bg-gray-700'>
-                                                        <Trash color='red'/>
-                                                    </Button>
-                                                
-                                            </TableCell>
-                                        </TableRow>
-                                        <TableRow>
-                                            <TableCell>11/08/2025</TableCell>
-                                            <TableCell>Accounting</TableCell>
-                                            <TableCell>Pengajuan Dana</TableCell>
-                                            <TableCell>Orista Miranti</TableCell>
-                                            <TableCell>
-                                                <Tag status={'belum ACC'} />
-                                            </TableCell>
-                                            
-                                            <TableCell className="text-center space-x-2">
-                                                    <Link href={''}>
-                                                        <Button className='bg-transparent hover:bg-gray-700'>
-                                                            <Eye color='gray'/>
-                                                        </Button>
-                                                    </Link>
-                                                    <Link href={''}>
-                                                        <Button className='bg-transparent hover:bg-gray-700'>
-                                                            <Pencil color='blue'/>
-                                                        </Button>
-                                                    </Link>
-                                                    <Button className='bg-transparent hover:bg-gray-700'>
-                                                        <Trash color='red'/>
-                                                    </Button>
-                                                
-                                            </TableCell>
-                                        </TableRow>
-                                        <TableRow>
-                                            <TableCell>11/08/2025</TableCell>
-                                            <TableCell>Accounting</TableCell>
-                                            <TableCell>Pengajuan Dana</TableCell>
-                                            <TableCell>Orista Miranti</TableCell>
-                                            <TableCell>
-                                                <Tag status={'belum ACC'} />
-                                            </TableCell>
-                                            
-                                            <TableCell className="text-center space-x-2">
-                                                    <Link href={''}>
-                                                        <Button className='bg-transparent hover:bg-gray-700'>
-                                                            <Eye color='gray'/>
-                                                        </Button>
-                                                    </Link>
-                                                    <Link href={''}>
-                                                        <Button className='bg-transparent hover:bg-gray-700'>
-                                                            <Pencil color='blue'/>
-                                                        </Button>
-                                                    </Link>
-                                                    <Button className='bg-transparent hover:bg-gray-700'>
-                                                        <Trash color='red'/>
-                                                    </Button>
-                                                
-                                            </TableCell>
-                                        </TableRow>
-                                        <TableRow>
-                                            <TableCell>11/08/2025</TableCell>
-                                            <TableCell>Accounting</TableCell>
-                                            <TableCell>Pengajuan Dana</TableCell>
-                                            <TableCell>Orista Miranti</TableCell>
-                                            <TableCell>
-                                                <Tag status={'belum ACC'} />
-                                            </TableCell>
-                                            
-                                            <TableCell className="text-center space-x-2">
-                                                    <Link href={''}>
-                                                        <Button className='bg-transparent hover:bg-gray-700'>
-                                                            <Eye color='gray'/>
-                                                        </Button>
-                                                    </Link>
-                                                    <Link href={''}>
-                                                        <Button className='bg-transparent hover:bg-gray-700'>
-                                                            <Pencil color='blue'/>
-                                                        </Button>
-                                                    </Link>
-                                                    <Button className='bg-transparent hover:bg-gray-700'>
-                                                        <Trash color='red'/>
-                                                    </Button>
-                                                
-                                            </TableCell>
-                                        </TableRow>
-                                        <TableRow>
-                                            <TableCell>11/08/2025</TableCell>
-                                            <TableCell>Accounting</TableCell>
-                                            <TableCell>Pengajuan Dana</TableCell>
-                                            <TableCell>Orista Miranti</TableCell>
-                                            <TableCell>
-                                                <Tag status={'belum ACC'} />
-                                            </TableCell>
-                                            
-                                            <TableCell className="text-center space-x-2">
-                                                    <Link href={''}>
-                                                        <Button className='bg-transparent hover:bg-gray-700'>
-                                                            <Eye color='gray'/>
-                                                        </Button>
-                                                    </Link>
-                                                    <Link href={''}>
-                                                        <Button className='bg-transparent hover:bg-gray-700'>
-                                                            <Pencil color='blue'/>
-                                                        </Button>
-                                                    </Link>
-                                                    <Button className='bg-transparent hover:bg-gray-700'>
-                                                        <Trash color='red'/>
-                                                    </Button>
-                                                
-                                            </TableCell>
-                                        </TableRow>
-                                        <TableRow>
-                                            <TableCell>11/08/2025</TableCell>
-                                            <TableCell>Accounting</TableCell>
-                                            <TableCell>Pengajuan Dana</TableCell>
-                                            <TableCell>Orista Miranti</TableCell>
-                                            <TableCell>
-                                                <Tag status={'belum ACC'} />
-                                            </TableCell>
-                                            
-                                            <TableCell className="text-center space-x-2">
-                                                    <Link href={''}>
-                                                        <Button className='bg-transparent hover:bg-gray-700'>
-                                                            <Eye color='gray'/>
-                                                        </Button>
-                                                    </Link>
-                                                    <Link href={''}>
-                                                        <Button className='bg-transparent hover:bg-gray-700'>
-                                                            <Pencil color='blue'/>
-                                                        </Button>
-                                                    </Link>
-                                                    <Button className='bg-transparent hover:bg-gray-700'>
-                                                        <Trash color='red'/>
-                                                    </Button>
                                                 
                                             </TableCell>
                                         </TableRow>
                                     
                                 </TableBody>
-                            </Table>
+                            )}
+                        </Table>
                     </div>
-                    <div className=' bg-amber-500 w-full gap-2 p-2 row-span-2'>
-                        B
+
+                    <div className='border w-full gap-2 row-span-2'>
+                        <div className='p-2'>
+                            <div className='font-bold mb-3'>
+                                Administrasi Nota / Kwitansi
+                            </div>
+                            <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Nama</TableHead>
+                                            <TableHead>Tanggal</TableHead>
+                                            <TableHead>Devisi</TableHead>
+                                            <TableHead>Dana</TableHead>
+                                            <TableHead>Status</TableHead>
+                                            <TableHead className="text-center">Action</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+
+                                {notas.map((notas) =>
+                                
+                                    <TableBody>
+                                            <TableRow>
+                                                <TableCell>{notas.name}</TableCell>
+                                                <TableCell>{notas.date}</TableCell>
+                                                <TableCell>{notas.devisi}</TableCell>
+                                                <TableCell>{notas.dana}</TableCell>
+                                                <TableCell>
+                                                    <Tag status={notas.status} />
+                                                </TableCell>
+                                                
+                                                <TableCell className="text-center space-x-2">
+                                                        <Link href={''}>
+                                                            <Button className='bg-transparent hover:bg-gray-700'>
+                                                                <Eye color='gray'/>
+                                                            </Button>
+                                                        </Link>
+                                                        <Link href={''}>
+                                                            <Button className='bg-transparent hover:bg-gray-700'>
+                                                                <Pencil color='blue'/>
+                                                            </Button>
+                                                        </Link>
+                                                    
+                                                </TableCell>
+                                            </TableRow>
+                                        
+                                    </TableBody>
+                                )}
+                            </Table>
+                        </div>
                     </div>
                     <div className=' bg-amber-500 w-full gap-2 p-2'>
                         c

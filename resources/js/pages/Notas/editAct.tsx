@@ -55,7 +55,6 @@ export default function index({nota} : props) {
         
         put(route('notas.update', nota.id), {
             onFinish: () => setIsSubmitting(false),
-            // preserveScroll: true
         });
     };
 
@@ -145,11 +144,7 @@ export default function index({nota} : props) {
                                         />
                                     </a>
                                 )}
-                                {/* <img 
-                                src={`/storage/${data.file.replace('storage/', '')}`} 
-                                alt={data.name || 'Nota'}
-                                className="h-100 object-contain"
-                                /> */}
+                               
                             </div>
                         </div>                        
 

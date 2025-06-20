@@ -4,13 +4,14 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Incisor;
+use App\Models\Incised;
 use Inertia\Inertia;
 
 class IncisorController extends Controller
 {
     public function index()
     {
-        $incisors = Incisor::orderBy('created_at', 'DESC')->get();
+        $incisors = Incisor::orderBy('created_at', 'ASC')->get();
         return Inertia::render("Incisors/index", 
             [
                 "incisors" => $incisors,
@@ -76,7 +77,29 @@ class IncisorController extends Controller
     }
 
     public function show(Incisor $incisor){
-        return inertia('Incisors/show', compact('incisor'));
+
+        $currentMonth = date('m'); // Bulan saat ini (06 untuk Juni)
+        $currentYear = date('Y');  // Tahun saat ini (2025)
+        $totalQtyKgThisMonth = Incised::where('no_invoice', $incisor->no_invoice)
+            ->whereYear('date', $currentYear)
+            ->whereMonth('date', $currentMonth)
+            ->sum('qty_kg');
+
+        $totalQtyKg = Incised::where('no_invoice', $incisor->no_invoice)
+                        ->sum('qty_kg');
+
+        $dailyData = Incised::where('no_invoice', $incisor->no_invoice)
+        ->select('product', 'date as tanggal', 'no_invoice as kode_penoreh', 'lok_kebun as kebun', 'j_brg as jenis_barang', 'qty_kg', 'amount as total_harga')
+        ->orderBy('created_at', 'DESC')
+        ->get();
+
+        return Inertia::render('Incisors/show', [
+            'incisor' => $incisor->toArray(), // Konversi ke array untuk konsistensi
+            'totalQtyKg' => $totalQtyKg,
+            'dailyData' => $dailyData,
+            'totalQtyKgThisMonth' => $totalQtyKgThisMonth,
+        ]);
+        // return inertia('Incisors/show', compact('incisor'));
     }
 
     public function destroy(Incisor $incisor){

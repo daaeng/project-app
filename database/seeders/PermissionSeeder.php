@@ -18,26 +18,41 @@ class PermissionSeeder extends Seeder
             'usermanagements.create',
             'usermanagements.edit',
             'usermanagements.delete',
+
             'roles.view',
             'roles.create',
             'roles.edit',
             'roles.delete',
+
             'products.view',
             'products.create',
             'products.edit',
             'products.delete',
+
             'requests.view',
             'requests.create',
             'requests.edit',
             'requests.delete',
+
             'notas.view',
             'notas.create',
             'notas.edit',
             'notas.delete',
+
             'administrasis.view',
             'administrasis.create',
             'administrasis.edit',
             'administrasis.delete',
+
+            'incisor.view',
+            'incisor.create',
+            'incisor.edit',
+            'incisor.delete',
+            
+            'incised.view',
+            'incised.create',
+            'incised.edit',
+            'incised.delete',
             
         ];
 

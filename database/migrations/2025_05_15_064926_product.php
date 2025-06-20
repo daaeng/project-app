@@ -20,13 +20,13 @@ return new class extends Migration
             $table->string('j_brg');
             $table->text('desk')->nullable();
             $table->integer('qty_kg');
-            $table->decimal('price_qty', 10, 2);
-            $table->decimal('amount', 10, 2);
+            $table->decimal('price_qty', 12, 2);
+            $table->decimal('amount', 12, 2);
             $table->integer('keping');
             $table->string('kualitas');
             $table->integer('qty_out');
-            $table->decimal('price_out', 10, 2);
-            $table->decimal('amount_out', 10, 2);
+            $table->decimal('price_out', 12, 2);
+            $table->decimal('amount_out', 12, 2);
             $table->integer('keping_out');
             $table->string('kualitas_out');
 

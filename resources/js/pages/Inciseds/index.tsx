@@ -7,6 +7,7 @@ import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { CirclePlus, Eye, Megaphone, Pencil, Trash } from 'lucide-react';
+import { can } from '@/lib/can';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -65,12 +66,15 @@ export default function admin() {
 
                 <div className="border h-auto p-3 rounded-lg">
                     <div className="w-full mb-2 justify-end h-auto flex gap-2">
-                        <Link href={route('inciseds.create')}>
-                            <Button className="bg-blue-600 w-25 hover:bg-blue-500 text-white">
-                                <CirclePlus />
-                                Add User
-                            </Button>
-                        </Link>
+                        {can('incised.create') &&
+                            <Link href={route('inciseds.create')}>
+                                <Button className="bg-blue-600 w-25 hover:bg-blue-500 text-white">
+                                    <CirclePlus />
+                                    Add User
+                                </Button>
+                            </Link>
+                        
+                        }
                     </div>
 
                     <div>
@@ -112,23 +116,30 @@ export default function admin() {
                                             <TableCell>{incised.qty_kg}</TableCell>
                                             <TableCell>{formatCurrency(incised.amount)}</TableCell>
                                             <TableCell className="text-center space-x-2">
-                                                <Link href={route('inciseds.show', incised.id)}>
-                                                    <Button className="bg-transparent hover:bg-gray-700">
-                                                        <Eye color="gray" />
+
+                                                {can('incised.view') &&
+                                                    <Link href={route('inciseds.show', incised.id)}>
+                                                        <Button className="bg-transparent hover:bg-gray-700">
+                                                            <Eye color="gray" />
+                                                        </Button>
+                                                    </Link>
+                                                }
+                                                {can('incised.edit') &&
+                                                    <Link href={route('inciseds.edit', incised.id)}>
+                                                        <Button className="bg-transparent hover:bg-gray-700">
+                                                            <Pencil color="blue" />
+                                                        </Button>
+                                                    </Link>
+                                                }
+                                                {can('incised.delete') &&
+                                                    <Button
+                                                        disabled={processing}
+                                                        onClick={() => handleDelete(incised.id, incised.product)}
+                                                        className="bg-transparent hover:bg-gray-700"
+                                                    >
+                                                        <Trash color="red" />
                                                     </Button>
-                                                </Link>
-                                                <Link href={route('inciseds.edit', incised.id)}>
-                                                    <Button className="bg-transparent hover:bg-gray-700">
-                                                        <Pencil color="blue" />
-                                                    </Button>
-                                                </Link>
-                                                <Button
-                                                    disabled={processing}
-                                                    onClick={() => handleDelete(incised.id, incised.product)}
-                                                    className="bg-transparent hover:bg-gray-700"
-                                                >
-                                                    <Trash color="red" />
-                                                </Button>
+                                                }
                                             </TableCell>
                                         </TableRow>
                                     ))}

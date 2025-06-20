@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
-import { ArrowRight, Building2, CirclePlus, Eye, FileDown, Megaphone, Package, Pencil, Search, Sprout, Trash, TreePalm, Trees } from 'lucide-react';
+import { CirclePlus, Eye, FileDown, Megaphone, Package, Pencil, Search, Trash, TreePalm } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -13,31 +13,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { can } from '@/lib/can';
-
-// interface Product {
-//   id: number;
-//   product: string;
-
-  
-//   created_at: string;
-//   creator: {
-//     name: string;
-//   };
-// }
-
-// interface ProductIndexProps extends PageProps {
-//   notas: {
-//     data: Nota[];
-//     links: Array<{ url: string | null; label: string; active: boolean }>;
-//   };
-//   filters: {
-//     search?: string;
-//   };
-// }
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -83,13 +62,6 @@ const formatCurrency = (value: number) => {
 
 
 export default function index({hsl_karet, saldoin, saldoout, hsl_kelapa, saldoinklp, saldooutklp}) {
-    
-//   const handleSearch = (search: string) => {
-//     router.get(route('products.index'), { search }, {
-//       preserveState: true,
-//       replace: true
-//     });
-//   };
 
     const { products,  flash } = usePage().props as PageProps;
 
@@ -100,12 +72,6 @@ export default function index({hsl_karet, saldoin, saldoout, hsl_kelapa, saldoin
             destroy(route('products.destroy', id))
         }
     }
-    
-    // const handleGKA = (id:number, product:string) => {
-    //     if(confirm(`Do you want delete this  - ${id}. ${product} ` )){
-    //         destroy(route('products.destroy', id))
-    //     }
-    // }
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -113,63 +79,8 @@ export default function index({hsl_karet, saldoin, saldoout, hsl_kelapa, saldoin
 
             <div className="h-full flex-col rounded-xl p-4 space-y-4">
             
-                <Heading title='Product Information'/>
+                <Heading title='PT. Garuda Karya Amanat'/>
 
-                <div className='w-full justify-center h-auto flex mb-5 gap-2'>
-                    
-                    <div className='grid grid-cols-3 gap-4'>
-                        
-                        <Card className="shadow-sm transition-shadow hover:shadow-md bg-amber-50">
-                            <CardHeader className="bg-amber-300 ">
-                                <div className="flex items-center p-1 justify-between">
-                                    <CardTitle className="text-sm font-medium text-gray-700">PT. Garuda Karya Amanat</CardTitle>
-                                    <div className="rounded-lg bg-amber-100 p-2 ml-1">
-                                        <Building2 size={18} className="text-amber-600" />
-                                    </div>
-                                </div>
-                            </CardHeader>
-                            <CardFooter className="">
-                                <Button variant="link"  className="flex h-auto items-center p-0 text-green-600">
-                                    View details <ArrowRight size={16} className="ml-1" />
-                                </Button>
-                            </CardFooter>
-                        </Card>
-                        <Card className="shadow-sm transition-shadow hover:shadow-md bg-blue-50">
-                            <CardHeader className="bg-blue-400 ">
-                                <div className="flex items-center p-1 justify-between">
-                                    <CardTitle className="text-sm font-medium text-gray-700">Temadu Sebayar Agro</CardTitle>
-                                    <div className="rounded-lg bg-blue-100 p-2 ml-1">
-                                        <Trees size={18} className="text-blue-600" />
-                                    </div>
-                                </div>
-                            </CardHeader>
-                            <CardFooter className="">
-                                <Button variant="link" className="flex h-auto items-center p-0 text-green-600">
-                                    View details <ArrowRight size={16} className="ml-1" />
-                                </Button>
-                            </CardFooter>
-                        </Card>
-                        <Card className="shadow-sm transition-shadow hover:shadow-md bg-red-50">
-                            <CardHeader className="bg-red-400 ">
-                                <div className="flex items-center p-1 justify-between">
-                                    <CardTitle className="text-sm font-medium text-gray-700">Garuda Karya Agro</CardTitle>
-                                    <div className="rounded-lg bg-red-100 p-2">
-                                        <Sprout size={18} className="text-blue-600" />
-                                    </div>
-                                </div>
-                            </CardHeader>
-                            <CardFooter className="">
-                                <Button variant="link" className="flex h-auto items-center p-0 text-green-600">
-                                    View details <ArrowRight size={16} className="ml-1" />
-                                </Button>
-                            </CardFooter>
-                        </Card>
-
-                    </div>
-                </div>
-
-                <div className='w-full justify-center border'/>
-                
                 <div className='grid grid-cols-4 gap-4'>
                     
                     <Card className="shadow-sm transition-shadow hover:shadow-md bg-blue-50">
@@ -252,8 +163,6 @@ export default function index({hsl_karet, saldoin, saldoout, hsl_kelapa, saldoin
                                 <Search className="text-muted-foreground absolute top-2.5 left-2.5 h-4 w-4" />
                                 <Input
                                     placeholder="Search..."
-                                    // value={(table.getColumn('name')?.getFilterValue() as string) ?? ''}
-                                    // onChange={(event) => table.getColumn('name')?.setFilterValue(event.target.value)}
                                     className="pl-8"
                                 />
                             </div>

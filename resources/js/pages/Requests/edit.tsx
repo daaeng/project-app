@@ -123,11 +123,26 @@ export default function index({requests} : props) {
                                     <Image className='p-1'/> 
                                     Tidak Dapat Ubah Gambar
                                 </div>
+
+                                {data.file && (
+                                    <a 
+                                        href={`/storage/${data.file.replace('storage/', '')}`} 
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                    >
+                                        <img 
+                                            src={`/storage/${data.file.replace('storage/', '')}`} 
+                                            alt={data.name || 'Nota'}
+                                            className="h-100 object-contain"
+                                        />
+                                    </a>
+                                )}
+{/*                                 
                                 <img 
                                 src={`/storage/${data.file.replace('storage/', '')}`} 
                                 alt={data.name || 'Nota'}
                                 className="h-100 object-contain"
-                                />
+                                /> */}
                             </div>
                         </div> 
 

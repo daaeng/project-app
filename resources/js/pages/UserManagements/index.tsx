@@ -51,7 +51,7 @@ export default function index() {
 
                 <div className='border h-auto p-3 rounded-lg'>
 
-                    {/* {can('usermanagements.create') &&  */}
+                    {can('usermanagements.create') && 
                         <div className='w-full mb-2 justify-end h-auto flex gap-2'>
                             <Link href={route('usermanagements.create')}>
                                 <Button className='bg-blue-600 w-25 hover:bg-blue-500 text-white'>
@@ -61,7 +61,7 @@ export default function index() {
                             </Link>
                         </div>
                     
-                    {/* } */}
+                    }
 
                     <div>
                         {flash.message && (
@@ -108,20 +108,21 @@ export default function index() {
                                             </TableCell>
                                             
                                             <TableCell className="text-center space-x-2">
-                                                 
+                                                {can('usermanagements.view') &&
                                                     <Link href={route('usermanagements.show', id)}>
                                                         <Button className='bg-transparent hover:bg-gray-700'>
                                                             <Eye color='gray'/>
                                                         </Button>
                                                     </Link>
+                                                } 
                                                 
-                                                {/* {can('usermanagements.edit') &&  */}
+                                                {can('usermanagements.edit') && 
                                                     <Link href={route('usermanagements.edit', id)}>
                                                         <Button className='bg-transparent hover:bg-gray-700'>
                                                             <Pencil color='blue'/>
                                                         </Button>
                                                     </Link>
-                                                {/* } */}
+                                                }
 
                                                 {can('usermanagements.delete') && 
                                                     <Button disabled={processing} onClick={() => handleDelete(id, name)} className='bg-transparent hover:bg-gray-700'>

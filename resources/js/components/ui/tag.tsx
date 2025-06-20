@@ -22,7 +22,7 @@ function Tag({ status }: TagProps) {
   }
 
   return (
-    <span style={{ backgroundColor: tagColor, color: textColor, padding: '5px 10px', borderRadius: '10px', fontSize:10 }}>
+    <span style={{ backgroundColor: tagColor, color: textColor, padding: '5px 10px', borderRadius: '10px', fontSize:13 }}>
       {tagText}
     </span>
   );

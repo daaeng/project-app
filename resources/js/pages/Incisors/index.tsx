@@ -7,7 +7,7 @@ import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, useForm, usePage} from '@inertiajs/react';
 import { CirclePlus, Eye, Megaphone, Pencil, Trash } from 'lucide-react';
-
+import { can } from '@/lib/can';
 
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -53,11 +53,11 @@ export default function admin() {
 
             <div className="h-full flex-col rounded-xl p-4">
             
-                <Heading title='Incisor'/>
+                <Heading title='Penoreh'/>
 
                 <div className='border h-auto p-3 rounded-lg'>
 
-                    {/* {can('usermanagements.create') &&  */}
+                    {can('incisor.create') && 
                         <div className='w-full mb-2 justify-end h-auto flex gap-2'>
                             <Link href={route('incisors.create')}>
                                 <Button className='bg-blue-600 w-32 hover:bg-blue-500 text-white'>
@@ -67,7 +67,7 @@ export default function admin() {
                             </Link>
                         </div>
                     
-                    {/* } */}
+                    }
 
                     <div>
                         {flash.message && (
@@ -112,22 +112,27 @@ export default function admin() {
                                                 </TableCell>
                                                 
                                                 <TableCell className="text-center space-x-2">
-                                                    
+                                                    {can('incisor.view') &&
                                                         <Link href={route('incisors.show', incisors.id)}>
                                                             <Button className='bg-transparent hover:bg-gray-700'>
                                                                 <Eye color='gray'/>
                                                             </Button>
                                                         </Link>
+                                                    }
                                                     
+                                                    {can('incisor.edit') &&
                                                         <Link href={route('incisors.edit', incisors.id)}>
                                                             <Button className='bg-transparent hover:bg-gray-700'>
                                                                 <Pencil color='blue'/>
                                                             </Button>
                                                         </Link>
+                                                    }
 
+                                                    {can('incisor.delete') &&
                                                         <Button disabled={processing} onClick={() => handleDelete(incisors.id, incisors.name)} className='bg-transparent hover:bg-gray-700'>
                                                             <Trash color='red'/>
                                                         </Button>
+                                                    }
 
                                                 </TableCell>
                                             </TableRow>

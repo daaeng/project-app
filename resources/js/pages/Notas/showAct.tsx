@@ -121,26 +121,14 @@ export default function edit({nota} : props) {
 
                             <div className='gap-2'>
                                 <Label htmlFor='Image'> Image </Label>
+                                
                                 {/* <Input placeholder='Jenis Barang' value={data.file} readOnly className='bg-gray-50'/> */}
                                 
-                                {data.file && (
-                                    <a 
-                                        href={`/storage/${data.file.replace('storage/', '')}`} 
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                    >
-                                        <img 
-                                            src={`/storage/${data.file.replace('storage/', '')}`} 
-                                            alt={data.name || 'Nota'}
-                                            className="h-100 object-contain"
-                                        />
-                                    </a>
-                                )}
-                                {/* <img 
+                                <img 
                                     src={`/storage/${data.file.replace('storage/', '')}`} 
                                     alt={data.name || 'Nota'}
                                     className="h-100 object-contain"
-                                    /> */}
+                                    />
                             </div>                        
                         </div>
             

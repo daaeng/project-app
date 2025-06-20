@@ -20,6 +20,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 interface Nota {
     id : number,
     name : string,
+    date : string,
     devisi : string,
     mengetahui : string,
     desk : string,

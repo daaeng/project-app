@@ -53,7 +53,7 @@ export default function index() {
 
             <div className="h-full flex-col rounded-xl p-4">
             
-                <Heading title='Request - Upload Nota'/>
+                <Heading title='Request Latter'/>
 
 
                 <div className='rounded-lg border p-2'> 
