@@ -160,15 +160,34 @@ class ProductController extends Controller
         $saldoout = Product::where('status', 'buyer')
             ->where('product', 'karet')->SUM('amount_out');
 
+        // ----------------GKA----------------
+        $tm_slin = Product::where('status', 'gka')
+            ->where('product', 'karet')->SUM('amount');
+
+        $tm_slou = Product::where('status', 'buyer')
+            ->where('product', 'karet')->SUM('amount_out');
+
+        // -------------GKA STOCK-------------
+        $tm_sin = Product::where('status', 'gka')
+            ->where('product', 'karet')->SUM('qty_kg');
+
+        $tm_sou = Product::where('status', 'buyer')
+            ->where('product', 'karet')->SUM('qty_out');
+
         return Inertia::render("Products/gka", [
             "products" => $products,
             "products2" => $product2,
             "filter" => request()->only(['search']),
 
-            "hsl_karet" => $karet - $karet2,
+            // "hsl_karet" => $karet - $karet2,
             "saldoin" => $saldoin,
             "saldoout" => $saldoout,            
-                        
+            
+            "tm_slin" => $tm_slin,
+            "tm_slou" => $tm_slou,
+            
+            "tm_sin" => $tm_sin,
+            "tm_sou" => $tm_sou,
         ]);
     }
     
@@ -253,6 +272,52 @@ class ProductController extends Controller
             "ts_sin" => $ts_sin,
             "ts_sou" => $ts_sou,
                         
+        ]);
+    }
+
+    public function allof()
+    {
+        $products = Product::orderBy('created_at', 'DESC')->get();
+        // dd($products);
+        
+        //berdasarkan product Karet
+        $karet = Product::where('product', 'karet')->SUM('qty_kg');
+        $karet2 = Product::where('product', 'karet')->SUM('qty_out');
+
+        $saldoin = Product::where('product', 'karet')->SUM('amount');
+        $saldoout = Product::where('product', 'karet')->SUM('amount_out');
+
+        //berdasarkan product Kelapa
+        $klp = Product::where('product', 'kelapa')->SUM('qty_kg');
+        $klp2 = Product::where('product', 'kelapa')->SUM('qty_out');
+
+        $saldoinklp = Product::where('product', 'kelapa')->SUM('amount');
+        $saldooutklp = Product::where('product', 'kelapa')->SUM('amount_out');
+        
+        //berdasarkan product Pupuk
+        $ppk = Product::where('product', 'pupuk')->SUM('qty_kg');
+        $ppk2 = Product::where('product', 'pupuk')->SUM('qty_out');
+
+        $saldoinppk = Product::where('product', 'pupuk')->SUM('amount');
+        $saldooutppk = Product::where('product', 'pupuk')->SUM('amount_out');
+
+        return Inertia::render("Products/allof", [
+            // "products" => Product::all(),
+            "products" => $products,
+            "filter" => request()->only(['search']),
+
+            "hsl_karet" => $karet - $karet2,
+            "saldoin" => $saldoin,
+            "saldoout" => $saldoout,            
+            
+            "hsl_kelapa" => $klp - $klp2,
+            "saldoinklp" => $saldoinklp,
+            "saldooutklp" => $saldooutklp,  
+            
+            "hsl_pupuk" => $ppk - $ppk2,
+            "saldoinppk" => $saldoinppk,
+            "saldooutppk" => $saldooutppk,  
+            
         ]);
     }
 

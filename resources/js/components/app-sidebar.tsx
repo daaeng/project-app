@@ -16,6 +16,12 @@ const mainNavItems: NavItem[] = [
     },
 
     {
+        title: 'Role Management',
+        href: '/roles',
+        icon: Notebook,
+    },
+
+    {
         title: 'User Management',
         href: '/usermanagements',
         icon: UserCog2,
@@ -25,12 +31,6 @@ const mainNavItems: NavItem[] = [
         title: 'Incisor',
         href: '/incisors',
         icon: UsersRound,
-    },
-    
-    {
-        title: 'Role Management',
-        href: '/roles',
-        icon: Notebook,
     },
 
     {
@@ -59,7 +59,7 @@ const mainNavItems: NavItem[] = [
     
     {
         title: 'Cash Receipt',
-        href: '/',
+        href: '/kasbons',
         icon: HandCoins,
     },
     

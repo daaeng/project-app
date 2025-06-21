@@ -9,6 +9,7 @@ use App\Http\Controllers\AdministrasiController;
 use App\Http\Controllers\UserManagementController;
 use App\Http\Controllers\IncisorController;
 use App\Http\Controllers\IncisedController;
+use App\Http\Controllers\KasbonController;
 
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -35,6 +36,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     route::get('/products/gka', [ProductController::class, 'gka'])->name('products.gka');
     route::get('/products/tsa', [ProductController::class, 'tsa'])->name('products.tsa');
+    route::get('/products/allof', [ProductController::class, 'allof'])->name('products.allof');
     
 
     
@@ -112,6 +114,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
     route::put('/inciseds/{incised}', [IncisedController::class, 'update'])->name('inciseds.update');
     route::get('/inciseds/{incised}/show', [IncisedController::class, 'show'])->name('inciseds.show');
     route::delete('/inciseds/{incised}', [IncisedController::class, 'destroy'])->name('inciseds.destroy');
+    
+    // ~~~~~~~~~~~~~ Inciseds ~~~~~~~~~~~~~
+    route::get('/kasbons', [KasbonController::class, 'index'])->name('kasbons.index');
+    // route::post('/inciseds', [IncisedController::class, 'store'])->name('inciseds.store');
+    // route::get('/inciseds/create', [IncisedController::class, 'create'])->name('inciseds.create');
+    // route::get('/inciseds/{incised}/edit', [IncisedController::class, 'edit'])->name('inciseds.edit');
+    // route::put('/inciseds/{incised}', [IncisedController::class, 'update'])->name('inciseds.update');
+    // route::get('/inciseds/{incised}/show', [IncisedController::class, 'show'])->name('inciseds.show');
+    // route::delete('/inciseds/{incised}', [IncisedController::class, 'destroy'])->name('inciseds.destroy');
 
 });
 
