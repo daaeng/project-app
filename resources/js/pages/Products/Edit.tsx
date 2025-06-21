@@ -26,6 +26,7 @@ interface Product{
     amount_out: string,
     keping_out: string,
     kualitas_out: string,
+    status: string,
 }
 
 interface props{
@@ -52,6 +53,7 @@ export default function edit({product} : props) {
         amount_out: product.amount_out,
         keping_out: product.keping_out,
         kualitas_out: product.kualitas_out,
+        status: product.status,
 
     })
 
@@ -69,7 +71,7 @@ export default function edit({product} : props) {
                 <Heading title='Edit Data Product'/>
 
                 <Link href={route('products.index')}>
-                    <Button className='bg-auto w-25 hover:bg-accent hover:text-black'>
+                    <Button className='bg-auto w-25 hover:bg-accent hover:text-accent-foreground'>
                         <Undo2 />
                         Back
                     </Button>
@@ -117,8 +119,13 @@ export default function edit({product} : props) {
                                 <Input placeholder='Invoice' value={data.no_invoice} onChange={(e) => setData('no_invoice', e.target.value)} />
                             </div>
                             <div className='gap-2'>
-                                <Label htmlFor='Name Supplier'> Name Supplier </Label>
-                                <Input placeholder='Name Supplier' value={data.nm_supplier} onChange={(e) => setData('nm_supplier', e.target.value)} />
+                                <Label htmlFor='Name Supplier'> Supplier </Label>
+                                {/* <Input placeholder='Name Supplier' value={data.nm_supplier} onChange={(e) => setData('nm_supplier', e.target.value)} /> */}
+                                <select value={data.nm_supplier} onChange={(e) => setData('nm_supplier', e.target.value)} className='w-full border p-1 rounded-md text-destructive-foreground' required>
+                                    <option value="" disabled selected>Pilih Supplier</option>
+                                    <option value="Sebayar" >Sebayar</option>
+                                    <option value="Temadu" >Temadu</option>
+                                </select>
                             </div>
                             <div className='gap-2'>
                                 <Label htmlFor='Jenis Barang'> Jenis Barang </Label>
@@ -133,6 +140,17 @@ export default function edit({product} : props) {
                         
 
                         <div className='grid grid-cols-3'>
+                            <div className='gap-2 sm:col-span-3'>
+                                <Label htmlFor='Product Name'> Status </Label>
+                                {/* <Input placeholder='Product Name' value={data.product} onChange={(e) => setData('product', e.target.value)} /> */}
+                                <select value={data.status} onChange={(e) => setData('status', e.target.value)} className='w-full border p-1 rounded-md text-destructive-foreground' required>
+                                    <option value="" disabled selected>Pilih Jenis Product</option>
+                                    <option value="tsa" >TSA</option>
+                                    <option value="gka" >TSA to GKA</option>
+                                    <option value="buyer" >GKA to Buyyer</option>
+                                </select>
+                            </div>
+
                             <div className='p-2 mt-3 col-span-3 bg-gray-900 rounded-md h-fit text-white'>
 
                                 <div className='grid md:grid-cols-2 sm:grid-cols-1 gap-3 p-2'>
@@ -140,6 +158,8 @@ export default function edit({product} : props) {
                                     <div className='gap-2 sm:col-span-3'>
                                         <Label htmlFor='In'> MASUK </Label>
                                     </div>
+                                    
+
 
                                     <div className='gap-2 md:col-span-1 sm:col-span-3'>
                                         <Label htmlFor='Quantity'> Quantity (Kg) </Label>

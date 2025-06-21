@@ -53,7 +53,7 @@ export default function index() {
                 <Heading title='Create Product'/>
 
                 <Link href={route('products.index')}>
-                    <Button className='bg-auto w-25 hover:bg-accent hover:text-black'>
+                    <Button className='bg-auto w-25 hover:bg-accent hover:text-accent-foreground'>
                         <Undo2 />
                         Back
                     </Button>
@@ -101,8 +101,13 @@ export default function index() {
                                 <Input placeholder='No. Bukti' value={data.no_invoice} onChange={(e) => setData('no_invoice', e.target.value)} />
                             </div>
                             <div className='gap-2'>
-                                <Label htmlFor='Name Supplier'> Name Supplier </Label>
-                                <Input placeholder='Name Supplier' value={data.nm_supplier} onChange={(e) => setData('nm_supplier', e.target.value)} />
+                                <Label htmlFor='Name Supplier'> Supplier </Label>
+                                {/* <Input placeholder='Name Supplier' value={data.nm_supplier} onChange={(e) => setData('nm_supplier', e.target.value)} /> */}
+                                <select value={data.nm_supplier} onChange={(e) => setData('nm_supplier', e.target.value)} className='w-full border p-1 rounded-md text-destructive-foreground' required>
+                                    <option value="" disabled selected>Pilih Supplier</option>
+                                    <option value="sebayar" >Sebayar</option>
+                                    <option value="termadu" >Temadu</option>
+                                </select>
                             </div>
                             <div className='gap-2'>
                                 <Label htmlFor='Jenis Barang'> Jenis Barang </Label>

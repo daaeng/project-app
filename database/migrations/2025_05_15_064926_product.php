@@ -29,6 +29,8 @@ return new class extends Migration
             $table->decimal('amount_out', 12, 2);
             $table->integer('keping_out');
             $table->string('kualitas_out');
+            
+            $table->string('status')->default('tsa');
 
             $table->timestamps();
         });

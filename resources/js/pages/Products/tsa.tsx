@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
-import { CirclePlus, Eye, FileDown, Megaphone, Package, Pencil, Search, Trash, TreePalm, Undo2 } from 'lucide-react';
+import { CirclePlus, Eye, FileDown, Megaphone, Package, Pencil, Search, Sprout, Trash, TreePalm, Undo2 } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -62,7 +62,7 @@ const formatCurrency = (value: number) => {
 };
 
 
-export default function index({hsl_karet, saldoin, saldoout, }) {
+export default function index({hsl_karet, saldoin, saldoout, tm_sin, tm_sou, tm_slin, tm_slou, ts_sin, ts_sou, ts_slin, ts_slou}) {
 
     const { products, products2, flash } = usePage().props as PageProps;
 
@@ -80,7 +80,7 @@ export default function index({hsl_karet, saldoin, saldoout, }) {
 
             <div className="h-full flex-col rounded-xl p-4 space-y-4">
             
-                <Heading title='PT. Garuda Karya Amanat'/>
+                <Heading title='Temadu Sebayar Agro'/>
 
                 <div className='mb-3'>
                     <Link href={route('products.index')}>
@@ -112,7 +112,55 @@ export default function index({hsl_karet, saldoin, saldoout, }) {
                         
                     </Card>
 
+                    <Card className="shadow-sm transition-shadow hover:shadow-md bg-amber-50">
+                        <CardHeader className="bg-amber-300 ">
+                            <div className="flex items-center p-1 justify-between">
+                                <CardTitle className="text-sm font-medium text-gray-700">Stock Temadu</CardTitle>
+                                <div className="rounded-lg bg-amber-100 p-2">
+                                    <Sprout size={18} className="text-amber-600" />
+                                </div>
+                            </div>
+                        </CardHeader>
+                        <CardContent className='lg:-mt-4 text-amber-700'>
+                            <div className='grid grid-cols-2'>
+                                <div className='flex gap-2'> <p className='text-green-400'>IN</p> {formatCurrency(tm_slin)} </div>
+                                <div className='flex gap-2'> <p className='text-red-400'>OUT</p> {formatCurrency(tm_slou)} </div>
+
+                                {/* Stock masuk */}
+                                <div className="text-2xl w-full justify-center flex font-bold row-span-2">{tm_sin} Kg</div>
+
+                                {/* Stock Keluar */}
+                                <div className="text-2xl w-full justify-center flex font-bold row-span-2">{tm_sou} Kg</div>
+                            </div>
+                        </CardContent>
+                        
+                    </Card>
+                    
+                    <Card className="shadow-sm transition-shadow hover:shadow-md bg-red-50">
+                        <CardHeader className="bg-red-300 ">
+                            <div className="flex items-center p-1 justify-between">
+                                <CardTitle className="text-sm font-medium text-gray-700">Stock Sebayar</CardTitle>
+                                <div className="rounded-lg bg-red-100 p-2">
+                                    <Sprout size={18} className="text-red-600" />
+                                </div>
+                            </div>
+                        </CardHeader>
+                        <CardContent className='lg:-mt-4 text-red-700'>
+                            <div className='grid grid-cols-2'>
+                                <div className='flex gap-2'> <p className='text-green-400'>IN</p> {formatCurrency(ts_slin)} </div>
+                                <div className='flex gap-2'> <p className='text-red-400'>OUT</p> {formatCurrency(ts_slou)} </div>
+
+                                {/* Stock masuk */}
+                                <div className="text-2xl w-full justify-center flex font-bold row-span-2">{ts_sin} Kg</div>
+
+                                {/* Stock Keluar */}
+                                <div className="text-2xl w-full justify-center flex font-bold row-span-2">{ts_sou} Kg</div>
+                            </div>
+                        </CardContent>
+                        
+                    </Card>
                 </div>
+                
 
                 <div className='p-2'>
                     {flash.message && (
@@ -323,8 +371,8 @@ export default function index({hsl_karet, saldoin, saldoout, }) {
                                                     <TableCell>{product.date}</TableCell>
                                                     <TableCell>{product.nm_supplier}</TableCell>
                                                     <TableCell>{product.j_brg}</TableCell>
-                                                    <TableCell>{product.qty_out}</TableCell>
-                                                    <TableCell>{formatCurrency(product.amount_out)}</TableCell>
+                                                    <TableCell>{product.qty_kg}</TableCell>
+                                                    <TableCell>{formatCurrency(product.amount)}</TableCell>
                                                     <TableCell className="text-center space-x-2">
 
                                                         {can('products.view') &&

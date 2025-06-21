@@ -187,12 +187,21 @@ export default function index({ incisor, totalQtyKg, totalQtyKgThisMonth, dailyD
                                     <Label htmlFor="Status">Total Toreh</Label>
                                     <Input placeholder="Total Quantity" value={totalQtyKg + ' kg'} readOnly />
                                 </div>
+                                <div className="gap-2">
+                                    <Label htmlFor="Status">Total Toreh Bulan Ini</Label>
+                                    <Input
+                                        placeholder="Total Quantity"
+                                        className="w-33"
+                                        value={totalQtyKgThisMonth ? totalQtyKgThisMonth + ' kg' : '0 kg'}
+                                        readOnly
+                                    />
+                                </div>
                             </div>
                         </div>
                     </form>
                 </div>
 
-                <div className="w-full mb-2 justify-end h-auto flex gap-2">
+                {/* <div className="w-full mb-2 justify-end h-auto flex gap-2">
                     <div className="gap-2">
                         <Label htmlFor="Status">Total Toreh Bulan Ini</Label>
                         <Input
@@ -202,7 +211,7 @@ export default function index({ incisor, totalQtyKg, totalQtyKgThisMonth, dailyD
                             readOnly
                         />
                     </div>
-                </div>
+                </div> */}
 
                 <div>
                     <CardContent className="border rounded-lg">

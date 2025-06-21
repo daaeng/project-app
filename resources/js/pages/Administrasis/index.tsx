@@ -104,7 +104,7 @@ export default function admin() {
                         </Table>
                     </div>
 
-                    <div className='border w-full gap-2 row-span-2'>
+                    <div className='border w-full gap-2 '>
                         <div className='p-2'>
                             <div className='font-bold mb-3'>
                                 Administrasi Nota / Kwitansi
@@ -144,20 +144,12 @@ export default function admin() {
                                                                 <Pencil color='blue'/>
                                                             </Button>
                                                         </Link>
-                                                    
                                                 </TableCell>
                                             </TableRow>
-                                        
                                     </TableBody>
                                 )}
                             </Table>
                         </div>
-                    </div>
-                    <div className=' bg-amber-500 w-full gap-2 p-2'>
-                        c
-                    </div>
-                    <div className=' bg-amber-500 w-full gap-2 p-2 col-span-2'>
-                        D
                     </div>
 
                 </div>

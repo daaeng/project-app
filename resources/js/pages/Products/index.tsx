@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
-import { ArrowRight, Building2, CirclePlus, Eye, FileDown, Megaphone, Package, Pencil, Search, Sprout, Trash, TreePalm, Trees } from 'lucide-react';
+import { ArrowRight, Building2, CirclePlus, Eye, FileDown, Megaphone, Package, Pencil, Search, Sprout, Trash, TreePalm, Trees, Wheat } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -17,6 +17,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { can } from '@/lib/can';
+import Tag_Karet from '@/components/ui/tag_karet';
 
 // interface Product {
 //   id: number;
@@ -64,6 +65,7 @@ interface Product {
     amount_out: number;
     keping_out: number;
     kualitas_out: string;
+    status: string;
 }
 
 interface PageProps{
@@ -82,7 +84,7 @@ const formatCurrency = (value: number) => {
 };
 
 
-export default function index({hsl_karet, saldoin, saldoout, hsl_kelapa, saldoinklp, saldooutklp}) {
+export default function index({hsl_karet, saldoin, saldoout, hsl_kelapa, saldoinklp, saldooutklp, hsl_pupuk, saldoinppk, saldooutppk}) {
     
 //   const handleSearch = (search: string) => {
 //     router.get(route('products.index'), { search }, {
@@ -129,11 +131,14 @@ export default function index({hsl_karet, saldoin, saldoout, hsl_kelapa, saldoin
                                 </div>
                             </CardHeader>
                             <CardFooter className="">
-                                <Button variant="link"  className="flex h-auto items-center p-0 text-green-600">
-                                    View details <ArrowRight size={16} className="ml-1" />
-                                </Button>
+                                <Link href={route('products.gka')}>
+                                    <Button variant="link"  className="flex h-auto items-center p-0 text-green-600">
+                                        View details <ArrowRight size={16} className="ml-1" />
+                                    </Button>
+                                </Link>
                             </CardFooter>
                         </Card>
+
                         <Card className="shadow-sm transition-shadow hover:shadow-md bg-blue-50">
                             <CardHeader className="bg-blue-400 ">
                                 <div className="flex items-center p-1 justify-between">
@@ -144,11 +149,14 @@ export default function index({hsl_karet, saldoin, saldoout, hsl_kelapa, saldoin
                                 </div>
                             </CardHeader>
                             <CardFooter className="">
-                                <Button variant="link" className="flex h-auto items-center p-0 text-green-600">
-                                    View details <ArrowRight size={16} className="ml-1" />
-                                </Button>
+                                <Link href={route('products.tsa')}>
+                                    <Button variant="link"  className="flex h-auto items-center p-0 text-green-600">
+                                        View details <ArrowRight size={16} className="ml-1" />
+                                    </Button>
+                                </Link>
                             </CardFooter>
                         </Card>
+
                         <Card className="shadow-sm transition-shadow hover:shadow-md bg-red-50">
                             <CardHeader className="bg-red-400 ">
                                 <div className="flex items-center p-1 justify-between">
@@ -159,9 +167,11 @@ export default function index({hsl_karet, saldoin, saldoout, hsl_kelapa, saldoin
                                 </div>
                             </CardHeader>
                             <CardFooter className="">
-                                <Button variant="link" className="flex h-auto items-center p-0 text-green-600">
-                                    View details <ArrowRight size={16} className="ml-1" />
-                                </Button>
+                                <Link href={''}>
+                                    <Button variant="link"  className="flex h-auto items-center p-0 text-green-600">
+                                        View details <ArrowRight size={16} className="ml-1" />
+                                    </Button>
+                                </Link>
                             </CardFooter>
                         </Card>
 
@@ -171,6 +181,22 @@ export default function index({hsl_karet, saldoin, saldoout, hsl_kelapa, saldoin
                 <div className='w-full justify-center border'/>
                 
                 <div className='grid grid-cols-4 gap-4'>
+                    
+                    <Card className="shadow-sm transition-shadow hover:shadow-md bg-amber-50">
+                        <CardHeader className="bg-amber-300 ">
+                            <div className="flex items-center p-1 justify-between">
+                                <CardTitle className="text-sm font-medium text-gray-500">Available Stock Kelapa</CardTitle>
+                                <div className="rounded-lg bg-amber-100 p-2">
+                                    <TreePalm size={18} className="text-amber-600" />
+                                </div>
+                            </div>
+                        </CardHeader>
+                        <CardContent className='lg:-mt-4 text-amber-700'>
+                            <div className="text-2xl font-bold">{hsl_kelapa}</div>
+                            <div className='flex gap-2'> <p className='text-green-400'>IN</p> {formatCurrency(saldoinklp)}</div>
+                            <div className='flex gap-2'> <p className='text-red-400'>Out</p> {formatCurrency(saldooutklp)}</div>
+                        </CardContent>
+                    </Card>
                     
                     <Card className="shadow-sm transition-shadow hover:shadow-md bg-blue-50">
                         <CardHeader className="bg-blue-300 ">
@@ -193,32 +219,28 @@ export default function index({hsl_karet, saldoin, saldoout, hsl_kelapa, saldoin
                         </CardFooter> */}
                     </Card>
                     
-                    <Card className="shadow-sm transition-shadow hover:shadow-md bg-amber-50">
-                        <CardHeader className="bg-amber-300 ">
+                    
+                    <Card className="shadow-sm transition-shadow hover:shadow-md bg-red-50">
+                        <CardHeader className="bg-red-300 ">
                             <div className="flex items-center p-1 justify-between">
-                                <CardTitle className="text-sm font-medium text-gray-500">Available Stock Kelapa</CardTitle>
-                                <div className="rounded-lg bg-amber-100 p-2">
-                                    <TreePalm size={18} className="text-amber-600" />
+                                <CardTitle className="text-sm font-medium text-gray-500">Available Stock Pupuk</CardTitle>
+                                <div className="rounded-lg bg-red-100 p-2">
+                                    <Wheat size={18} className="text-red-600" />
                                 </div>
                             </div>
                         </CardHeader>
-                        <CardContent className='lg:-mt-4 text-amber-700'>
-                            <div className="text-2xl font-bold">{hsl_kelapa}</div>
-                            <div className='flex gap-2'> <p className='text-green-400'>IN</p> {formatCurrency(saldoinklp)}</div>
-                            <div className='flex gap-2'> <p className='text-red-400'>Out</p> {formatCurrency(saldooutklp)}</div>
+                        <CardContent className='lg:-mt-4 text-red-700'>
+                            <div className="text-2xl font-bold">{hsl_pupuk}</div>
+                            <div className='flex gap-2'> <p className='text-green-400'>IN</p> {formatCurrency(saldoinppk)}</div>
+                            <div className='flex gap-2'> <p className='text-red-400'>Out</p> {formatCurrency(saldooutppk)}</div>
                         </CardContent>
-                        {/* <CardFooter className="">
-                            <Button variant="link" className="flex h-auto items-center p-0 text-green-600">
-                                View details <ArrowRight size={16} className="ml-1" />
-                            </Button>
-                        </CardFooter> */}
                     </Card>
 
                 </div>
 
                 <div className='border p-2 rounded-lg'>
 
-                    <div className=''>
+                    {/* <div className=''>
 
                         {can('products.create') && 
                             <div className='w-full justify-end h-auto flex mb-5 gap-2'>
@@ -230,7 +252,7 @@ export default function index({hsl_karet, saldoin, saldoout, hsl_kelapa, saldoin
                                 </Link>
                             </div>
                         }
-                    </div>
+                    </div> */}
 
                     <div>
                         {flash.message && (
@@ -246,7 +268,7 @@ export default function index({hsl_karet, saldoin, saldoout, hsl_kelapa, saldoin
                         )}
                     </div>
                     
-                    <CardContent className='border rounded-lg'>
+                    <CardContent className=' rounded-lg'>
                         <div className="flex flex-col gap-4 py-4 sm:flex-row sm:items-center">
                             <div className="relative flex-1">
                                 <Search className="text-muted-foreground absolute top-2.5 left-2.5 h-4 w-4" />
@@ -293,7 +315,8 @@ export default function index({hsl_karet, saldoin, saldoout, hsl_kelapa, saldoin
                                         <TableHead>Quantity (OUT)</TableHead>
                                         <TableHead>Total Harga (IN)</TableHead>
                                         <TableHead>Total Harga (OUT)</TableHead>
-                                        <TableHead className="text-center">Action</TableHead>
+                                        <TableHead className='text-center'>Status</TableHead>
+                                        {/* <TableHead className="text-center">Action</TableHead> */}
                                         </TableRow>
                                     </TableHeader>
 
@@ -310,7 +333,10 @@ export default function index({hsl_karet, saldoin, saldoout, hsl_kelapa, saldoin
                                                 <TableCell>{product.qty_out}</TableCell>
                                                 <TableCell>{formatCurrency(product.amount)}</TableCell>
                                                 <TableCell>{formatCurrency(product.amount_out)}</TableCell>
-                                                <TableCell className="text-center space-x-2">
+                                                <TableCell className="text-center ">
+                                                    <Tag_Karet status={product.status}/>        
+                                                </TableCell>
+                                                {/* <TableCell className="text-center space-x-2">
 
                                                     {can('products.view') &&
                                                         <Link href={route('products.show', product.id)}>
@@ -333,7 +359,7 @@ export default function index({hsl_karet, saldoin, saldoout, hsl_kelapa, saldoin
                                                             <Trash color='red'/>
                                                         </Button>
                                                     }
-                                                </TableCell>
+                                                </TableCell> */}
                                             </TableRow>
                                         ))}
                                     </TableBody>
