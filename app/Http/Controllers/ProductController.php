@@ -277,8 +277,21 @@ class ProductController extends Controller
 
     public function allof()
     {
+        $query = Product::query();
+
+        // Ambil parameter pencarian dari request
+        $search = request()->input('search');
+
+        // Jika ada kata kunci pencarian, terapkan filter
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('product', 'like', "%{$search}%")
+                  ->orWhere('no_invoice', 'like', "%{$search}%")
+                  ->orWhere('nm_supplier', 'like', "%{$search}%");
+            });
+        }
+
         $products = Product::orderBy('created_at', 'DESC')->get();
-        // dd($products);
         
         //berdasarkan product Karet
         $karet = Product::where('product', 'karet')->SUM('qty_kg');
