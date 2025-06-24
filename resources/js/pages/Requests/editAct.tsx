@@ -12,8 +12,8 @@ import { CircleAlert, Image, Undo2 } from 'lucide-react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Edit Request',
-        href: '/requests?edit',
+        title: 'Administrasis',
+        href: '/Administrasis',
     },
 ];
 
@@ -27,6 +27,8 @@ interface Requested{
     desk: string,
     dana: number,
     file: string,
+    status: string,
+    reason: string,
 }
 
 interface props{
@@ -45,12 +47,13 @@ export default function index({requests} : props) {
         desk: requests.desk || '',
         dana: requests.dana || '',
         file: requests.file || '',
-
+        status: requests.status || '',
+        reason: requests.reason || '',
     })
 
     const handleSubmit = (e: React.FormEvent) =>{
         e.preventDefault();
-        put(route('requests.update', requests.id));
+        put(route('requests.updateAct', requests.id));
     }
 
     return (
@@ -61,7 +64,7 @@ export default function index({requests} : props) {
             
                 <Heading title='Edit Pengajuan'/>
 
-                <Link href={route('requests.index')}>
+                <Link href={route('administrasis.index')}>
                     <Button className='bg-auto w-25 hover:bg-accent hover:text-black'>
                         <Undo2 />
                         Back
@@ -114,6 +117,19 @@ export default function index({requests} : props) {
                             <div className='gap-2'>
                                 <Label htmlFor='Description'> Description </Label>
                                 <Textarea placeholder='Description' value={data.desk} onChange={(e) => setData('desk', e.target.value)}/>
+                            </div>
+                            <div className='gap-2'>
+                                <Label htmlFor='Status'> Status </Label>                                
+                                <select value={data.status} onChange={(e) => setData('status', e.target.value)} className='w-full border p-1 rounded-md text-destructive-foreground' required>
+                                    <option value="" disabled selected>Info Status</option>
+                                    <option value="belum ACC" >Process</option>
+                                    <option value="ditolak" >Rejected</option>
+                                    <option value="diterima" >Accepted</option>
+                                </select>
+                            </div>
+                            <div className='gap-2'>
+                                <Label htmlFor='Reason'> Reason </Label>
+                                <Input placeholder='Reason' value={data.reason} onChange={(e) => setData('reason', e.target.value)} />
                             </div>   
                             <div className='gap-2'>
                                 <Label htmlFor='Dana'> Dana </Label>

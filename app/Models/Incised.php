@@ -26,4 +26,9 @@ class Incised extends Model
     {
         return $this->belongsTo(Incisor::class, 'no_invoice', 'no_invoice');
     }
+
+    public function kasbon()
+    {
+        return $this->hasMany(Kasbon::class);
+    }
 }

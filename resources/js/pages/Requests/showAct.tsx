@@ -13,8 +13,8 @@ import { Image, Undo2 } from 'lucide-react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Edit Request',
-        href: '/requests?edit',
+        title: 'Administrasis',
+        href: '/Administrasis',
     },
 ];
 
@@ -67,7 +67,7 @@ export default function index({requests} : props) {
             
                 <Heading title='Edit Pengajuan'/>
 
-                <Link href={route('requests.index')}>
+                <Link href={route('administrasis.index')}>
                     <Button className='bg-auto w-25 hover:bg-accent hover:text-black'>
                         <Undo2 />
                         Back

@@ -27,6 +27,7 @@ export default function index() {
         j_pengajuan: '',
         mengetahui: '',
         desk: '',
+        dana: '',
         file: '',
 
     })
@@ -97,6 +98,15 @@ export default function index() {
                             <div className='gap-2'>
                                 <Label htmlFor='Description'> Description </Label>
                                 <Textarea placeholder='Description' value={data.desk} onChange={(e) => setData('desk', e.target.value)}/>
+                            </div>
+                            <div className='gap-2'>
+                                <Label htmlFor='Dana'> Dana </Label>
+                                <div className='flex'>
+                                    <div className='mt-1'>
+                                        Rp.     
+                                    </div>
+                                    <Input placeholder='Dana' value={data.dana} onChange={(e) => setData('dana', e.target.value)}/>
+                                </div>
                             </div>
                         
                         </div>

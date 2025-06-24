@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('j_pengajuan');
             $table->string('mengetahui');
             $table->text('desk')->nullable();
+            $table->decimal('dana', 16, 2)->nullable();
             $table->string('file')->nullable();
             $table->string('file_hash')->nullable();
             $table->string('status')->default('belum ACC');

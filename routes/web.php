@@ -57,7 +57,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     route::put('/requests/{requested}', [RequestController::class, 'update'])->name('requests.update');
     route::get('/requests/{requested}/show', [RequestController::class, 'show'])->name('requests.show');
     route::delete('/requests/{requested}', [RequestController::class, 'destroy'])->name('requests.destroy');
-
+    
+    route::get('/requests/{requested}/editAct', [RequestController::class, 'editAct'])->name('requests.editAct');
+    route::put('/requests/{requested}', [RequestController::class, 'updateAct'])->name('requests.updateAct');
+    route::get('/requests/{requested}/showAct', [RequestController::class, 'showAct'])->name('requests.showAct');
     
     // ~~~~~~~~~~~~~ Invoice ~~~~~~~~~~~~~
     // Route::resource('notas', NotaController::class);
@@ -69,7 +72,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     route::put('/notas/{nota}', [NotaController::class, 'update'])->name('notas.update');
     route::get('/notas/{nota}/show', [NotaController::class, 'show'])->name('notas.show');
     route::delete('/notas/{nota}', [NotaController::class, 'destroy'])->name('notas.destroy');
-
+    
+    route::get('/notas/{nota}/editAct', [NotaController::class, 'editAct'])->name('notas.editAct');
+    route::put('/notas/{nota}', [NotaController::class, 'updateAct'])->name('notas.updateAct');
+    route::get('/notas/{nota}/showAct', [NotaController::class, 'showAct'])->name('notas.showAct');
     // Route::get('/notas', [NotaController::class, 'getNotas']);
 
     // ~~~~~~~~~~~~~ ADMINISTRASI ~~~~~~~~~~~~~
@@ -115,7 +121,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     route::get('/inciseds/{incised}/show', [IncisedController::class, 'show'])->name('inciseds.show');
     route::delete('/inciseds/{incised}', [IncisedController::class, 'destroy'])->name('inciseds.destroy');
     
-    // ~~~~~~~~~~~~~ Inciseds ~~~~~~~~~~~~~
+    // ~~~~~~~~~~~~~ KASBON ~~~~~~~~~~~~~
     route::get('/kasbons', [KasbonController::class, 'index'])->name('kasbons.index');
     // route::post('/inciseds', [IncisedController::class, 'store'])->name('inciseds.store');
     // route::get('/inciseds/create', [IncisedController::class, 'create'])->name('inciseds.create');

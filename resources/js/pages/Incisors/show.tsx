@@ -44,6 +44,8 @@ interface Props {
     incisor: Incisor;
     totalQtyKg: number;
     totalQtyKgThisMonth: number;
+    pendapatanBulanIni: number;
+    kasbonBulanIni: number;
     dailyData: DailyData[];
 }
 
@@ -55,7 +57,14 @@ const formatCurrency = (value: number) => {
     }).format(value);
 };
 
-export default function index({ incisor, totalQtyKg, totalQtyKgThisMonth, dailyData }: Props) {
+export default function index({
+    incisor,
+    totalQtyKg,
+    totalQtyKgThisMonth,
+    pendapatanBulanIni,
+    kasbonBulanIni,
+    dailyData,
+}: Props) {
     const { data, setData, errors } = useForm({
         name: incisor.name,
         ttl: incisor.ttl,
@@ -180,12 +189,28 @@ export default function index({ incisor, totalQtyKg, totalQtyKgThisMonth, dailyD
                             </div>
                             <div>
                                 <div className="gap-2">
-                                    <Label htmlFor="Password">Saldo Kasbon</Label>
-                                    <Input placeholder="Saldo" readOnly />
+                                    <Label htmlFor="Pendapatan">Pendapatan Bulan Ini</Label>
+                                    <Input
+                                        placeholder="Pendapatan"
+                                        value={formatCurrency(pendapatanBulanIni || 0)}
+                                        readOnly
+                                    />
+                                </div>
+                                <div className="gap-2">
+                                    <Label htmlFor="Saldo">Kasbon Bulan Ini</Label>
+                                    <Input
+                                        placeholder="Kasbon"
+                                        value={formatCurrency(kasbonBulanIni || 0)}
+                                        readOnly
+                                    />
                                 </div>
                                 <div className="gap-2">
                                     <Label htmlFor="Status">Total Toreh</Label>
-                                    <Input placeholder="Total Quantity" value={totalQtyKg + ' kg'} readOnly />
+                                    <Input
+                                        placeholder="Total Quantity"
+                                        value={totalQtyKg + ' kg'}
+                                        readOnly
+                                    />
                                 </div>
                                 <div className="gap-2">
                                     <Label htmlFor="Status">Total Toreh Bulan Ini</Label>
@@ -200,18 +225,6 @@ export default function index({ incisor, totalQtyKg, totalQtyKgThisMonth, dailyD
                         </div>
                     </form>
                 </div>
-
-                {/* <div className="w-full mb-2 justify-end h-auto flex gap-2">
-                    <div className="gap-2">
-                        <Label htmlFor="Status">Total Toreh Bulan Ini</Label>
-                        <Input
-                            placeholder="Total Quantity"
-                            className="w-33"
-                            value={totalQtyKgThisMonth ? totalQtyKgThisMonth + ' kg' : '0 kg'}
-                            readOnly
-                        />
-                    </div>
-                </div> */}
 
                 <div>
                     <CardContent className="border rounded-lg">

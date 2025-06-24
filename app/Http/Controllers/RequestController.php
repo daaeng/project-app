@@ -38,6 +38,7 @@ class RequestController extends Controller
             'j_pengajuan' => 'required|string|max:250',
             'mengetahui' => 'required|string|max:250',
             'desk' => 'nullable|string',
+            'dana' => 'required|numeric',
             'file' => 'required|image|mimes:jpeg,png,jpg,gif,pdf,csv,xls|max:2048', 
          
          ]);
@@ -51,6 +52,7 @@ class RequestController extends Controller
                         ->where('devisi', $request->devisi)
                         ->where('j_pengajuan', $request->j_pengajuan)
                         ->where('file_hash', $fileHash)
+                        ->where('dana', $request->dana)
                         ->exists();
 
          if ($existing) {
@@ -86,6 +88,7 @@ class RequestController extends Controller
                'j_pengajuan' => $request->j_pengajuan,
                'mengetahui' => $request->mengetahui,
                'desk' => $request->desk,
+               'dana' => $request->dana,
                'file' => 'storage/requesteds/'.$filename,
                'file_hash' => md5_file($file->getRealPath()),
                   // 'status' => 'belum ACC'
@@ -123,6 +126,7 @@ class RequestController extends Controller
             'j_pengajuan' => 'required|string|max:250',
             'mengetahui' => 'required|string|max:250',
             'desk' => 'nullable|string',
+            'dana' => 'required|numeric',
             // 'file' => 'required|image|mimes:jpeg,png,jpg,gif,pdf,csv,xls|max:2048', 
             
          ]);
@@ -141,6 +145,7 @@ class RequestController extends Controller
                   'j_pengajuan' => $request->input('j_pengajuan'),
                   'mengetahui' => $request->input('mengetahui'),
                   'desk' => $request->input('desk'),
+                  'dana' => $request->input('dana'),
                   // 'dana' => $request->input('dana'),
 
             ]);
@@ -148,6 +153,63 @@ class RequestController extends Controller
             return redirect()->route('requests.index')->with('success', 'Requested Updated Successfully');
          });
       }
+   
+   public function showAct(string $id)
+   {
+      $requested = Requested::find($id);
+      return Inertia::render("Requests/showAct", [
+         "requests" => $requested,
+      ]);
+   }
+
+   public function editAct(string $id)
+   {
+      $requested = Requested::find($id);
+      return Inertia::render("Requests/editAct", [
+         "requests" => $requested,
+         // dd($requested)
+      ]);
+   }
+
+   public function updateAct(Request $request, Requested $requested)
+   {
+      // Validasi input
+      $request->validate([
+         'name' => 'required|string|max:250',
+         'date' => 'required|date',
+         'devisi' => 'required|string|max:250',
+         'j_pengajuan' => 'required|string|max:250',
+         'mengetahui' => 'required|string|max:250',
+         'desk' => 'nullable|string',
+         'dana' => 'required|numeric',
+         'status' => 'required|string|max:250',
+         'reason' => 'required|string|max:250',
+         // 'file' => 'required|image|mimes:jpeg,png,jpg,gif,pdf,csv,xls|max:2048', 
+         
+      ]);
+
+      Log::info('Validasi input selesai');
+
+      // Gunakan DB transaction
+      return DB::transaction(function () use ($request, $requested) {
+         Log::info('Memulai transaksi database');
+         
+         // Perbarui data
+         $requested->update([
+            'name' => $request->input('name'),
+            'date' => $request->input('date'),
+            'devisi' => $request->input('devisi'),
+            'j_pengajuan' => $request->input('j_pengajuan'),
+            'mengetahui' => $request->input('mengetahui'),
+            'desk' => $request->input('desk'),
+            'dana' => $request->input('dana'),
+            'status' => $request->input('status'),
+            'reason' => $request->input('reason'),
+         ]);
+
+         return redirect()->route('administrasis.index')->with('success', 'Requested Updated Successfully');
+      });
+   }
 
    public function destroy(Requested $requested){
         $requested->delete();

@@ -26,6 +26,7 @@ return new class extends Migration
             $table->decimal('amount', 12, 2);
             $table->integer('keping');
             $table->string('kualitas');
+            $table->index(['no_invoice', 'date']);
 
             $table->timestamps();
         });
@@ -36,6 +37,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('incised');
+        Schema::dropIfExists('inciseds');
     }
 };

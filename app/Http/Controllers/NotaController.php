@@ -145,6 +145,64 @@ class NotaController extends Controller
         });
     }
 
+    public function showAct(string $id)
+    {
+        $nota = Nota::find($id);
+        return Inertia::render("Notas/showAct", [
+            "nota" => $nota,
+        ]);
+    }
+
+    public function editAct(string $id)
+    {
+        $nota = Nota::find($id);
+        return Inertia::render("Notas/editAct", [
+            "nota" => $nota,
+        ]);
+    }
+
+    public function updateAct(Request $request, Nota $nota)
+    {
+        Log::info('Memulai fungsi update untuk nota ID: ' . $nota->id);
+
+        // Validasi input
+        $request->validate([
+            'name' => 'required|string|max:250',
+            'date' => 'required|date',
+            'devisi' => 'required|string',
+            'mengetahui' => 'required|string|max:250',
+            'desk' => 'nullable|string',
+            'dana' => 'required|numeric',
+            'status' => 'required|string|max:250',
+            'reason' => 'required|string|max:250',
+            
+        ]);
+
+        Log::info('Validasi input selesai');
+
+        // Gunakan DB transaction
+        return DB::transaction(function () use ($request, $nota) {
+            Log::info('Memulai transaksi database');
+            
+            // Perbarui data
+            $nota->update([
+                'name' => $request->input('name'),
+                'date' => $request->input('date'),
+                'devisi' => $request->input('devisi'),
+                'mengetahui' => $request->input('mengetahui'),
+                'desk' => $request->input('desk'),
+                'dana' => $request->input('dana'),
+                'status' => $request->input('status'),
+                'reason' => $request->input('reason'),
+   
+            ]);
+
+            Log::info('Data nota ID: ' . $nota->id . ' berhasil diperbarui');
+
+            return redirect()->route('administrasis.index')->with('success', 'Nota Updated Successfully');
+        });
+    }
+
     public function destroy(Nota $nota){
         $nota->delete();
         return redirect()->route('notas.index')->with('message', 'Invoice deleted Successfully');

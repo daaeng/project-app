@@ -78,8 +78,9 @@ class IncisorController extends Controller
 
     public function show(Incisor $incisor){
 
-        $currentMonth = date('m'); // Bulan saat ini (06 untuk Juni)
-        $currentYear = date('Y');  // Tahun saat ini (2025)
+        $currentMonth = date('m'); 
+        $currentYear = date('Y'); 
+
         $totalQtyKgThisMonth = Incised::where('no_invoice', $incisor->no_invoice)
             ->whereYear('date', $currentYear)
             ->whereMonth('date', $currentMonth)
@@ -88,16 +89,31 @@ class IncisorController extends Controller
         $totalQtyKg = Incised::where('no_invoice', $incisor->no_invoice)
                         ->sum('qty_kg');
 
+        $pendapatanBulanIni = Incised::where('no_invoice', $incisor->no_invoice)
+            ->whereYear('date', $currentYear)
+            ->whereMonth('date', $currentMonth)
+            ->sum('amount');
+        
+        // Kasbon Bulan Ini (gaji = total amount per bulan * 50%)
+        $totalAmountBulanIni = Incised::where('no_invoice', $incisor->no_invoice)
+            ->whereYear('date', $currentYear)
+            ->whereMonth('date', $currentMonth)
+            ->sum('amount');
+        $kasbonBulanIni = $totalAmountBulanIni * 0.5;
+
+
         $dailyData = Incised::where('no_invoice', $incisor->no_invoice)
-        ->select('product', 'date as tanggal', 'no_invoice as kode_penoreh', 'lok_kebun as kebun', 'j_brg as jenis_barang', 'qty_kg', 'amount as total_harga')
-        ->orderBy('created_at', 'DESC')
-        ->get();
+            ->select('product', 'date as tanggal', 'no_invoice as kode_penoreh', 'lok_kebun as kebun', 'j_brg as jenis_barang', 'qty_kg', 'amount as total_harga')
+            ->orderBy('created_at', 'DESC')
+            ->get();
 
         return Inertia::render('Incisors/show', [
             'incisor' => $incisor->toArray(), // Konversi ke array untuk konsistensi
             'totalQtyKg' => $totalQtyKg,
             'dailyData' => $dailyData,
             'totalQtyKgThisMonth' => $totalQtyKgThisMonth,
+            'pendapatanBulanIni' => $pendapatanBulanIni,
+            'kasbonBulanIni' => $kasbonBulanIni,
         ]);
         // return inertia('Incisors/show', compact('incisor'));
     }

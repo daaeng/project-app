@@ -8,6 +8,6 @@ class Requested extends Model
 {
     protected $fillable = 
     [
-        'name', 'date', 'devisi', 'j_pengajuan', 'mengetahui', 'desk', 'file', 'status', 'reason', 'file_hash'
+        'name', 'date', 'devisi', 'j_pengajuan', 'mengetahui', 'desk', 'dana', 'file', 'status', 'reason', 'file_hash'
     ];
 }

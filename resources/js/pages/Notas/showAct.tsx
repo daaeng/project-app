@@ -11,8 +11,8 @@ import Tag from '@/components/ui/tag';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'nota Information',
-        href: '/notas',
+        title: 'Administrasis',
+        href: '/administrasis',
     },
 ];
 
@@ -62,7 +62,7 @@ export default function edit({nota} : props) {
             
                 <Heading title='Show Data nota'/>
 
-                <Link href={route('notas.index')}>
+                <Link href={route('administrasis.index')}>
                     <Button className='bg-auto w-25 hover:bg-accent hover:text-black'>
                         <Undo2 />
                         Back

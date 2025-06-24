@@ -119,7 +119,12 @@ export default function index({nota} : props) {
                             </div>
                             <div className='gap-2'>
                                 <Label htmlFor='Dana'> Dana </Label>
-                                <Input placeholder='Dana' value={data.dana} onChange={(e) => setData('dana', e.target.value)}/>
+                                <div className='flex'>
+                                    <div className='mt-1'>
+                                        Rp.     
+                                    </div>
+                                    <Input placeholder='Dana' value={data.dana} onChange={(e) => setData('dana', e.target.value)}/>
+                                </div>
                             </div>
                             
 

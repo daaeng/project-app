@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('devisi');
             $table->string('mengetahui');
             $table->text('desk')->nullable();
-            $table->decimal('dana', 12, 2)->nullable();
+            $table->decimal('dana', 16, 2)->nullable();
             $table->string('file')->nullable();
             $table->string('status')->default('belum ACC');
             $table->string('reason')->nullable();

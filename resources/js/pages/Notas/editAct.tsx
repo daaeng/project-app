@@ -13,8 +13,8 @@ import { useState } from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Edit Nota',
-        href: '/requests?nota',
+        title: 'Administrasis',
+        href: '/Administrasis',
     },
 ];
 
@@ -25,6 +25,8 @@ interface Nota{
     devisi: string,
     mengetahui: string,
     desk: string,
+    status: string,
+    reason: string,
     dana: number,
     file: string,
 }
@@ -43,6 +45,8 @@ export default function index({nota} : props) {
         mengetahui: nota.mengetahui || '',
         desk: nota.desk || '',
         dana: nota.dana || '',
+        status: nota.status || '',
+        reason: nota.reason || '',
         file: nota.file || '',
 
     })
@@ -53,8 +57,9 @@ export default function index({nota} : props) {
         e.preventDefault();
         setIsSubmitting(true);
         
-        put(route('notas.update', nota.id), {
+        put(route('notas.updateAct', nota.id), {
             onFinish: () => setIsSubmitting(false),
+            // preserveScroll: true
         });
     };
 
@@ -66,7 +71,7 @@ export default function index({nota} : props) {
             
                 <Heading title='Ubah Nota / Struk / Resi'/>
 
-                <Link href={route('notas.index')}>
+                <Link href={route('administrasis.index')}>
                     <Button className='bg-auto w-25 hover:bg-accent hover:text-black'>
                         <Undo2 />
                         Back
@@ -98,27 +103,46 @@ export default function index({nota} : props) {
                         <div className='space-y-2'>
                             <div className='gap-2'>
                                 <Label htmlFor='Name'> Name </Label>
-                                <Input placeholder='Yang mengajukan' value={data.name} onChange={(e) => setData('name', e.target.value)}/>
+                                <Input placeholder='Yang mengajukan' value={data.name} onChange={(e) => setData('name', e.target.value)} readOnly/>
                             </div>
                             <div className='gap-2'>
                                 <Label htmlFor='Tanggal'> Tanggal </Label>
-                                <Input type='date' placeholder='Tanggal' value={data.date} onChange={(e) => setData('date', e.target.value)}/>
+                                <Input type='date' placeholder='Tanggal' value={data.date} onChange={(e) => setData('date', e.target.value)} readOnly/>
                             </div>
                             <div className='gap-2'>
                                 <Label htmlFor='Devisi'> Devisi </Label>
-                                <Input placeholder='Devisi' value={data.devisi} onChange={(e) => setData('devisi', e.target.value)} />
+                                <Input placeholder='Devisi' value={data.devisi} onChange={(e) => setData('devisi', e.target.value)} readOnly/>
                             </div>
                             <div className='gap-2'>
                                 <Label htmlFor='Mengetahui'> Mengetahui </Label>
-                                <Input placeholder='Mengetahui'  value={data.mengetahui} onChange={(e) => setData('mengetahui', e.target.value)}/>
+                                <Input placeholder='Mengetahui'  value={data.mengetahui} onChange={(e) => setData('mengetahui', e.target.value)} readOnly/>
                             </div>                        
                             <div className='gap-2'>
                                 <Label htmlFor='Description'> Description </Label>
-                                <Textarea placeholder='Description' value={data.desk} onChange={(e) => setData('desk', e.target.value)}/>
+                                <Textarea placeholder='Description' value={data.desk} onChange={(e) => setData('desk', e.target.value)} readOnly/>
+                            </div>
+                            
+                            <div className='gap-2'>
+                                <Label htmlFor='Status'> Status </Label>                                
+                                <select value={data.status} onChange={(e) => setData('status', e.target.value)} className='w-full border p-1 rounded-md text-destructive-foreground' required>
+                                    <option value="" disabled selected>Info Status</option>
+                                    <option value="belum ACC" >Process</option>
+                                    <option value="ditolak" >Rejected</option>
+                                    <option value="diterima" >Accepted</option>
+                                </select>
+                            </div>
+                            <div className='gap-2'>
+                                <Label htmlFor='Reason'> Reason </Label>
+                                <Input placeholder='Reason' value={data.reason} onChange={(e) => setData('reason', e.target.value)} />
                             </div>
                             <div className='gap-2'>
                                 <Label htmlFor='Dana'> Dana </Label>
-                                <Input placeholder='Dana' value={data.dana} onChange={(e) => setData('dana', e.target.value)}/>
+                                <div className='flex'>
+                                    <div className='mt-1'>
+                                        Rp.     
+                                    </div>
+                                    <Input placeholder='Dana' value={data.dana} onChange={(e) => setData('dana', e.target.value)} />
+                                </div>
                             </div>
                             
 
@@ -140,11 +164,15 @@ export default function index({nota} : props) {
                                         <img 
                                             src={`/storage/${data.file.replace('storage/', '')}`} 
                                             alt={data.name || 'Nota'}
-                                            className="h-100 object-contain"
+                                            className="h-140 object-contain"
                                         />
                                     </a>
                                 )}
-                               
+                                {/* <img 
+                                src={`/storage/${data.file.replace('storage/', '')}`} 
+                                alt={data.name || 'Nota'}
+                                className="h-100 object-contain"
+                                /> */}
                             </div>
                         </div>                        
 
