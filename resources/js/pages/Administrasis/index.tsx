@@ -5,10 +5,8 @@ import Tag from '@/components/ui/tag';
 import AppLayout from '@/layouts/app-layout';
 import { can } from '@/lib/can';
 import { type BreadcrumbItem } from '@/types';
-import { Head, Link, usePage} from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import { Eye, Pencil } from 'lucide-react';
-
-
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -17,17 +15,16 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-interface Request{
+interface Request {
     id: number;
     date: string;
     devisi: string;
     j_pengajuan: string;
     dana: string;
     status: string;
-    
 }
 
-interface Nota{
+interface Nota {
     id: number;
     name: string;
     date: string;
@@ -35,12 +32,29 @@ interface Nota{
     desk: string;
     dana: string;
     status: string;
-    
 }
 
-interface PageProps{
-    requests : Request[];
-    notas: Nota[];
+interface PageProps {
+    requests: {
+        data: Request[]; // Data requests
+        links: any[];    // Link paginasi
+        meta: {
+        current_page: number;
+        last_page: number;
+        per_page: number;
+        total: number;
+        };
+    };
+    notas: {
+        data: Nota[]; // Data notas
+        links: any[];  // Link paginasi
+        meta: {
+        current_page: number;
+        last_page: number;
+        per_page: number;
+        total: number;
+        };
+    };
 }
 
 const formatCurrency = (value: number) => {
@@ -52,132 +66,134 @@ const formatCurrency = (value: number) => {
 };
 
 export default function admin() {
+    const { requests, notas } = usePage().props as PageProps;
 
-     const { requests, notas } =usePage().props as PageProps;
+    // Fungsi untuk render link paginasi
+    const renderPagination = (pagination: any) => {
+        return (
+        <div className="flex justify-center mt-4">
+            {pagination.links.map((link: any, index: number) => (
+            <Button
+                key={index}
+                variant={link.active ? "default" : "outline"}
+                onClick={() => window.location.href = link.url}
+                disabled={!link.url}
+                className="mx-1"
+            >
+                {link.label.replace(/&laquo;/g, '').replace(/&raquo;/g, '')}
+            </Button>
+            ))}
+        </div>
+        );
+    };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Administrasi" />
+        <Head title="Administrasi" />
 
-            <div className="h-full flex-col rounded-xl p-4">
-            
-                <Heading title='Administrasi'/>
+        <div className="h-full flex-col rounded-xl p-4">
+            <Heading title="Administrasi" />
 
-                <div className='w-full gap-2 grid grid-cols-2 p-1'>
-                    
-                    <div className='border rounded-xl w-full gap-2 p-2'>
-                        <div className='font-bold mb-3'>
-                            Administrasi Request Latter
-                        </div>
-                        <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Tanggal</TableHead>
-                                        <TableHead>Devisi</TableHead>
-                                        <TableHead>Jenis Pengajuan</TableHead>
-                                        <TableHead>Dana</TableHead>
-                                        <TableHead>Status</TableHead>
-                                        <TableHead className="text-center">Action</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-
-                            {requests.map((requests) =>
-                            
-                                <TableBody>
-                                        <TableRow>
-                                            <TableCell>{requests.date}</TableCell>
-                                            <TableCell>{requests.devisi}</TableCell>
-                                            <TableCell>{requests.j_pengajuan}</TableCell>
-                                            <TableCell>{requests.dana}</TableCell>
-                                            <TableCell>
-                                                <Tag status={requests.status} />
-                                            </TableCell>
-                                            
-                                            <TableCell className="text-center space-x-2">
-                                                {can('administrasis.view') && 
-                                                    <Link href={route('requests.showAct', requests.id)}>
-                                                        <Button className='bg-transparent hover:bg-gray-700'>
-                                                            <Eye color='gray'/>
-                                                        </Button>
-                                                    </Link>
-                                                }
-                                                
-                                                {can('administrasis.edit') && 
-                                                    <Link href={route('requests.editAct', requests.id)}>
-                                                        <Button className='bg-transparent hover:bg-gray-700'>
-                                                            <Pencil color='blue'/>
-                                                        </Button>
-                                                    </Link>
-                                                }
-                                                
-                                            </TableCell>
-                                        </TableRow>
-                                    
-                                </TableBody>
+            <div className="w-full gap-2 grid grid-cols-2 p-1">
+            <div className="border rounded-xl w-full gap-2 p-2">
+                <div className="font-bold mb-3">Administrasi Request Latter</div>
+                <Table>
+                <TableHeader>
+                    <TableRow>
+                    <TableHead>Tanggal</TableHead>
+                    <TableHead>Devisi</TableHead>
+                    <TableHead>Jenis Pengajuan</TableHead>
+                    <TableHead>Dana</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-center">Action</TableHead>
+                    </TableRow>
+                </TableHeader>
+                {requests.data.length > 0 && (
+                    <TableBody>
+                    {requests.data.map((request) => (
+                        <TableRow key={request.id}>
+                        <TableCell>{request.date}</TableCell>
+                        <TableCell>{request.devisi}</TableCell>
+                        <TableCell>{request.j_pengajuan}</TableCell>
+                        <TableCell>{request.dana}</TableCell>
+                        <TableCell>
+                            <Tag status={request.status} />
+                        </TableCell>
+                        <TableCell className="text-center space-x-2">
+                            {can('administrasis.view') && (
+                            <Link href={route('requests.showAct', request.id)}>
+                                <Button className="bg-transparent hover:bg-gray-700">
+                                <Eye color="gray" />
+                                </Button>
+                            </Link>
                             )}
-                        </Table>
-                    </div>
-
-                    <div className='border rounded-xl w-full gap-2 '>
-                        <div className='p-2'>
-                            <div className='font-bold mb-3'>
-                                Administrasi Nota / Kwitansi
-                            </div>
-                            <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead>Nama</TableHead>
-                                            <TableHead>Tanggal</TableHead>
-                                            <TableHead>Devisi</TableHead>
-                                            <TableHead>Dana</TableHead>
-                                            <TableHead>Status</TableHead>
-                                            <TableHead className="text-center">Action</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-
-                                {notas.map((notas) =>
-                                
-                                    <TableBody>
-                                            <TableRow>
-                                                <TableCell>{notas.name}</TableCell>
-                                                <TableCell>{notas.date}</TableCell>
-                                                <TableCell>{notas.devisi}</TableCell>
-                                                <TableCell>{formatCurrency(notas.dana)}</TableCell>
-                                                <TableCell>
-                                                    <Tag status={notas.status} />
-                                                </TableCell>
-                                                
-                                                <TableCell className="text-center space-x-2">
-                                                    {can('administrasis.view') && 
-                                                        <Link href={route('notas.showAct', notas.id)}>
-                                                            <Button className='bg-transparent hover:bg-gray-700'>
-                                                                <Eye color='gray'/>
-                                                            </Button>
-                                                        </Link>
-                                                    }
-
-                                                    {can('administrasis.edit') && 
-                                                        <Link href={route('notas.editAct', notas.id)}>
-                                                            <Button className='bg-transparent hover:bg-gray-700'>
-                                                                <Pencil color='blue'/>
-                                                            </Button>
-                                                        </Link>
-                                                    }
-                                                </TableCell>
-                                            </TableRow>
-                                    </TableBody>
-                                )}
-                            </Table>
-                        </div>
-                    </div>
-
-                </div>
-
-                
+                            {can('administrasis.edit') && (
+                            <Link href={route('requests.editAct', request.id)}>
+                                <Button className="bg-transparent hover:bg-gray-700">
+                                <Pencil color="blue" />
+                                </Button>
+                            </Link>
+                            )}
+                        </TableCell>
+                        </TableRow>
+                    ))}
+                    </TableBody>
+                )}
+                </Table>
+                {renderPagination(requests)} {/* Tambahkan navigasi paginasi untuk requests */}
             </div>
 
-
-
+            <div className="border rounded-xl w-full gap-2">
+                <div className="p-2">
+                <div className="font-bold mb-3">Administrasi Nota / Kwitansi</div>
+                <Table>
+                    <TableHeader>
+                    <TableRow>
+                        <TableHead>Nama</TableHead>
+                        <TableHead>Tanggal</TableHead>
+                        <TableHead>Devisi</TableHead>
+                        <TableHead>Dana</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="text-center">Action</TableHead>
+                    </TableRow>
+                    </TableHeader>
+                    {notas.data.length > 0 && (
+                    <TableBody>
+                        {notas.data.map((nota) => (
+                        <TableRow key={nota.id}>
+                            <TableCell>{nota.name}</TableCell>
+                            <TableCell>{nota.date}</TableCell>
+                            <TableCell>{nota.devisi}</TableCell>
+                            <TableCell>{formatCurrency(parseFloat(nota.dana))}</TableCell>
+                            <TableCell>
+                            <Tag status={nota.status} />
+                            </TableCell>
+                            <TableCell className="text-center space-x-2">
+                            {can('administrasis.view') && (
+                                <Link href={route('notas.showAct', nota.id)}>
+                                <Button className="bg-transparent hover:bg-gray-700">
+                                    <Eye color="gray" />
+                                </Button>
+                                </Link>
+                            )}
+                            {can('administrasis.edit') && (
+                                <Link href={route('notas.editAct', nota.id)}>
+                                <Button className="bg-transparent hover:bg-gray-700">
+                                    <Pencil color="blue" />
+                                </Button>
+                                </Link>
+                            )}
+                            </TableCell>
+                        </TableRow>
+                        ))}
+                    </TableBody>
+                    )}
+                </Table>
+                {renderPagination(notas)} {/* Tambahkan navigasi paginasi untuk notas */}
+                </div>
+            </div>
+            </div>
+        </div>
         </AppLayout>
     );
 }

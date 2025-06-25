@@ -11,18 +11,17 @@ class IncisorController extends Controller
 {
     public function index()
     {
-        $incisors = Incisor::orderBy('created_at', 'ASC')->get();
-        return Inertia::render("Incisors/index", 
-            [
-                "incisors" => $incisors,
-            ]
-        );
+        $perPage = 10; // Jumlah item per halaman, bisa disesuaikan
+        $incisors = Incisor::orderBy('created_at', 'ASC')->paginate($perPage);
+
+        return Inertia::render("Incisors/index", [
+            "incisors" => $incisors,
+        ]);
     }
 
     public function create()
     {
-            // return inertia('Incisors/create');
-            return Inertia::render("Incisors/create");
+        return Inertia::render("Incisors/create");
     }
 
     public function store(Request $request)
@@ -36,15 +35,15 @@ class IncisorController extends Controller
             'status' => 'required|string|max:250',
             'no_invoice' => 'required|string|max:250',
             'lok_toreh' => 'required|string|max:250',
-            
         ]);
 
         Incisor::create($request->all());
         return redirect()->route('incisors.index')->with('message', 'Users Creadted Successfully');
     }
 
-    public function edit(Incisor $incisor){
-        return inertia('Incisors/edit', compact('incisor'));
+    public function edit(Incisor $incisor)
+    {
+        return Inertia::render('Incisors/edit', compact('incisor'));
     }
 
     public function update(Request $request, Incisor $incisor)
@@ -69,15 +68,13 @@ class IncisorController extends Controller
             'status' => $request->input('status'),
             'no_invoice' => $request->input('no_invoice'),
             'lok_toreh' => $request->input('lok_toreh'),
-            
         ]);
 
         return redirect()->route('incisors.index')->with('message', 'Product Updated Successfully');        
-
     }
 
-    public function show(Incisor $incisor){
-
+    public function show(Incisor $incisor)
+    {
         $currentMonth = date('m'); 
         $currentYear = date('Y'); 
 
@@ -101,7 +98,6 @@ class IncisorController extends Controller
             ->sum('amount');
         $kasbonBulanIni = $totalAmountBulanIni * 0.5;
 
-
         $dailyData = Incised::where('no_invoice', $incisor->no_invoice)
             ->select('product', 'date as tanggal', 'no_invoice as kode_penoreh', 'lok_kebun as kebun', 'j_brg as jenis_barang', 'qty_kg', 'amount as total_harga')
             ->orderBy('created_at', 'DESC')
@@ -115,10 +111,10 @@ class IncisorController extends Controller
             'pendapatanBulanIni' => $pendapatanBulanIni,
             'kasbonBulanIni' => $kasbonBulanIni,
         ]);
-        // return inertia('Incisors/show', compact('incisor'));
     }
 
-    public function destroy(Incisor $incisor){
+    public function destroy(Incisor $incisor)
+    {
         $incisor->delete();
         return redirect()->route('incisors.index')->with('message', 'Invoice deleted Successfully');
     }

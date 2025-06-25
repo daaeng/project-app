@@ -36,7 +36,16 @@ interface PageProps {
     flash: {
         message?: string;
     };
-    inciseds: Incised[];
+    inciseds: {
+        data: Incised[]; // Data incised
+        links: any[];    // Link paginasi
+        meta: {
+        current_page: number;
+        last_page: number;
+        per_page: number;
+        total: number;
+        };
+    };
 }
 
 const formatCurrency = (value: number) => {
@@ -53,102 +62,122 @@ export default function admin() {
 
     const handleDelete = (id: number, product: string) => {
         if (confirm(`Do you want delete this - ${id}. ${product} `)) {
-            destroy(route('inciseds.destroy', id));
+        destroy(route('inciseds.destroy', id));
         }
+    };
+
+    // Fungsi untuk render link paginasi
+    const renderPagination = (pagination: any) => {
+        return (
+        <div className="flex justify-center mt-4">
+            {pagination.links.map((link: any, index: number) => (
+            <Button
+                key={index}
+                variant={link.active ? "default" : "outline"}
+                onClick={() => window.location.href = link.url}
+                disabled={!link.url}
+                className="mx-1"
+            >
+                {link.label.replace(/&laquo;/g, '').replace(/&raquo;/g, '')}
+            </Button>
+            ))}
+        </div>
+        );
     };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Incised" />
+        <Head title="Incised" />
 
-            <div className="h-full flex-col rounded-xl p-4">
-                <Heading title="Data Harian Penoreh" />
+        <div className="h-full flex-col rounded-xl p-4">
+            <Heading title="Data Harian Penoreh" />
 
-                <div className="border h-auto p-3 rounded-lg">
-                    <div className="w-full mb-2 justify-end h-auto flex gap-2">
-                        {can('incised.create') &&
-                            <Link href={route('inciseds.create')}>
-                                <Button className="bg-blue-600 w-25 hover:bg-blue-500 text-white">
-                                    <CirclePlus />
-                                    Add User
-                                </Button>
-                            </Link>
-                        
-                        }
-                    </div>
-
-                    <div>
-                        {flash.message && (
-                            <Alert>
-                                <Megaphone className="h-4 w-4" />
-                                <AlertTitle className="text-green-600">Notification</AlertTitle>
-                                <AlertDescription>{flash.message}</AlertDescription>
-                            </Alert>
-                        )}
-                    </div>
-
-                    <CardContent className="border rounded-lg">
-                        <div className="rounded-md">
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Product</TableHead>
-                                        <TableHead>Tanggal</TableHead>
-                                        <TableHead>Kode/Penoreh</TableHead>
-                                        <TableHead>Kebun</TableHead>
-                                        <TableHead>Jenis Barang</TableHead>
-                                        <TableHead>Qty (kg)</TableHead>
-                                        <TableHead>Total Harga</TableHead>
-                                        <TableHead className="text-center">ACTION</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-
-                                <TableBody>
-                                    {inciseds.map((incised) => (
-                                        <TableRow key={incised.id}>
-                                            <TableCell>{incised.product}</TableCell>
-                                            <TableCell>{incised.date}</TableCell>
-                                            <TableCell>
-                                                {incised.no_invoice} - {incised.incisor_name || 'N/A'}
-                                            </TableCell>
-                                            <TableCell>{incised.lok_kebun}</TableCell>
-                                            <TableCell>{incised.j_brg}</TableCell>
-                                            <TableCell>{incised.qty_kg}</TableCell>
-                                            <TableCell>{formatCurrency(incised.amount)}</TableCell>
-                                            <TableCell className="text-center space-x-2">
-
-                                                {can('incised.view') &&
-                                                    <Link href={route('inciseds.show', incised.id)}>
-                                                        <Button className="bg-transparent hover:bg-gray-700">
-                                                            <Eye color="gray" />
-                                                        </Button>
-                                                    </Link>
-                                                }
-                                                {can('incised.edit') &&
-                                                    <Link href={route('inciseds.edit', incised.id)}>
-                                                        <Button className="bg-transparent hover:bg-gray-700">
-                                                            <Pencil color="blue" />
-                                                        </Button>
-                                                    </Link>
-                                                }
-                                                {can('incised.delete') &&
-                                                    <Button
-                                                        disabled={processing}
-                                                        onClick={() => handleDelete(incised.id, incised.product)}
-                                                        className="bg-transparent hover:bg-gray-700"
-                                                    >
-                                                        <Trash color="red" />
-                                                    </Button>
-                                                }
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        </div>
-                    </CardContent>
-                </div>
+            <div className="border h-auto p-3 rounded-lg">
+            <div className="w-full mb-2 justify-end h-auto flex gap-2">
+                {can('incised.create') && (
+                <Link href={route('inciseds.create')}>
+                    <Button className="bg-blue-600 w-25 hover:bg-blue-500 text-white">
+                    <CirclePlus />
+                    Add User
+                    </Button>
+                </Link>
+                )}
             </div>
+
+            <div>
+                {flash.message && (
+                <Alert>
+                    <Megaphone className="h-4 w-4" />
+                    <AlertTitle className="text-green-600">Notification</AlertTitle>
+                    <AlertDescription>{flash.message}</AlertDescription>
+                </Alert>
+                )}
+            </div>
+
+            <CardContent className="border rounded-lg">
+                <div className="rounded-md">
+                <Table>
+                    <TableHeader>
+                    <TableRow>
+                        <TableHead>Product</TableHead>
+                        <TableHead>Tanggal</TableHead>
+                        <TableHead>Kode/Penoreh</TableHead>
+                        <TableHead>Kebun</TableHead>
+                        <TableHead>Jenis Barang</TableHead>
+                        <TableHead>Qty (kg)</TableHead>
+                        <TableHead>Total Harga</TableHead>
+                        <TableHead className="text-center">ACTION</TableHead>
+                    </TableRow>
+                    </TableHeader>
+
+                    <TableBody>
+                    {inciseds.data.length > 0 && (
+                        inciseds.data.map((incised) => (
+                        <TableRow key={incised.id}>
+                            <TableCell>{incised.product}</TableCell>
+                            <TableCell>{incised.date}</TableCell>
+                            <TableCell>
+                            {incised.no_invoice} - {incised.incisor_name || 'N/A'}
+                            </TableCell>
+                            <TableCell>{incised.lok_kebun}</TableCell>
+                            <TableCell>{incised.j_brg}</TableCell>
+                            <TableCell>{incised.qty_kg}</TableCell>
+                            <TableCell>{formatCurrency(incised.amount)}</TableCell>
+                            <TableCell className="text-center space-x-2">
+                            {can('incised.view') && (
+                                <Link href={route('inciseds.show', incised.id)}>
+                                <Button className="bg-transparent hover:bg-gray-700">
+                                    <Eye color="gray" />
+                                </Button>
+                                </Link>
+                            )}
+                            {can('incised.edit') && (
+                                <Link href={route('inciseds.edit', incised.id)}>
+                                <Button className="bg-transparent hover:bg-gray-700">
+                                    <Pencil color="blue" />
+                                </Button>
+                                </Link>
+                            )}
+                            {can('incised.delete') && (
+                                <Button
+                                disabled={processing}
+                                onClick={() => handleDelete(incised.id, incised.product)}
+                                className="bg-transparent hover:bg-gray-700"
+                                >
+                                <Trash color="red" />
+                                </Button>
+                            )}
+                            </TableCell>
+                        </TableRow>
+                        ))
+                    )}
+                    </TableBody>
+                </Table>
+                </div>
+                {renderPagination(inciseds)} {/* Tambahkan navigasi paginasi */}
+            </CardContent>
+            </div>
+        </div>
         </AppLayout>
     );
 }

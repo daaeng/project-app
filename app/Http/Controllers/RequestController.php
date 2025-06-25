@@ -14,13 +14,12 @@ class RequestController extends Controller
 {
    public function index()
    {
-      $requests = Requested::orderBy('created_at', 'DESC')->get();
-         return Inertia::render("Requests/index", [
-               "requests" => $requests,
-         ]);
+      $perPage = 10; // Jumlah item per halaman, bisa disesuaikan
+      $requests = Requested::orderBy('created_at', 'DESC')->paginate($perPage);
 
-      // $requests = Requested::all();
-      // return Inertia('Requests/index', compact('requests'));
+      return Inertia::render("Requests/index", [
+         "requests" => $requests,
+      ]);
    }
 
    public function create()

@@ -14,12 +14,12 @@ class NotaController extends Controller
 {
     public function index()
     {
-        $notas = Nota::orderBy('created_at', 'DESC')->get();
+        $perPage = 10; // Jumlah item per halaman, bisa disesuaikan
+        $notas = Nota::orderBy('created_at', 'DESC')->paginate($perPage);
+
         return Inertia::render("Notas/index", [
             "notas" => $notas,
         ]);
-        // $notas = Nota::all();
-        // return Inertia('Notas/index' , compact('notas'));
     }
 
     public function up_nota()

@@ -11,10 +11,11 @@ class IncisedController extends Controller
 {
     public function index()
     {
+        $perPage = 10; // Jumlah item per halaman, bisa disesuaikan
         $inciseds = Incised::with('incisor') // Pastikan relasi sudah didefinisikan di model
             ->orderBy('created_at', 'DESC')
-            ->get()
-            ->map(function ($incised) {
+            ->paginate($perPage)
+            ->through(function ($incised) {
                 $incisor = $incised->incisor;
                 return [
                     'id' => $incised->id,
@@ -65,7 +66,6 @@ class IncisedController extends Controller
             'amount' => 'required|numeric',
             'keping' => 'required|numeric',
             'kualitas' => 'required|string|max:250',
-            
         ]);
 
         Incised::create($request->all());
@@ -114,7 +114,7 @@ class IncisedController extends Controller
             'price_qty' => $request->input('price_qty'),
             'amount' => $request->input('amount'),
             'keping' => $request->input('keping'),
-            'kualitas' => 'required|string|max:250',
+            'kualitas' => $request->input('kualitas'), // Perbaiki: hapus 'required|string|max:250' di sini
         ]);
 
         return redirect()->route('inciseds.index')->with('message', 'Data Updated Successfully');
@@ -125,13 +125,13 @@ class IncisedController extends Controller
         $incised->load('incisor');
         $data = $incised->toArray();
         $data['incisor_name'] = $incised->incisor ? $incised->incisor->name : null;
-        // Log::info('Show Data: ', $data); // Log untuk debugging
         return Inertia::render('Inciseds/show', [
             'incised' => $data,
         ]);
     }
 
-    public function destroy(Incised $incised){
+    public function destroy(Incised $incised)
+    {
         $incised->delete();
         return redirect()->route('inciseds.index')->with('message', 'Invoice deleted Successfully');
     }
