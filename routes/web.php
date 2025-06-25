@@ -36,8 +36,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     route::get('/products/gka', [ProductController::class, 'gka'])->name('products.gka');
     route::get('/products/tsa', [ProductController::class, 'tsa'])->name('products.tsa');
-    route::get('/products/allof', [ProductController::class, 'allof'])->name('products.allof');
     
+    route::get('/products/allof', [ProductController::class, 'allof'])->name('products.allof');
 
     
     // ~~~~~~~~~~~~~ UserManagement ~~~~~~~~~~~~~

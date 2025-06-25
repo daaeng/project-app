@@ -135,20 +135,21 @@ class ProductController extends Controller
 
     public function gka()
     {
+        $perPage = 5; // Jumlah item per halaman, bisa disesuaikan
+
         $products = Product::where('product', 'karet')
             ->where('qty_kg', '>', 0)
             ->where('status', 'gka')
             ->orderBy('created_at', 'DESC')
-            ->get();
-        
+            ->paginate($perPage);
+
         $product2 = Product::where('product', 'karet')
             ->where('qty_out', '>', 0)
             ->where('status', 'buyer')
             ->orderBy('created_at', 'DESC')
-            ->get();
-        // dd($products);
-        
-        //berdasarkan product Karet
+            ->paginate($perPage);
+
+        // Berdasarkan product Karet
         $karet = Product::where('status', 'gka')
             ->where('product', 'karet')->SUM('qty_kg');
 
@@ -179,9 +180,8 @@ class ProductController extends Controller
             "products2" => $product2,
             "filter" => request()->only(['search']),
 
-            // "hsl_karet" => $karet - $karet2,
             "saldoin" => $saldoin,
-            "saldoout" => $saldoout,            
+            "saldoout" => $saldoout,
             
             "tm_slin" => $tm_slin,
             "tm_slou" => $tm_slou,
@@ -193,17 +193,19 @@ class ProductController extends Controller
     
     public function tsa()
     {
+        $perPage = 5; // Jumlah item per halaman, bisa disesuaikan
+
         $products = Product::where('product', 'karet')
             ->where('qty_kg', '>', 0)
             ->where('status', 'tsa')
             ->orderBy('created_at', 'DESC')
-            ->get();
-        
+            ->paginate($perPage);
+
         $product2 = Product::where('product', 'karet')
             ->where('qty_kg', '>', 0)
             ->where('status', 'gka')
             ->orderBy('created_at', 'DESC')
-            ->get();
+            ->paginate($perPage);
 
         $karet = Product::where('status', 'tsa')
             ->where('product', 'karet')->SUM('qty_kg');
@@ -216,7 +218,7 @@ class ProductController extends Controller
 
         $saldoout = Product::where('status', 'gka')
             ->where('product', 'karet')->SUM('amount');        
-        
+
         // ----------------TEMADU----------------
         $tm_slin = Product::where('nm_supplier', 'Temadu')
             ->where('status', 'tsa')
@@ -254,8 +256,8 @@ class ProductController extends Controller
             ->where('product', 'karet')->SUM('qty_kg');
 
         return Inertia::render("Products/tsa", [
-            "products" => $products,
-            "products2" => $product2,
+            "products" => $products, // Data paginasi untuk tabel pertama
+            "products2" => $product2, // Data paginasi untuk tabel kedua
             "filter" => request()->only(['search']),
 
             "hsl_karet" => $karet - $karet2,
@@ -271,66 +273,56 @@ class ProductController extends Controller
             "ts_slou" => $ts_slou,
             "ts_sin" => $ts_sin,
             "ts_sou" => $ts_sou,
-                        
         ]);
     }
 
     public function allof()
     {
+        $perPage = 5; // Jumlah item per halaman, bisa disesuaikan
+
         $query = Product::query();
 
-        // Ambil parameter pencarian dari request
         $search = request()->input('search');
-
-        // Jika ada kata kunci pencarian, terapkan filter
-        if ($search) {
+        if (!empty($search)) {
             $query->where(function ($q) use ($search) {
-                $q->where('product', 'like', "%{$search}%")
-                  ->orWhere('no_invoice', 'like', "%{$search}%")
-                  ->orWhere('nm_supplier', 'like', "%{$search}%");
+                $q->where('product', 'like', "%$search%")
+                ->orWhere('no_invoice', 'like', "%$search%")
+                ->orWhere('nm_supplier', 'like', "%$search%")
+                ->orWhere('j_brg', 'like', "%$search%")
+                ->orWhere('status', 'like', "%$search%")
+                ->orWhere('date', 'like', "%$search%");
             });
         }
 
-        $products = Product::orderBy('created_at', 'DESC')->get();
-        
-        //berdasarkan product Karet
-        $karet = Product::where('product', 'karet')->SUM('qty_kg');
-        $karet2 = Product::where('product', 'karet')->SUM('qty_out');
+        $products = $query->orderBy('created_at', 'DESC')->paginate($perPage);
 
-        $saldoin = Product::where('product', 'karet')->SUM('amount');
-        $saldoout = Product::where('product', 'karet')->SUM('amount_out');
+        $karet = Product::where('product', 'karet')->sum('qty_kg');
+        $karet2 = Product::where('product', 'karet')->sum('qty_out');
+        $saldoin = Product::where('product', 'karet')->sum('amount');
+        $saldoout = Product::where('product', 'karet')->sum('amount_out');
 
-        //berdasarkan product Kelapa
-        $klp = Product::where('product', 'kelapa')->SUM('qty_kg');
-        $klp2 = Product::where('product', 'kelapa')->SUM('qty_out');
+        $klp = Product::where('product', 'kelapa')->sum('qty_kg');
+        $klp2 = Product::where('product', 'kelapa')->sum('qty_out');
+        $saldoinklp = Product::where('product', 'kelapa')->sum('amount');
+        $saldooutklp = Product::where('product', 'kelapa')->sum('amount_out');
 
-        $saldoinklp = Product::where('product', 'kelapa')->SUM('amount');
-        $saldooutklp = Product::where('product', 'kelapa')->SUM('amount_out');
-        
-        //berdasarkan product Pupuk
-        $ppk = Product::where('product', 'pupuk')->SUM('qty_kg');
-        $ppk2 = Product::where('product', 'pupuk')->SUM('qty_out');
-
-        $saldoinppk = Product::where('product', 'pupuk')->SUM('amount');
-        $saldooutppk = Product::where('product', 'pupuk')->SUM('amount_out');
+        $ppk = Product::where('product', 'pupuk')->sum('qty_kg');
+        $ppk2 = Product::where('product', 'pupuk')->sum('qty_out');
+        $saldoinppk = Product::where('product', 'pupuk')->sum('amount');
+        $saldooutppk = Product::where('product', 'pupuk')->sum('amount_out');
 
         return Inertia::render("Products/allof", [
-            // "products" => Product::all(),
             "products" => $products,
             "filter" => request()->only(['search']),
-
             "hsl_karet" => $karet - $karet2,
             "saldoin" => $saldoin,
-            "saldoout" => $saldoout,            
-            
+            "saldoout" => $saldoout,
             "hsl_kelapa" => $klp - $klp2,
             "saldoinklp" => $saldoinklp,
-            "saldooutklp" => $saldooutklp,  
-            
+            "saldooutklp" => $saldooutklp,
             "hsl_pupuk" => $ppk - $ppk2,
             "saldoinppk" => $saldoinppk,
-            "saldooutppk" => $saldooutppk,  
-            
+            "saldooutppk" => $saldooutppk,
         ]);
     }
 
@@ -339,6 +331,3 @@ class ProductController extends Controller
         return redirect()->route('products.index')->with('message', 'Product deleted Successfully');
     }
 }
-
-//return inertia::render('Products/index', []);
-//        return redirect()->route('products.index')

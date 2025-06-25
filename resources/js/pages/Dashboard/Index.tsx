@@ -22,7 +22,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ArrowRight, BarChart3, ChevronDown, DollarSign, MoreHorizontal, Package2, Search, Users } from 'lucide-react';
+import { BarChart3, ChevronDown, DollarSign, MoreHorizontal, Package2, Search, Users } from 'lucide-react';
 
 // Dummy data
 const analyticsData = {
@@ -93,23 +93,19 @@ const Dashboard = () => {
                 {/* Analytics Cards */}
                 <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
                     {/* Total Products Card */}
-                    <Card className="shadow-sm transition-shadow hover:shadow-md">
+                    <Card className="shadow-sm transition-shadow overflow-hidden hover:shadow-md">
                         <CardHeader className="pb-2">
                             <div className="flex items-center justify-between">
                                 <CardTitle className="text-sm font-medium text-gray-500">Total Products</CardTitle>
                                 <div className="rounded-lg bg-blue-100 p-2">
-                                    <Package2 size={18} className="text-blue-600" />
+                                    <Package2 size={20} className="text-blue-600" />
                                 </div>
                             </div>
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold">{analyticsData.totalProducts}</div>
                         </CardContent>
-                        <CardFooter className="pt-0">
-                            <Button variant="link" className="flex h-auto items-center p-0 text-blue-600">
-                                View details <ArrowRight size={16} className="ml-1" />
-                            </Button>
-                        </CardFooter>
+                        
                     </Card>
 
                     {/* Total Users Card */}
@@ -125,11 +121,7 @@ const Dashboard = () => {
                         <CardContent>
                             <div className="text-2xl font-bold">{analyticsData.totalUsers}</div>
                         </CardContent>
-                        <CardFooter className="pt-0">
-                            <Button variant="link" className="flex h-auto items-center p-0 text-green-600">
-                                View details <ArrowRight size={16} className="ml-1" />
-                            </Button>
-                        </CardFooter>
+                        
                     </Card>
 
                     {/* Total Categories Card */}
@@ -145,11 +137,7 @@ const Dashboard = () => {
                         <CardContent>
                             <div className="text-2xl font-bold">{analyticsData.totalCategories}</div>
                         </CardContent>
-                        <CardFooter className="pt-0">
-                            <Button variant="link" className="flex h-auto items-center p-0 text-purple-600">
-                                View details <ArrowRight size={16} className="ml-1" />
-                            </Button>
-                        </CardFooter>
+                        
                     </Card>
 
                     {/* Total Inventory Value Card */}
@@ -165,11 +153,7 @@ const Dashboard = () => {
                         <CardContent>
                             <div className="text-2xl font-bold">{formatCurrency(analyticsData.totalInventoryValue)}</div>
                         </CardContent>
-                        <CardFooter className="pt-0">
-                            <Button variant="link" className="flex h-auto items-center p-0 text-amber-600">
-                                View details <ArrowRight size={16} className="ml-1" />
-                            </Button>
-                        </CardFooter>
+                        
                     </Card>
                 </div>
 
