@@ -39,6 +39,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     
     route::get('/products/allof', [ProductController::class, 'allof'])->name('products.allof');
 
+    Route::get('/products/export/excel', [ProductController::class, 'exportExcel'])->name('products.export.excel');
     
     // ~~~~~~~~~~~~~ UserManagement ~~~~~~~~~~~~~
     route::get('/usermanagements', [UserManagementController::class, 'index'])->name('usermanagements.index');

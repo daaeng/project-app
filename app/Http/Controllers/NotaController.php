@@ -12,13 +12,30 @@ use Illuminate\Support\Facades\Log;
 
 class NotaController extends Controller
 {
-    public function index()
+    /**
+     * Display a listing of the Nota resources with search and pagination.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Inertia\Response
+     */
+    public function index(Request $request) // Added Request injection
     {
         $perPage = 10; // Jumlah item per halaman, bisa disesuaikan
-        $notas = Nota::orderBy('created_at', 'DESC')->paginate($perPage);
+        $searchTerm = $request->input('search'); // Get the search term from the request
+
+        $notas = Nota::query()
+            ->when($searchTerm, function ($query, $search) {
+                $query->where('name', 'like', "%{$search}%")
+                      ->orWhere('devisi', 'like', "%{$search}%")
+                      ->orWhere('mengetahui', 'like', "%{$search}%");
+            })
+            ->orderBy('created_at', 'DESC')
+            ->paginate($perPage)
+            ->withQueryString(); // Keep search parameters in pagination links
 
         return Inertia::render("Notas/index", [
             "notas" => $notas,
+            "filter" => $request->only('search'), // Send back the current search filter
         ]);
     }
 
@@ -42,11 +59,11 @@ class NotaController extends Controller
         // Cek duplikasi berdasarkan hash file
         $fileHash = md5_file($request->file('file')->getRealPath());
         $existing = Nota::where('name', $request->name)
-                    ->where('date', $request->date)
-                    ->where('devisi', $request->devisi)
-                    ->where('dana', $request->dana)
-                    ->where('file_hash', $fileHash)
-                    ->exists();
+                        ->where('date', $request->date)
+                        ->where('devisi', $request->devisi)
+                        ->where('dana', $request->dana)
+                        ->where('file_hash', $fileHash)
+                        ->exists();
 
         if ($existing) {
             return back()->with('error', 'Data dengan file yang sama sudah ada!, Jika baru ganti nama file nya ya :)');

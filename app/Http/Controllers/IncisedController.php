@@ -6,17 +6,55 @@ use Illuminate\Http\Request;
 use App\Models\Incised;
 use App\Models\Incisor;
 use Inertia\Inertia;
+use Carbon\Carbon; // Import Carbon untuk manipulasi tanggal
 
 class IncisedController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $perPage = 10; // Jumlah item per halaman, bisa disesuaikan
-        $inciseds = Incised::with('incisor') // Pastikan relasi sudah didefinisikan di model
+        $searchTerm = $request->input('search'); // Get the search term from the request
+        $timePeriod = $request->input('time_period', 'all-time'); // Get time_period, default to 'all-time'
+
+        $inciseds = Incised::query()
+            ->with('incisor') // Eager load the 'incisor' relationship
+            ->when($searchTerm, function ($query, $search) {
+                $query->where('product', 'like', "%{$search}%")
+                      ->orWhere('no_invoice', 'like', "%{$search}%")
+                      ->orWhere('lok_kebun', 'like', "%{$search}%")
+                      ->orWhere('j_brg', 'like', "%{$search}%")
+                      // If 'incisor_name' needs to be searchable from the Incisor model,
+                      // you would typically need a join here:
+                      ->orWhereHas('incisor', function ($q) use ($search) {
+                          $q->where('name', 'like', "%{$search}%");
+                      });
+            })
+            ->when($timePeriod, function ($query, $period) {
+                switch ($period) {
+                    case 'today':
+                        $query->whereDate('date', Carbon::today());
+                        break;
+                    case 'this-week':
+                        $query->whereBetween('date', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]);
+                        break;
+                    case 'this-month':
+                        $query->whereMonth('date', Carbon::now()->month)
+                              ->whereYear('date', Carbon::now()->year);
+                        break;
+                    case 'this-year':
+                        $query->whereYear('date', Carbon::now()->year);
+                        break;
+                    case 'all-time':
+                    default:
+                        // No date filter applied for 'all-time'
+                        break;
+                }
+            })
             ->orderBy('created_at', 'DESC')
             ->paginate($perPage)
             ->through(function ($incised) {
-                $incisor = $incised->incisor;
+                // Ensure the 'incisor' relationship is loaded before accessing it
+                $incisor = $incised->incisor; 
                 return [
                     'id' => $incised->id,
                     'product' => $incised->product,
@@ -32,10 +70,12 @@ class IncisedController extends Controller
                     'kualitas' => $incised->kualitas,
                     'incisor_name' => $incisor ? $incisor->name : null, // Ambil nama dari incisor
                 ];
-            });
+            })
+            ->withQueryString(); // Keep search and time_period parameters in pagination links
 
         return Inertia::render("Inciseds/index", [
             "inciseds" => $inciseds,
+            "filter" => $request->only(['search', 'time_period']), // Send back the current search and time_period filters
         ]);
     }
 
@@ -46,7 +86,7 @@ class IncisedController extends Controller
                 'no_invoice' => $item->no_invoice,
                 'name' => $item->name,
             ];
-        })->unique('no_invoice')->values()->all(); // Hindari duplikat berdasarkan no_invoice
+        })->unique('no_invoice')->values()->all();
         return Inertia::render("Inciseds/create", [
             'noInvoicesWithNames' => $noInvoicesWithNames,
         ]);
@@ -114,7 +154,7 @@ class IncisedController extends Controller
             'price_qty' => $request->input('price_qty'),
             'amount' => $request->input('amount'),
             'keping' => $request->input('keping'),
-            'kualitas' => $request->input('kualitas'), // Perbaiki: hapus 'required|string|max:250' di sini
+            'kualitas' => $request->input('kualitas'),
         ]);
 
         return redirect()->route('inciseds.index')->with('message', 'Data Updated Successfully');

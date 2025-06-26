@@ -11,10 +11,29 @@ use Spatie\Permission\Models\Permission;
 
 class UserManagementController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $usermanagements = User::with('roles')->get();
-        return Inertia('UserManagements/index', compact('usermanagements'));
+        $perPage = 10; // Jumlah item per halaman, bisa disesuaikan
+        $searchTerm = $request->input('search'); // Get the search term from the request
+
+        $usermanagements = User::query()
+            ->with('roles') // Eager load the 'roles' relationship
+            ->when($searchTerm, function ($query, $search) {
+                $query->where('name', 'like', "%{$search}%")
+                      ->orWhere('email', 'like', "%{$search}%")
+                      // Search through the roles relationship
+                      ->orWhereHas('roles', function ($q) use ($search) {
+                          $q->where('name', 'like', "%{$search}%");
+                      });
+            })
+            ->orderBy('created_at', 'ASC')
+            ->paginate($perPage) // Use paginate instead of get() for pagination
+            ->withQueryString(); // Keep search parameters in pagination links
+
+        return Inertia::render("UserManagements/index", [
+            "usermanagements" => $usermanagements,
+            "filter" => $request->only('search'), // Send back the current search filter
+        ]);
     }
 
     public function create()

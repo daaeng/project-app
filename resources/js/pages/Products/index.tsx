@@ -1,44 +1,11 @@
 import Heading from '@/components/heading';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head, Link, useForm, usePage } from '@inertiajs/react';
-import { ArrowRight, Building2, Eye, FileDown, FolderOpen, Megaphone, Package, Pencil, Search, Sprout, Trash, TreePalm, Trees, Wheat } from 'lucide-react';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import Tag_Karet from '@/components/ui/tag_karet';
+import { Head, Link,  } from '@inertiajs/react';
+import { ArrowRight, Building2, FolderOpen, Sprout, Trees, } from 'lucide-react';
+import { Card, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { can } from '@/lib/can';
-
-// interface Product {
-//   id: number;
-//   product: string;
-
-  
-//   created_at: string;
-//   creator: {
-//     name: string;
-//   };
-// }
-
-// interface ProductIndexProps extends PageProps {
-//   notas: {
-//     data: Nota[];
-//     links: Array<{ url: string | null; label: string; active: boolean }>;
-//   };
-//   filters: {
-//     search?: string;
-//   };
-// }
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -47,67 +14,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-interface Product {
-    id: number;
-    product : string,
-    date: string;
-    no_invoice: string;
-    nm_supplier: string;
-    j_brg: string;
-    desk: string;
-    qty_kg: number;
-    price_qty: number;
-    amount: number;
-    keping: number;
-    kualitas: string;
-    qty_out: number;
-    price_out: number;
-    amount_out: number;
-    keping_out: number;
-    kualitas_out: string;
-    status: string;
-}
-
-interface PageProps{
-    flash:{
-        message?: string
-    }, 
-    products: Product[]
-}
-
-const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'IDR',
-        minimumFractionDigits: 2,
-    }).format(value);
-};
-
-
-export default function index({hsl_karet, saldoin, saldoout, hsl_kelapa, saldoinklp, saldooutklp, hsl_pupuk, saldoinppk, saldooutppk}) {
-    
-//   const handleSearch = (search: string) => {
-//     router.get(route('products.index'), { search }, {
-//       preserveState: true,
-//       replace: true
-//     });
-//   };
-
-    const { products,  flash } = usePage().props as PageProps;
-
-    // const {processing, delete: destroy} = useForm();
-
-    // const handleDelete = (id:number, product:string) => {
-    //     if(confirm(`Do you want delete this  - ${id}. ${product} ` )){
-    //         destroy(route('products.destroy', id))
-    //     }
-    // }
-    
-    // const handleGKA = (id:number, product:string) => {
-    //     if(confirm(`Do you want delete this  - ${id}. ${product} ` )){
-    //         destroy(route('products.destroy', id))
-    //     }
-    // }
+export default function index() {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>

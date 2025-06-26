@@ -9,13 +9,27 @@ use Inertia\Inertia;
 
 class IncisorController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $perPage = 10; // Jumlah item per halaman, bisa disesuaikan
-        $incisors = Incisor::orderBy('created_at', 'ASC')->paginate($perPage);
+        $searchTerm = $request->input('search'); // Get the search term from the request
+
+        $incisors = Incisor::query()
+            ->when($searchTerm, function ($query, $search) {
+                $query->where('name', 'like', "%{$search}%")
+                      ->orWhere('lok_toreh', 'like', "%{$search}%")
+                      ->orWhere('no_invoice', 'like', "%{$search}%")
+                      ->orWhere('ttl', 'like', "%{$search}%") // Search by Tanggal Lahir (ttl)
+                      ->orWhere('gender', 'like', "%{$search}%") // Search by Jenis Kelamin (gender)
+                      ->orWhere('agama', 'like', "%{$search}%"); // Search by Agama (agama)
+            })
+            ->orderBy('created_at', 'ASC')
+            ->paginate($perPage)
+            ->withQueryString(); // Keep search parameters in pagination links
 
         return Inertia::render("Incisors/index", [
             "incisors" => $incisors,
+            "filter" => $request->only('search'), // Send back the current search filter
         ]);
     }
 

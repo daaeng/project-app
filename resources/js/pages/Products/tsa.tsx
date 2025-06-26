@@ -1,405 +1,407 @@
-import Heading from '@/components/heading';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
-import AppLayout from '@/layouts/app-layout';
+import { useState, useEffect } from 'react';
+
+// Diasumsikan komponen-komponen ini ada di direktori yang sesuai
+// dan diekspor sebagai default atau named export.
+// Path diubah dari alias '@/' menjadi path relatif.
+import Heading from '../../components/heading';
+import AppLayout from '../../layouts/app-layout';
+import { can } from '../../lib/can';
 import { type BreadcrumbItem } from '@/types';
-import { Head, Link, useForm, usePage } from '@inertiajs/react';
-import { CirclePlus, Eye, FileDown, Megaphone, Package, Pencil, Search, Sprout, Trash, TreePalm, Undo2 } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { can } from '@/lib/can';
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
+
+import { Head, Link, router } from '@inertiajs/react';
+import { CirclePlus, Eye, FileDown, Megaphone, Package, Pencil, Search, Sprout, Trash, Undo2 } from 'lucide-react';
 
 const breadcrumbs: BreadcrumbItem[] = [
-  {
-    title: 'Product Information',
-    href: '/products',
-  },
+    { title: 'Product Information', href: '/products' },
+    { title: 'Temadu Sebayar Agro', href: '/products/tsa' },
 ];
 
 interface Product {
-  id: number;
-  product: string;
-  date: string;
-  no_invoice: string;
-  nm_supplier: string;
-  j_brg: string;
-  desk: string;
-  qty_kg: number;
-  price_qty: number;
-  amount: number;
-  keping: number;
-  kualitas: string;
-  qty_out: number;
-  price_out: number;
-  amount_out: number;
-  keping_out: number;
-  kualitas_out: string;
+    id: number;
+    product: string;
+    date: string;
+    no_invoice: string;
+    nm_supplier: string;
+    j_brg: string;
+    desk: string;
+    qty_kg: number;
+    price_qty: number;
+    amount: number;
+    keping: number;
+    kualitas: string;
+    qty_out: number;
+    price_out: number;
+    amount_out: number;
+    keping_out: number;
+    kualitas_out: string;
+}
+
+interface PaginationLink {
+    url: string | null;
+    label: string;
+    active: boolean;
 }
 
 interface PageProps {
-  flash: {
-    message?: string;
-  };
-  products: {
-    data: Product[]; // Data produk
-    links: any[];    // Link paginasi
-    meta: {
-      current_page: number;
-      last_page: number;
-      per_page: number;
-      total: number;
+    flash: { message?: string };
+    products: {
+        data: Product[];
+        links: PaginationLink[];
+        meta: {
+            current_page: number;
+            last_page: number;
+            per_page: number;
+            total: number;
+        };
     };
-  };
-  products2: {
-    data: Product[]; // Data produk kedua
-    links: any[];    // Link paginasi
-    meta: {
-      current_page: number;
-      last_page: number;
-      per_page: number;
-      total: number;
+    products2: {
+        data: Product[];
+        links: PaginationLink[];
+        meta: {
+            current_page: number;
+            last_page: number;
+            per_page: number;
+            total: number;
+        };
     };
-  };
+    hsl_karet: number;
+    saldoin: number;
+    saldoout: number;
+    tm_slin: number;
+    tm_slou: number;
+    tm_sin: number;
+    tm_sou: number;
+    ts_slin: number;
+    ts_slou: number;
+    ts_sin: number;
+    ts_sou: number;
+    filter?: { search?: string; time_period?: string }; // Added time_period to filter
+    auth?: any;
 }
 
 const formatCurrency = (value: number) => {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'IDR',
-    minimumFractionDigits: 2,
-  }).format(value);
+    return new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        minimumFractionDigits: 0,
+    }).format(value);
 };
 
-export default function index({ hsl_karet, saldoin, saldoout, tm_sin, tm_sou, tm_slin, tm_slou, ts_sin, ts_sou, ts_slin, ts_slou }) {
-  const { products, products2, flash } = usePage().props as PageProps;
+export default function TsaPage({
+    flash, products, products2, hsl_karet, saldoin, saldoout,
+    tm_slin, tm_slou, tm_sin, tm_sou, ts_slin, ts_slou, ts_sin, ts_sou, filter,
+}: PageProps) {
+    const [searchValue, setSearchValue] = useState(filter?.search || '');
+    const [timePeriod, setTimePeriod] = useState(filter?.time_period || 'all-time'); // State for time period filter
 
-  const { processing, delete: destroy } = useForm();
+    useEffect(() => {
+        setSearchValue(filter?.search || '');
+        setTimePeriod(filter?.time_period || 'all-time'); // Sync time period from props
+    }, [filter?.search, filter?.time_period]);
 
-  const handleDelete = (id: number, product: string) => {
-    if (confirm(`Do you want delete this - ${id}. ${product} `)) {
-      destroy(route('products.destroy', id));
-    }
-  };
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchValue(e.target.value);
+    };
 
-    // Fungsi untuk render link paginasi
-    const renderPagination = (pagination: any) => {
+    const handleTimePeriodChange = (value: string) => {
+        setTimePeriod(value);
+        // Trigger search when time period changes
+        router.get(route('products.tsa'),
+            { search: searchValue, time_period: value }, // Include time_period in the request
+            {
+                preserveState: true,
+                replace: true,
+                only: ['products', 'products2', 'filter', 'hsl_karet', 'saldoin', 'saldoout', 'tm_slin', 'tm_slou', 'tm_sin', 'tm_sou', 'ts_slin', 'ts_slou', 'ts_sin', 'ts_sou'], // Include all stats
+            }
+        );
+    };
+
+    const performSearch = () => {
+        router.get(route('products.tsa'),
+            { search: searchValue, time_period: timePeriod }, // Include time_period in the search
+            {
+                preserveState: true,
+                replace: true,
+                only: ['products', 'products2', 'filter', 'hsl_karet', 'saldoin', 'saldoout', 'tm_slin', 'tm_slou', 'tm_sin', 'tm_sou', 'ts_slin', 'ts_slou', 'ts_sin', 'ts_sou'], // Include all stats
+            }
+        );
+    };
+
+    const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter') {
+            performSearch();
+        }
+    };
+
+    const handleDelete = (id: number, product: string) => {
+        if (confirm(`Do you want to delete this - ${id}. ${product}`)) {
+            router.delete(route('products.destroy', id), {
+                preserveState: true,
+                preserveScroll: true,
+                onSuccess: () => {
+                    router.get(route('products.tsa'), { search: searchValue, time_period: timePeriod }, { preserveState: true }); // Preserve time_period after delete
+                },
+            });
+        }
+    };
+
+    const renderPagination = (pagination: PageProps['products']) => {
         return (
-        <div className="flex justify-center mt-4">
-            {pagination.links.map((link: any, index: number) => (
-            <Button
-                key={index}
-                variant={link.active ? "default" : "outline"}
-                onClick={() => window.location.href = link.url}
-                disabled={!link.url}
-                className="mx-1"
-            >
-                {link.label.replace(/&laquo;/g, '').replace(/&raquo;/g, '')}
-            </Button>
-            ))}
-        </div>
+            <div className="flex justify-center items-center mt-6 space-x-1">
+                {pagination.links.map((link: PaginationLink, index: number) => (
+                    link.url === null ? (
+                        <div
+                            key={index}
+                            className="px-4 py-2 text-sm text-gray-400"
+                            dangerouslySetInnerHTML={{ __html: link.label }}
+                        />
+                    ) : (
+                        <Link
+                            key={`link-${index}`}
+                            href={link.url + (searchValue ? `&search=${searchValue}` : '') + (timePeriod !== 'all-time' ? `&time_period=${timePeriod}` : '')} // Append search and time_period to pagination links
+                            className={`px-4 py-2 text-sm rounded-md transition ${
+                                link.active
+                                    ? 'bg-blue-600 text-white shadow-md'
+                                    : 'bg-white text-gray-700 hover:bg-gray-100'
+                            }`}
+                            preserveState
+                            preserveScroll
+                        >
+                            <span dangerouslySetInnerHTML={{ __html: link.label }} />
+                        </Link>
+                    )
+                ))}
+            </div>
         );
     };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-        <Head title="Product" />
-
-        <div className="h-full flex-col rounded-xl p-4 space-y-4">
-            <Heading title="Temadu Sebayar Agro" />
-
-            <div className="mb-3">
-            <Link href={route('products.index')}>
-                <Button className="bg-auto w-25 hover:bg-accent hover:text-accent-foreground">
-                <Undo2 />
-                Back
-                </Button>
-            </Link>
-            </div>
-
-            <div className='grid grid-cols-4 gap-4'>
-            
-            <Card className="shadow-sm transition-shadow hover:shadow-md bg-blue-50">
-                <CardHeader className="bg-blue-300 ">
-                    <div className="flex items-center p-1 justify-between">
-                        <CardTitle className="text-sm font-medium text-gray-700">Available Stock Karet</CardTitle>
-                        <div className="rounded-lg bg-blue-100 p-2">
-                            <Package size={18} className="text-blue-600" />
-                        </div>
-                    </div>
-                </CardHeader>
-                <CardContent className='lg:-mt-4 text-blue-700'>
-                    <div className='grid grid-cols-2'>
-                        <div className='flex gap-2'> <p className='text-green-400'>IN</p> {formatCurrency(saldoout)} </div>
-                        <div className="text-2xl w-full justify-end flex font-bold row-span-2">{hsl_karet} Kg</div>
-                        <div className='flex gap-2'> <p className='text-red-400'>OUT</p> {formatCurrency(saldoin)} </div>
-                    </div>
-                </CardContent>
-                
-            </Card>
-
-            <Card className="shadow-sm transition-shadow hover:shadow-md bg-amber-50">
-                <CardHeader className="bg-amber-300 ">
-                    <div className="flex items-center p-1 justify-between">
-                        <CardTitle className="text-sm font-medium text-gray-700">Stock Temadu</CardTitle>
-                        <div className="rounded-lg bg-amber-100 p-2">
-                            <Sprout size={18} className="text-amber-600" />
-                        </div>
-                    </div>
-                </CardHeader>
-                <CardContent className='lg:-mt-4 text-amber-700'>
-                    <div className='grid grid-cols-2'>
-                        <div className='flex gap-2'> <p className='text-green-400'>IN</p> {formatCurrency(tm_slin)} </div>
-                        <div className='flex gap-2'> <p className='text-red-400'>OUT</p> {formatCurrency(tm_slou)} </div>
-
-                        {/* Stock masuk */}
-                        <div className="text-2xl w-full justify-center flex font-bold row-span-2">{tm_sin} Kg</div>
-
-                        {/* Stock Keluar */}
-                        <div className="text-2xl w-full justify-center flex font-bold row-span-2">{tm_sou} Kg</div>
-                    </div>
-                </CardContent>
-                
-            </Card>
-            
-            <Card className="shadow-sm transition-shadow hover:shadow-md bg-red-50">
-                <CardHeader className="bg-red-300 ">
-                    <div className="flex items-center p-1 justify-between">
-                        <CardTitle className="text-sm font-medium text-gray-700">Stock Sebayar</CardTitle>
-                        <div className="rounded-lg bg-red-100 p-2">
-                            <Sprout size={18} className="text-red-600" />
-                        </div>
-                    </div>
-                </CardHeader>
-                <CardContent className='lg:-mt-4 text-red-700'>
-                    <div className='grid grid-cols-2'>
-                        <div className='flex gap-2'> <p className='text-green-400'>IN</p> {formatCurrency(ts_slin)} </div>
-                        <div className='flex gap-2'> <p className='text-red-400'>OUT</p> {formatCurrency(ts_slou)} </div>
-
-                        {/* Stock masuk */}
-                        <div className="text-2xl w-full justify-center flex font-bold row-span-2">{ts_sin} Kg</div>
-
-                        {/* Stock Keluar */}
-                        <div className="text-2xl w-full justify-center flex font-bold row-span-2">{ts_sou} Kg</div>
-                    </div>
-                </CardContent>
-                
-            </Card>
-        </div>
-
-            <div className="grid grid-cols-4 gap-4">
-            {/* Card components remain unchanged */}
-            </div>
-
-            <div className="p-2">
-            {flash.message && (
-                <Alert>
-                <Megaphone className="h4-w4" />
-                <AlertTitle className="text-green-600">Notification</AlertTitle>
-                <AlertDescription>{flash.message}</AlertDescription>
-                </Alert>
-            )}
-            </div>
-
-            <div>
-            {can('products.create') && (
-                <div className="w-full justify-end h-auto flex mb-5 gap-2">
-                <Link href={route('products.create')}>
-                    <Button className="bg-yellow-600 w-25 hover:bg-yellow-500">
-                    <CirclePlus />
-                    Product
-                    </Button>
-                </Link>
-                </div>
-            )}
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-            <div className="border p-2 rounded-lg">
-                <div className="grid grid-cols-2">
-                <div className="font-bold" style={{ fontSize: 25 }}>
-                    Data Pembelian Karet
-                </div>
+            <Head title="Temadu Sebayar Agro" />
+            <div className="h-full flex-col rounded-xl p-4 space-y-4">
+                <Heading title="Temadu Sebayar Agro" />
+                <div className="mb-3">
+                    <Link href={route('products.index')}>
+                        <Button variant="outline">
+                            <Undo2 className="w-4 h-4 mr-2" /> Back
+                        </Button>
+                    </Link>
                 </div>
 
-                <CardContent className="border rounded-lg">
-                <div className="flex flex-col gap-4 py-4 sm:flex-row sm:items-center">
-                    <div className="relative flex-1">
-                    <Search className="text-muted-foreground absolute top-2.5 left-2.5 h-4 w-4" />
-                    <Input placeholder="Search..." className="pl-8" />
-                    </div>
-                    <div className="flex items-center gap-2">
-                    <Select defaultValue="all-time">
-                        <SelectTrigger className="w-[180px]">
-                        <SelectValue placeholder="Select time period" />
-                        </SelectTrigger>
-                        <SelectContent>
-                        <SelectItem value="all-time">All Time</SelectItem>
-                        <SelectItem value="today">Today</SelectItem>
-                        <SelectItem value="this-week">This Week</SelectItem>
-                        <SelectItem value="this-month">This Month</SelectItem>
-                        <SelectItem value="this-year">This Year</SelectItem>
-                        </SelectContent>
-                    </Select>
-                    <Button variant="outline" className="flex items-center gap-1">
-                        <FileDown className="h-4 w-4" />
-                        Export
-                    </Button>
+                <div className='w-full justify-center h-auto flex mb-5 gap-2'>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <Card className="shadow-sm transition-shadow hover:shadow-md bg-blue-50">
+                            <CardHeader className="bg-blue-300">
+                                <div className="flex items-center p-1 justify-between">
+                                    <CardTitle className="text-sm font-medium text-gray-700">Available Stock Karet</CardTitle>
+                                    <div className="rounded-lg bg-blue-100 p-2">
+                                        <Package size={18} className="text-blue-600" />
+                                    </div>
+                                </div>
+                            </CardHeader>
+                            <CardContent className="lg:-mt-4 text-blue-700">
+                                <div className='grid grid-cols-2 gap-1'>
+                                    <div className="flex gap-2"><p className="text-green-400">IN</p> {formatCurrency(saldoin)}</div>
+                                    <div className="text-2xl font-bold row-span-2 flex justify-end">{hsl_karet} Kg</div>
+                                    <div className="flex gap-2"><p className="text-red-400">OUT</p> {formatCurrency(saldoout)}</div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                        <Card className="shadow-sm transition-shadow hover:shadow-md bg-amber-50">
+                            <CardHeader className="bg-amber-300">
+                                <div className="flex items-center p-1 justify-between">
+                                    <CardTitle className="text-sm font-medium text-gray-700">Stock Temadu</CardTitle>
+                                    <div className="rounded-lg bg-amber-100 p-2">
+                                        <Sprout size={18} className="text-amber-600" />
+                                    </div>
+                                </div>
+                            </CardHeader>
+                            <CardContent className="lg:-mt-4 text-amber-700">
+                                <div className="grid grid-cols-2">
+                                    <div className="flex gap-2"><p className="text-green-400">IN</p> {formatCurrency(tm_slin)}</div>
+                                    <div className="flex gap-2"><p className="text-red-400">OUT</p> {formatCurrency(tm_slou)}</div>
+                                    <div className="text-2xl w-full justify-center flex font-bold">{tm_sin} Kg</div>
+                                    <div className="text-2xl w-full justify-center flex font-bold">{tm_sou} Kg</div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                        <Card className="shadow-sm transition-shadow hover:shadow-md bg-red-50">
+                            <CardHeader className="bg-red-300">
+                                <div className="flex items-center p-1 justify-between">
+                                    <CardTitle className="text-sm font-medium text-gray-700">Stock Sebayar</CardTitle>
+                                    <div className="rounded-lg bg-red-100 p-2">
+                                        <Sprout size={18} className="text-red-600" />
+                                    </div>
+                                </div>
+                            </CardHeader>
+                            <CardContent className="lg:-mt-4 text-red-700">
+                                <div className="grid grid-cols-2">
+                                    <div className="flex gap-2"><p className="text-green-400">IN</p> {formatCurrency(ts_slin)}</div>
+                                    <div className="flex gap-2"><p className="text-red-400">OUT</p> {formatCurrency(ts_slou)}</div>
+                                    <div className="text-2xl w-full justify-center flex font-bold">{ts_sin} Kg</div>
+                                    <div className="text-2xl w-full justify-center flex font-bold">{ts_sou} Kg</div>
+                                </div>
+                            </CardContent>
+                        </Card>
                     </div>
                 </div>
-                <div className="rounded-md">
-                    {products.data.length > 0 && (
-                    <Table>
-                        <TableHeader>
-                        <TableRow>
-                            <TableHead>Tanggal</TableHead>
-                            <TableHead>Supplier</TableHead>
-                            <TableHead>Barang</TableHead>
-                            <TableHead>Qty (IN)</TableHead>
-                            <TableHead>Outcome</TableHead>
-                            <TableHead className="text-center">Action</TableHead>
-                        </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                        {products.data.map((product) => (
-                            <TableRow key={product.id}>
-                            <TableCell>{product.date}</TableCell>
-                            <TableCell>{product.nm_supplier}</TableCell>
-                            <TableCell>{product.j_brg}</TableCell>
-                            <TableCell>{product.qty_kg}</TableCell>
-                            <TableCell>{formatCurrency(product.amount)}</TableCell>
-                            <TableCell className="text-center space-x-2">
-                                {can('products.view') && (
-                                <Link href={route('products.show', product.id)}>
-                                    <Button className="bg-transparent hover:bg-gray-700">
-                                    <Eye color="gray" />
-                                    </Button>
-                                </Link>
-                                )}
-                                {can('products.edit') && (
-                                <Link href={route('products.edit', product.id)}>
-                                    <Button className="bg-transparent hover:bg-gray-700">
-                                    <Pencil color="blue" />
-                                    </Button>
-                                </Link>
-                                )}
-                                {can('products.delete') && (
+
+                <Card>
+                    <CardContent className="pt-6">
+                        {flash?.message && (
+                            <Alert className="mb-4">
+                                <Megaphone className="h-4 w-4" />
+                                <AlertTitle className="text-green-600">Notification</AlertTitle>
+                                <AlertDescription>{flash.message}</AlertDescription>
+                            </Alert>
+                        )}
+
+                        <div className="flex flex-col gap-4 mb-6 sm:flex-row sm:items-center">
+                            <div className="relative flex-1">
+                                <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+                                <Input
+                                    placeholder="Search by supplier, invoice, item..."
+                                    value={searchValue}
+                                    onChange={handleInputChange}
+                                    onKeyPress={handleKeyPress}
+                                    className="pl-10"
+                                />
+                            </div>
+                            <Button onClick={performSearch}><Search className="h-4 w-4 mr-2" />Search</Button> {/* Added search button for consistency */}
+                            <div className="flex items-center gap-2">
+                                {/* Select filter by time period */}
+                                <Select value={timePeriod} onValueChange={handleTimePeriodChange}>
+                                    <SelectTrigger className="w-full sm:w-[180px]">
+                                        <SelectValue placeholder="Select time period" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all-time">All Time</SelectItem>
+                                        <SelectItem value="today">Today</SelectItem>
+                                        <SelectItem value="this-week">This Week</SelectItem>
+                                        <SelectItem value="this-month">This Month</SelectItem>
+                                        <SelectItem value="this-year">This Year</SelectItem>
+                                    </SelectContent>
+                                </Select>
                                 <Button
-                                    disabled={processing}
-                                    onClick={() => handleDelete(product.id, product.product)}
-                                    className="bg-transparent hover:bg-gray-700"
+                                    onClick={() => router.get(route('products.export.excel'), { search: searchValue, time_period: timePeriod })} // Include time_period for export
+                                    variant="outline"
+                                    className="flex items-center gap-1"
                                 >
-                                    <Trash color="red" />
+                                    <FileDown className="h-4 w-4" /> Export
                                 </Button>
+                                {can('products.create') && (
+                                    <Link href={route('products.create')}>
+                                        <Button className="bg-yellow-600 hover:bg-yellow-500">
+                                            <CirclePlus className="w-4 h-4 mr-2" /> Product
+                                        </Button>
+                                    </Link>
                                 )}
-                            </TableCell>
-                            </TableRow>
-                        ))}
-                        </TableBody>
-                    </Table>
-                    )}
-                    {renderPagination(products)} {/* Tambahkan navigasi paginasi */}
-                </div>
-                </CardContent>
-            </div>
+                            </div>
+                        </div>
 
-            <div className="border p-2 rounded-lg">
-                <div className="grid grid-cols-2">
-                <div className="font-bold" style={{ fontSize: 25 }}>
-                    Data Penjualan Karet
-                </div>
-                </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="border p-4 rounded-lg">
+                                <div className="font-bold text-xl mb-4">Data Pembelian Karet</div>
+                                <div className="rounded-md border">
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead>Tanggal</TableHead>
+                                                <TableHead>Supplier</TableHead>
+                                                <TableHead>Barang</TableHead>
+                                                <TableHead>Qty (IN)</TableHead>
+                                                <TableHead>Outcome</TableHead>
+                                                <TableHead className="text-center">Action</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {products.data.length > 0 ? (
+                                                products.data.map((product) => (
+                                                    <TableRow key={product.id}>
+                                                        <TableCell>{product.date}</TableCell>
+                                                        <TableCell>{product.nm_supplier}</TableCell>
+                                                        <TableCell>{product.j_brg}</TableCell>
+                                                        <TableCell>{product.qty_kg}</TableCell>
+                                                        <TableCell>{formatCurrency(product.amount)}</TableCell>
+                                                        <TableCell className="text-center space-x-1">
+                                                            {can('products.view') && <Link href={route('products.show', product.id)}><Button size="icon" variant="ghost"><Eye className="h-4 w-4 text-gray-500" /></Button></Link>}
+                                                            {can('products.edit') && <Link href={route('products.edit', product.id)}><Button size="icon" variant="ghost"><Pencil className="h-4 w-4 text-blue-500" /></Button></Link>}
+                                                            {can('products.delete') && <Button size="icon" variant="ghost" onClick={() => handleDelete(product.id, product.product)}><Trash className="h-4 w-4 text-red-500" /></Button>}
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ))
+                                            ) : (
+                                                <TableRow>
+                                                    <TableCell colSpan={6} className="h-24 text-center">
+                                                        No results found.
+                                                    </TableCell>
+                                                </TableRow>
+                                            )}
+                                        </TableBody>
+                                    </Table>
+                                </div>
+                                {products.data.length > 0 && renderPagination(products)}
+                            </div>
 
-                <CardContent className="border rounded-lg">
-                <div className="flex flex-col gap-4 py-4 sm:flex-row sm:items-center">
-                    <div className="relative flex-1">
-                    <Search className="text-muted-foreground absolute top-2.5 left-2.5 h-4 w-4" />
-                    <Input placeholder="Search..." className="pl-8" />
-                    </div>
-                    <div className="flex items-center gap-2">
-                    <Select defaultValue="all-time">
-                        <SelectTrigger className="w-[180px]">
-                        <SelectValue placeholder="Select time period" />
-                        </SelectTrigger>
-                        <SelectContent>
-                        <SelectItem value="all-time">All Time</SelectItem>
-                        <SelectItem value="today">Today</SelectItem>
-                        <SelectItem value="this-week">This Week</SelectItem>
-                        <SelectItem value="this-month">This Month</SelectItem>
-                        <SelectItem value="this-year">This Year</SelectItem>
-                        </SelectContent>
-                    </Select>
-                    <Button variant="outline" className="flex items-center gap-1">
-                        <FileDown className="h-4 w-4" />
-                        Export
-                    </Button>
-                    </div>
-                </div>
-                <div className="rounded-md">
-                    {products2.data.length > 0 && (
-                    <Table>
-                        <TableHeader>
-                        <TableRow>
-                            <TableHead>Tanggal</TableHead>
-                            <TableHead>Supplier</TableHead>
-                            <TableHead>Barang</TableHead>
-                            <TableHead>Qty (OUT)</TableHead>
-                            <TableHead>Income</TableHead>
-                            <TableHead className="text-center">Action</TableHead>
-                        </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                        {products2.data.map((product) => (
-                            <TableRow key={product.id}>
-                            <TableCell>{product.date}</TableCell>
-                            <TableCell>{product.nm_supplier}</TableCell>
-                            <TableCell>{product.j_brg}</TableCell>
-                            <TableCell>{product.qty_kg}</TableCell>
-                            <TableCell>{formatCurrency(product.amount)}</TableCell>
-                            <TableCell className="text-center space-x-2">
-                                {can('products.view') && (
-                                <Link href={route('products.show', product.id)}>
-                                    <Button className="bg-transparent hover:bg-gray-700">
-                                    <Eye color="gray" />
-                                    </Button>
-                                </Link>
-                                )}
-                                {can('products.edit') && (
-                                <Link href={route('products.edit', product.id)}>
-                                    <Button className="bg-transparent hover:bg-gray-700">
-                                    <Pencil color="blue" />
-                                    </Button>
-                                </Link>
-                                )}
-                                {can('products.delete') && (
-                                <Button
-                                    disabled={processing}
-                                    onClick={() => handleDelete(product.id, product.product)}
-                                    className="bg-transparent hover:bg-gray-700"
-                                >
-                                    <Trash color="red" />
-                                </Button>
-                                )}
-                            </TableCell>
-                            </TableRow>
-                        ))}
-                        </TableBody>
-                    </Table>
-                    )}
-                    {renderPagination(products2)} {/* Tambahkan navigasi paginasi */}
-                </div>
-                </CardContent>
+                            <div className="border p-4 rounded-lg">
+                                <div className="font-bold text-xl mb-4">Data Penjualan Karet</div>
+                                <div className="rounded-md border">
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead>Tanggal</TableHead>
+                                                <TableHead>Supplier</TableHead>
+                                                <TableHead>Barang</TableHead>
+                                                <TableHead>Qty (OUT)</TableHead>
+                                                <TableHead>Income</TableHead>
+                                                <TableHead className="text-center">Action</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {products2.data.length > 0 ? (
+                                                products2.data.map((product) => (
+                                                    <TableRow key={product.id}>
+                                                        <TableCell>{product.date}</TableCell>
+                                                        <TableCell>{product.nm_supplier}</TableCell>
+                                                        <TableCell>{product.j_brg}</TableCell>
+                                                        <TableCell>{product.qty_out}</TableCell>
+                                                        <TableCell>{formatCurrency(product.amount_out)}</TableCell>
+                                                        <TableCell className="text-center space-x-1">
+                                                            {can('products.view') && <Link href={route('products.show', product.id)}><Button size="icon" variant="ghost"><Eye className="h-4 w-4 text-gray-500" /></Button></Link>}
+                                                            {can('products.edit') && <Link href={route('products.edit', product.id)}><Button size="icon" variant="ghost"><Pencil className="h-4 w-4 text-blue-500" /></Button></Link>}
+                                                            {can('products.delete') && <Button size="icon" variant="ghost" onClick={() => handleDelete(product.id, product.product)}><Trash className="h-4 w-4 text-red-500" /></Button>}
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ))
+                                            ) : (
+                                                <TableRow>
+                                                    <TableCell colSpan={6} className="h-24 text-center">
+                                                        No results found.
+                                                    </TableCell>
+                                                </TableRow>
+                                            )}
+                                        </TableBody>
+                                    </Table>
+                                </div>
+                                {products2.data.length > 0 && renderPagination(products2)}
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
             </div>
-            </div>
-        </div>
         </AppLayout>
     );
 }

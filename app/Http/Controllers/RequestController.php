@@ -12,13 +12,25 @@ use Illuminate\Support\Facades\Log;
 
 class RequestController extends Controller
 {
-   public function index()
+   public function index(Request $request) // Added Request injection
    {
       $perPage = 10; // Jumlah item per halaman, bisa disesuaikan
-      $requests = Requested::orderBy('created_at', 'DESC')->paginate($perPage);
+      $searchTerm = $request->input('search'); // Get the search term from the request
+
+      $requests = Requested::query()
+         ->when($searchTerm, function ($query, $search) {
+               $query->where('name', 'like', "%{$search}%")
+                     ->orWhere('devisi', 'like', "%{$search}%")
+                     ->orWhere('j_pengajuan', 'like', "%{$search}%") // Added search by j_pengajuan
+                     ->orWhere('mengetahui', 'like', "%{$search}%");
+         })
+         ->orderBy('created_at', 'DESC')
+         ->paginate($perPage)
+         ->withQueryString(); // Keep search parameters in pagination links
 
       return Inertia::render("Requests/index", [
          "requests" => $requests,
+         "filter" => $request->only('search'), // Send back the current search filter
       ]);
    }
 
