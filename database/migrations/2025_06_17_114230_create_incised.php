@@ -23,7 +23,7 @@ return new class extends Migration
             
             $table->integer('qty_kg');
             $table->decimal('price_qty', 12, 2);
-            $table->decimal('amount', 12, 2);
+            $table->decimal('amount', 16, 2);
             $table->integer('keping');
             $table->string('kualitas');
             $table->index(['no_invoice', 'date']);

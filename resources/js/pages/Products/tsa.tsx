@@ -377,8 +377,8 @@ export default function TsaPage({
                                                         <TableCell>{product.date}</TableCell>
                                                         <TableCell>{product.nm_supplier}</TableCell>
                                                         <TableCell>{product.j_brg}</TableCell>
-                                                        <TableCell>{product.qty_out}</TableCell>
-                                                        <TableCell>{formatCurrency(product.amount_out)}</TableCell>
+                                                        <TableCell>{product.qty_kg}</TableCell>
+                                                        <TableCell>{formatCurrency(product.amount)}</TableCell>
                                                         <TableCell className="text-center space-x-1">
                                                             {can('products.view') && <Link href={route('products.show', product.id)}><Button size="icon" variant="ghost"><Eye className="h-4 w-4 text-gray-500" /></Button></Link>}
                                                             {can('products.edit') && <Link href={route('products.edit', product.id)}><Button size="icon" variant="ghost"><Pencil className="h-4 w-4 text-blue-500" /></Button></Link>}

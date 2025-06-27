@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\DB;
 class Kasbon extends Model
 {
     protected $fillable = [
-        'incisor_id', 'incised_id', 'kasbon', 'status', 'reason'
+        'incisor_id', 'kasbon', 'status', 'reason', 'month', 'year'
     ];
 
     public function incisor()
@@ -16,10 +16,10 @@ class Kasbon extends Model
         return $this->belongsTo(Incisor::class);
     }
 
-    public function incised()
-    {
-        return $this->belongsTo(Incised::class);
-    }
+    // public function incised()
+    // {
+    //     return $this->belongsTo(Incised::class);
+    // }
 
     // Accessor untuk menghitung gaji berdasarkan amount per bulan
     // public function getGajiAttribute()

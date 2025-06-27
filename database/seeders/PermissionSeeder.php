@@ -54,6 +54,11 @@ class PermissionSeeder extends Seeder
             'incised.edit',
             'incised.delete',
             
+            'kasbons.view',
+            'kasbons.create',
+            'kasbons.edit',
+            'kasbons.delete',
+            
         ];
 
         foreach ($permissions as $key => $value) {
