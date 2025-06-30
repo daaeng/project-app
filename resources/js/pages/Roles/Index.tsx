@@ -18,7 +18,9 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 interface Role {
+    id : number,
     name : string,
+    permissions : string,
 
 }
 

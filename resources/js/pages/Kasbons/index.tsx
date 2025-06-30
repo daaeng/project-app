@@ -10,7 +10,8 @@ import { CirclePlus, Eye, Megaphone, Pencil, Search, Trash } from 'lucide-react'
 import { can } from '@/lib/can';
 import { Input } from '@/components/ui/input';
 import { useState, useEffect } from 'react';
-import { PaginationLink } from '@/types/inertia'; // Adjust import path if needed
+import { PaginationLink } from '@/types/inertia';
+import Tag from '@/components/ui/tag';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -24,10 +25,11 @@ interface Kasbon {
     incisor_id: number;
     incisor_name: string;
     incised_id: number;
-    incised_no_invoice: string;
+    incised_no_invoice: string; // Keep this for backend consistency, but we'll use incisor_no_invoice for display
+    incisor_no_invoice: string; // Add this for displaying the Incisor's no_invoice
     gaji: number;
     kasbon: number;
-    status: string;
+    status: 'Pending' | 'Approved' | 'Rejected' | 'belum ACC' | 'ditolak' | 'diterima'; // Update status types to match TagProps
     reason: string | null;
     created_at: string;
 }
@@ -92,8 +94,8 @@ export default function KasbonIndex() { // Renamed component for clarity
         }
     };
 
-    const handleDelete = (id: number, incisorName: string, incisedNoInvoice: string) => {
-        if (confirm(`Apakah Anda yakin ingin menghapus Kasbon ini untuk ${incisorName} (Invoice: ${incisedNoInvoice})?`)) {
+    const handleDelete = (id: number, incisorName: string, incisorNoInvoice: string) => { // Changed incisedNoInvoice to incisorNoInvoice
+        if (confirm(`Apakah Anda yakin ingin menghapus Kasbon ini untuk ${incisorName} (Kode Penoreh: ${incisorNoInvoice})?`)) { // Updated message
             destroy(route('kasbons.destroy', id), {
                 preserveState: true,
                 preserveScroll: true,
@@ -146,7 +148,7 @@ export default function KasbonIndex() { // Renamed component for clarity
             <div className="h-full flex-col rounded-xl p-4">
                 <Heading title='Data Kasbon' />
 
-                <div className='border h-auto p-3 rounded-lg bg-white shadow-sm'>
+                <div className='border h-auto p-3 rounded-lg  shadow-sm'>
                     {/* Add New Button */}
                     <div className='w-full mb-4 justify-end h-auto flex gap-2'>
                         {can('kasbons.create') &&
@@ -180,7 +182,7 @@ export default function KasbonIndex() { // Renamed component for clarity
                         <div className='relative flex-1'>
                             <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
                             <Input
-                                placeholder="Cari berdasarkan Penoreh, Invoice, Status..."
+                                placeholder="Cari berdasarkan Penoreh, Kode Penoreh, Status..." // Updated placeholder
                                 value={searchValue}
                                 onChange={handleInputChange}
                                 onKeyPress={handleKeyPress}
@@ -196,64 +198,57 @@ export default function KasbonIndex() { // Renamed component for clarity
                     <CardContent className='border rounded-lg p-0 overflow-hidden'> {/* Removed padding from CardContent */}
                         <div className="relative w-full overflow-auto"> {/* Added responsive scroll */}
                             {kasbons.data.length > 0 ? (
-                                <Table className="min-w-full divide-y divide-gray-200">
-                                    <TableHeader className="bg-gray-50">
+                                <Table className="min-w-full divide-y ">
+                                    <TableHeader className="">
                                         <TableRow>
-                                            <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</TableHead>
-                                            <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Penoreh</TableHead>
-                                            <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No. Invoice</TableHead>
-                                            <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Gaji</TableHead>
-                                            <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kasbon</TableHead>
-                                            <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</TableHead>
-                                            <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Alasan</TableHead>
-                                            <TableHead className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</TableHead>
+                                            <TableHead className="px-6 py-3 text-left text-xs font-medium  uppercase tracking-wider">ID</TableHead>
+                                            <TableHead className="px-6 py-3 text-left text-xs font-medium  uppercase tracking-wider">Penoreh</TableHead>
+                                            <TableHead className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Kode Penoreh</TableHead> {/* Changed to Kode Penoreh */}
+                                            {/* Kolom Gaji dihapus sesuai permintaan */}
+                                            {/* <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Gaji</TableHead> */}
+                                            <TableHead className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Kasbon</TableHead>
+                                            <TableHead className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Status</TableHead>
+                                            <TableHead className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Alasan</TableHead>
+                                            <TableHead className="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider">Aksi</TableHead>
                                         </TableRow>
                                     </TableHeader>
 
-                                    <TableBody className="bg-white divide-y divide-gray-200">
+                                    <TableBody className=" ">
                                         {kasbons.data.map((kasbon) => (
-                                            <TableRow key={kasbon.id} className="hover:bg-gray-50">
-                                                <TableCell className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{kasbon.id}</TableCell>
-                                                <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{kasbon.incisor_name}</TableCell>
-                                                <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{kasbon.incised_no_invoice}</TableCell>
-                                                <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatCurrency(kasbon.gaji)}</TableCell>
-                                                <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatCurrency(kasbon.kasbon)}</TableCell>
-                                                <TableCell className="px-6 py-4 whitespace-nowrap text-sm">
-                                                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                                                        kasbon.status === 'Approved' ? 'bg-green-100 text-green-800' :
-                                                        kasbon.status === 'Rejected' ? 'bg-red-100 text-red-800' :
-                                                        'bg-gray-100 text-gray-800'
-                                                    }`}>
-                                                        {kasbon.status}
-                                                    </span>
-                                                </TableCell>
-                                                <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{kasbon.reason || '-'}</TableCell>
-                                                <TableCell className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium space-x-2">
-                                                    {can('kasbons.view') &&
-                                                        <Link href={route('kasbons.show', kasbon.id)}>
-                                                            <Button size="icon" variant="ghost" className="text-gray-500 hover:text-gray-700">
-                                                                <Eye className="h-4 w-4" />
-                                                            </Button>
-                                                        </Link>
-                                                    }
-                                                    {can('kasbons.edit') &&
-                                                        <Link href={route('kasbons.edit', kasbon.id)}>
-                                                            <Button size="icon" variant="ghost" className="text-blue-500 hover:text-blue-700">
-                                                                <Pencil className="h-4 w-4" />
-                                                            </Button>
-                                                        </Link>
-                                                    }
-                                                    {can('kasbons.delete') &&
-                                                        <Button
-                                                            onClick={() => handleDelete(kasbon.id, kasbon.incisor_name, kasbon.incised_no_invoice)}
-                                                            size="icon"
-                                                            variant="ghost"
-                                                            className="text-red-500 hover:text-red-700"
-                                                        >
-                                                            <Trash className="h-4 w-4" />
-                                                        </Button>
-                                                    }
-                                                </TableCell>
+                                            // Memastikan tidak ada whitespace antara TableRow dan TableCell pertama
+                                            <TableRow key={kasbon.id}>
+                                                <TableCell className="px-6 py-4 whitespace-nowrap text-sm font-medium ">{kasbon.id}</TableCell>
+                                                <TableCell className="px-6 py-4 whitespace-nowrap text-sm ">{kasbon.incisor_name}</TableCell>
+                                                <TableCell className="px-6 py-4 whitespace-nowrap text-sm ">{kasbon.incisor_no_invoice}</TableCell>
+                                                <TableCell className="px-6 py-4 whitespace-nowrap text-sm ">{formatCurrency(kasbon.kasbon)}</TableCell>
+                                                <TableCell className="px-6 py-4 whitespace-nowrap text-sm">{/* Menggunakan komponen Tag */}
+                                            <Tag status={kasbon.status === 'Pending' ? 'belum ACC' : (kasbon.status === 'Approved' ? 'diterima' : 'ditolak')} /></TableCell>
+                                            <TableCell className="px-6 py-4 whitespace-nowrap text-sm ">{kasbon.reason || '-'}</TableCell>
+                                            <TableCell className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium space-x-2">
+                                                
+                                            {can('kasbons.view') && 
+                                                <Link href={route('kasbons.show', kasbon.id)}>
+                                                    <Button size="icon" variant="ghost" className="text-gray-500 hover:text-gray-700">
+                                                        <Eye className="h-4 w-4" />
+                                                    </Button>
+                                                </Link>}
+                                            
+                                            {can('kasbons.edit') && 
+                                                <Link href={route('kasbons.edit', kasbon.id)}>
+                                                    <Button size="icon" variant="ghost" className="text-blue-500 hover:text-blue-700">
+                                                        <Pencil className="h-4 w-4" />
+                                                    </Button>
+                                                </Link>}
+                                            
+                                            {can('kasbons.delete') && 
+                                                <Button onClick={() => handleDelete(kasbon.id, kasbon.incisor_name, kasbon.incisor_no_invoice)} 
+                                                    size="icon" variant="ghost" 
+                                                    className="text-red-500 hover:text-red-700">
+                                                        
+                                                    <Trash className="h-4 w-4" />
+                                                </Button>
+                                            }
+                                            </TableCell>
                                             </TableRow>
                                         ))}
                                     </TableBody>

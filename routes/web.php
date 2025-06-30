@@ -87,19 +87,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
     //routes
     Route::resource("roles", RoleController::class)
                     ->only(["create", "store"])
-                    ->middleware("permission::roles.create");
+                    ->middleware("permission:roles.create");
 
     Route::resource("roles", RoleController::class)
                     ->only(["edit", "update"])
-                    ->middleware("permission::roles.edit");
+                    ->middleware("permission:roles.edit");
     
     Route::resource("roles", RoleController::class)
                     ->only(["destroy"])
-                    ->middleware("permission::roles.delete");
+                    ->middleware("permission:roles.delete");
     
-    // Route::resource("roles", RoleController::class)
-    //                 ->only(["index", "show"])
-    //                 ->middleware("permission::roles.view|roles.create|roles.edit|roles.delete");
+    Route::resource("roles", RoleController::class)
+                    ->only(["index", "show"])
+                    ->middleware("permission:roles.view|roles.create|roles.edit|roles.delete");
     
 
     Route::resource('roles', RoleController::class);
@@ -127,13 +127,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Route::middleware(['auth'])->group(function () {
     //     Route::resource('kasbons', KasbonController::class);
     // });
-    route::get('/kasbons', [KasbonController::class, 'index'])->name('kasbons.index');
-    route::post('/kasbons', [KasbonController::class, 'store'])->name('kasbons.store');
-    route::get('/kasbons/create', [KasbonController::class, 'create'])->name('kasbons.create');
-    route::get('/kasbons/{incised}/edit', [KasbonController::class, 'edit'])->name('kasbons.edit');
-    route::put('/kasbons/{incised}', [KasbonController::class, 'update'])->name('kasbons.update');
-    route::get('/kasbons/{incised}/show', [KasbonController::class, 'show'])->name('kasbons.show');
-    route::delete('/kasbons/{incised}', [KasbonController::class, 'destroy'])->name('kasbons.destroy');
+    // route::get('/kasbons', [KasbonController::class, 'index'])->name('kasbons.index');
+    // route::post('/kasbons', [KasbonController::class, 'store'])->name('kasbons.store');
+    // route::get('/kasbons/create', [KasbonController::class, 'create'])->name('kasbons.create');
+    // route::get('/kasbons/{incised}/edit', [KasbonController::class, 'edit'])->name('kasbons.edit');
+    // route::put('/kasbons/{incised}', [KasbonController::class, 'update'])->name('kasbons.update');
+    // route::get('/kasbons/{incised}/show', [KasbonController::class, 'show'])->name('kasbons.show');
+    // route::delete('/kasbons/{incised}', [KasbonController::class, 'destroy'])->name('kasbons.destroy');
+
+    Route::post('/kasbons/get-incisor-data', [KasbonController::class, 'getIncisorData'])->name('kasbons.getIncisorData');
+
+    Route::resource('kasbons', KasbonController::class);
 
 });
 
