@@ -74,7 +74,7 @@ export default function index() {
                                 </div>
                             </CardHeader>
                             <CardFooter className="">
-                                <Link href={''}>
+                                <Link href={route('products.agro')}>
                                     <Button variant="link"  className="flex h-auto items-center p-0 text-green-600">
                                         View details <ArrowRight size={16} className="ml-1" />
                                     </Button>

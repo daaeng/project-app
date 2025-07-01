@@ -36,6 +36,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     route::get('/products/gka', [ProductController::class, 'gka'])->name('products.gka');
     route::get('/products/tsa', [ProductController::class, 'tsa'])->name('products.tsa');
+    route::get('/products/agro', [ProductController::class, 'agro'])->name('products.agro');
     
     route::get('/products/allof', [ProductController::class, 'allof'])->name('products.allof');
 
@@ -123,21 +124,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     route::delete('/inciseds/{incised}', [IncisedController::class, 'destroy'])->name('inciseds.destroy');
     
     // ~~~~~~~~~~~~~ KASBON ~~~~~~~~~~~~~
-    // Route::resource('kasbons', KasbonController::class);
-    // Route::middleware(['auth'])->group(function () {
-    //     Route::resource('kasbons', KasbonController::class);
-    // });
-    // route::get('/kasbons', [KasbonController::class, 'index'])->name('kasbons.index');
-    // route::post('/kasbons', [KasbonController::class, 'store'])->name('kasbons.store');
-    // route::get('/kasbons/create', [KasbonController::class, 'create'])->name('kasbons.create');
-    // route::get('/kasbons/{incised}/edit', [KasbonController::class, 'edit'])->name('kasbons.edit');
-    // route::put('/kasbons/{incised}', [KasbonController::class, 'update'])->name('kasbons.update');
-    // route::get('/kasbons/{incised}/show', [KasbonController::class, 'show'])->name('kasbons.show');
-    // route::delete('/kasbons/{incised}', [KasbonController::class, 'destroy'])->name('kasbons.destroy');
 
     Route::post('/kasbons/get-incisor-data', [KasbonController::class, 'getIncisorData'])->name('kasbons.getIncisorData');
-
     Route::resource('kasbons', KasbonController::class);
+
 
 });
 

@@ -71,6 +71,7 @@ class ProductController extends Controller
             'price_out' => 'required|numeric',
             'amount_out' => 'required|numeric',
             'keping_out' => 'required|numeric',
+            'status' => 'required|string|max:250',
         ]);
 
         Product::create($request->all());
@@ -363,6 +364,125 @@ class ProductController extends Controller
             "ts_slou" => $ts_slou,
             "ts_sin" => $ts_sin,
             "ts_sou" => $ts_sou,
+        ]);
+    }
+
+    public function agro(Request $request) 
+    {
+        $perPage = 5; 
+        $searchTerm = $request->input('search');
+        $timePeriod = $request->input('time_period', 'all-time'); // Get time_period, default to 'all-time'
+
+
+        $baseQuery = Product::query()
+            ->when($searchTerm, function ($query, $search) {
+                $query->where(function($q) use ($search) {
+                    $q->where('nm_supplier', 'like', "%{$search}%")
+                      ->orWhere('no_invoice', 'like', "%{$search}%")
+                      ->orWhere('j_brg', 'like', "%{$search}%");
+                });
+            })
+            ->when($timePeriod, function ($query, $period) {
+                switch ($period) {
+                    case 'today':
+                        $query->whereDate('date', Carbon::today());
+                        break;
+                    case 'this-week':
+                        $query->whereBetween('date', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]);
+                        break;
+                    case 'this-month':
+                        $query->whereMonth('date', Carbon::now()->month)
+                              ->whereYear('date', Carbon::now()->year);
+                        break;
+                    case 'this-year':
+                        $query->whereYear('date', Carbon::now()->year);
+                        break;
+                    case 'all-time':
+                    default:
+                        // No date filter applied for 'all-time'
+                        break;
+                }
+            });
+
+        $products = $baseQuery->clone() 
+            ->where('product', 'Pupuk')
+            ->where('qty_kg', '>', 0)
+            ->where('status', 'agro')
+            ->orderBy('created_at', 'DESC')
+            ->paginate($perPage, ['*'], 'page') 
+            ->withQueryString(); 
+
+        // --- Query untuk Tabel Penjualan Karet (products2) ---
+        $product2 = $baseQuery->clone()
+            ->where('product', 'Pupuk')
+            ->where('qty_out', '>', 0) 
+            ->where('status', 'gka')
+            ->orderBy('created_at', 'DESC')
+            ->paginate($perPage, ['*'], 'page2') 
+            ->withQueryString(); 
+
+        // For statistics, apply the same time and search filters
+        $statsQuery = Product::query()
+            ->when($searchTerm, function ($query, $search) {
+                $query->where(function($q) use ($search) {
+                    $q->where('nm_supplier', 'like', "%{$search}%")
+                      ->orWhere('no_invoice', 'like', "%{$search}%")
+                      ->orWhere('j_brg', 'like', "%{$search}%");
+                });
+            })
+            ->when($timePeriod, function ($query, $period) {
+                switch ($period) {
+                    case 'today':
+                        $query->whereDate('date', Carbon::today());
+                        break;
+                    case 'this-week':
+                        $query->whereBetween('date', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]);
+                        break;
+                    case 'this-month':
+                        $query->whereMonth('date', Carbon::now()->month)
+                              ->whereYear('date', Carbon::now()->year);
+                        break;
+                    case 'this-year':
+                        $query->whereYear('date', Carbon::now()->year);
+                        break;
+                    case 'all-time':
+                    default:
+                        // No date filter applied for 'all-time'
+                        break;
+                }
+            });
+
+        // Statistik Pupuk
+        $ppk_in = $statsQuery->clone()->where('status', 'agro')->where('product', 'pupuk')->sum('qty_kg');
+        $ppk_out = $statsQuery->clone()->where('status', 'agro')->where('product', 'pupuk')->sum('qty_out');
+        $saldoin = $statsQuery->clone()->where('status', 'agro')->where('product', 'pupuk')->sum('amount');
+        $saldoout = $statsQuery->clone()->where('status', 'agro')->where('product', 'pupuk')->sum('amount_out');
+
+        // Statistik Karet
+        // $karet = $statsQuery->clone()->where('status', 'tsa')->where('product', 'karet')->sum('qty_kg');
+        // $karet2 = $statsQuery->clone()->where('status', 'tsa')->where('product', 'karet')->sum('qty_out');
+        // $saldoin = $statsQuery->clone()->where('status', 'tsa')->where('product', 'karet')->sum('amount');
+        // $saldoout = $statsQuery->clone()->where('status', 'gka')->where('product', 'karet')->sum('amount');
+
+        // TEMADU totals based on filtered data
+        $tm_slin = $statsQuery->clone()->where('nm_supplier', 'agro')->where('status', 'agro')->where('product', 'pupuk')->sum('amount');
+        $tm_slou = $statsQuery->clone()->where('nm_supplier', 'agro')->where('status', 'gka')->where('product', 'pupuk')->sum('amount');
+        $tm_sin = $statsQuery->clone()->where('nm_supplier', 'agro')->where('status', 'agro')->where('product', 'pupuk')->sum('qty_kg');
+        $tm_sou = $statsQuery->clone()->where('nm_supplier', 'agro')->where('status', 'gka')->where('product', 'pupuk')->sum('qty_kg');
+
+        return Inertia::render("Products/agro", [
+            "products" => $products,
+            "products2" => $product2,
+            "filter" => $request->only(['search', 'time_period']), // Kirim kembali filter ke frontend
+
+            "hsl_karet" => $ppk_in - $ppk_out,
+            "saldoin" => $saldoin,
+            "saldoout" => $saldoout,
+            
+            "tm_slin" => $tm_slin,
+            "tm_slou" => $tm_slou,
+            "tm_sin" => $tm_sin,
+            "tm_sou" => $tm_sou,
         ]);
     }
 

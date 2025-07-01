@@ -37,11 +37,11 @@ interface Product {
   amount: number;
   keping: number;
   kualitas: string;
-  qty_out: number;
-  price_out: number;
-  amount_out: number;
-  keping_out: number;
-  kualitas_out: string;
+  // qty_out: number;
+  // price_out: number;
+  // amount_out: number;
+  // keping_out: number;
+  // kualitas_out: string;
 }
 
 interface PaginationLink {
@@ -281,7 +281,7 @@ export default function GkaPage({
                         <TableHead>Tanggal</TableHead>
                         <TableHead>Supplier</TableHead>
                         <TableHead>Barang</TableHead>
-                        <TableHead>Qty (IN)</TableHead>
+                        <TableHead>Qty </TableHead>
                         <TableHead>Outcome</TableHead>
                         <TableHead className="text-center">Action</TableHead>
                       </TableRow>
@@ -343,7 +343,7 @@ export default function GkaPage({
                         <TableHead>Tanggal</TableHead>
                         <TableHead>Supplier</TableHead>
                         <TableHead>Barang</TableHead>
-                        <TableHead>Qty (OUT)</TableHead>
+                        <TableHead>Qty </TableHead>
                         <TableHead>Income</TableHead>
                         <TableHead className="text-center">Action</TableHead>
                       </TableRow>
@@ -355,8 +355,8 @@ export default function GkaPage({
                             <TableCell>{product.date}</TableCell>
                             <TableCell>{product.nm_supplier}</TableCell>
                             <TableCell>{product.j_brg}</TableCell>
-                            <TableCell>{product.qty_out}</TableCell>
-                            <TableCell>{formatCurrency(product.amount_out)}</TableCell>
+                            <TableCell>{product.qty_kg}</TableCell>
+                            <TableCell>{formatCurrency(product.amount)}</TableCell>
                             <TableCell className="text-center space-x-2">
                               {can('products.view') && (
                                 <Link href={route('products.show', product.id)}>

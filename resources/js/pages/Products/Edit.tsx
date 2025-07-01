@@ -125,6 +125,8 @@ export default function edit({product} : props) {
                                     <option value="" disabled selected>Pilih Supplier</option>
                                     <option value="Sebayar" >Sebayar</option>
                                     <option value="Temadu" >Temadu</option>
+                                    <option value="agro" >GK Agro</option>
+                                    <option value="gka" >GKA</option>
                                 </select>
                             </div>
                             <div className='gap-2'>
@@ -144,7 +146,7 @@ export default function edit({product} : props) {
                                 <Label htmlFor='Product Name'> Status </Label>
                                 {/* <Input placeholder='Product Name' value={data.product} onChange={(e) => setData('product', e.target.value)} /> */}
                                 <select value={data.status} onChange={(e) => setData('status', e.target.value)} className='w-full border p-1 rounded-md text-destructive-foreground' required>
-                                    <option value="" disabled selected>Pilih Jenis Product</option>
+                                    <option value="" disabled selected>Pilih Lokasi Kebun</option>
                                     <option value="tsa" >TSA</option>
                                     <option value="gka" >TSA to GKA</option>
                                     <option value="buyer" >GKA to Buyyer</option>

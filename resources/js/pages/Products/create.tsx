@@ -37,6 +37,7 @@ export default function index() {
         amount_out: '',
         keping_out: '',
         kualitas_out: '',
+        status: '',
     })
 
     const handleSubmit = (e: React.FormEvent) =>{
@@ -107,6 +108,18 @@ export default function index() {
                                     <option value="" disabled selected>Pilih Supplier</option>
                                     <option value="sebayar" >Sebayar</option>
                                     <option value="termadu" >Temadu</option>
+                                    <option value="agro" >GK Agro</option>
+                                    <option value="gka" >GKA</option>
+                                </select>
+                            </div>
+                            <div className='gap-2 sm:col-span-3'>
+                                <Label htmlFor='Product Name'> Lokasi Kebun </Label>
+                                {/* <Input placeholder='Product Name' value={data.product} onChange={(e) => setData('product', e.target.value)} /> */}
+                                <select value={data.status} onChange={(e) => setData('status', e.target.value)} className='w-full border p-1 rounded-md text-destructive-foreground' required>
+                                    <option value="" disabled selected>Pilih Lokasi Kebun</option>
+                                    <option value="tsa" >TSA</option>
+                                    <option value="agro" >GK Agro</option>
+                                    <option value="gka" >GKA</option>
                                 </select>
                             </div>
                             <div className='gap-2'>
@@ -122,6 +135,7 @@ export default function index() {
                         
 
                         <div className='grid lg:grid-cols-3'>
+
                             <div className='p-2 mt-3 col-span-3 border-2  rounded-md h-fit '>
 
                                 <div className='grid md:grid-cols-2 sm:grid-cols-1 gap-3 p-2'>
