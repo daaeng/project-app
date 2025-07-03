@@ -102,40 +102,40 @@ export default function edit({product} : props) {
                         <div className='space-y-2'>
                             <div className='gap-2'>
                                 <Label htmlFor='Product Name'> Product </Label>
-                                {/* <Input placeholder='Product Name' value={data.product} onChange={(e) => setData('product', e.target.value)} /> */}
-                                <select value={data.product} onChange={(e) => setData('product', e.target.value)} className='w-full border p-1 rounded-md text-destructive-foreground' required>
+                                <Input placeholder='Product Name' value={data.product} onChange={(e) => setData('product', e.target.value)} readOnly/>
+                                {/* <select value={data.product} onChange={(e) => setData('product', e.target.value)} className='w-full border p-1 rounded-md text-destructive-foreground' required>
                                     <option value="" disabled selected>Pilih Jenis Product</option>
                                     <option value="Karet" >Karet</option>
                                     <option value="Kelapa" >Kelapa</option>
                                     <option value="Pupuk" >Pupuk</option>
-                                </select>
+                                </select> */}
                             </div>
                             <div className='gap-2'>
                                 <Label htmlFor='Tanggal'> Tanggal </Label>
-                                <Input type='date' placeholder='Tanggal' value={data.date} onChange={(e) => setData('date', e.target.value)}/>
+                                <Input type='date' placeholder='Tanggal' value={data.date} onChange={(e) => setData('date', e.target.value)} readOnly/>
                             </div>
                             <div className='gap-2'>
                                 <Label htmlFor='Invoice'> No. Invoice </Label>
-                                <Input placeholder='Invoice' value={data.no_invoice} onChange={(e) => setData('no_invoice', e.target.value)} />
+                                <Input placeholder='Invoice' value={data.no_invoice} onChange={(e) => setData('no_invoice', e.target.value)} readOnly/>
                             </div>
                             <div className='gap-2'>
                                 <Label htmlFor='Name Supplier'> Supplier </Label>
-                                {/* <Input placeholder='Name Supplier' value={data.nm_supplier} onChange={(e) => setData('nm_supplier', e.target.value)} /> */}
-                                <select value={data.nm_supplier} onChange={(e) => setData('nm_supplier', e.target.value)} className='w-full border p-1 rounded-md text-destructive-foreground' required>
+                                <Input placeholder='Name Supplier' value={data.nm_supplier} onChange={(e) => setData('nm_supplier', e.target.value)} readOnly/>
+                                {/* <select value={data.nm_supplier} onChange={(e) => setData('nm_supplier', e.target.value)} className='w-full border p-1 rounded-md text-destructive-foreground' required>
                                     <option value="" disabled selected>Pilih Supplier</option>
                                     <option value="Sebayar" >Sebayar</option>
                                     <option value="Temadu" >Temadu</option>
                                     <option value="agro" >GK Agro</option>
                                     <option value="gka" >GKA</option>
-                                </select>
+                                </select> */}
                             </div>
                             <div className='gap-2'>
                                 <Label htmlFor='Jenis Barang'> Jenis Barang </Label>
-                                <Input placeholder='Jenis Barang' value={data.j_brg} onChange={(e) => setData('j_brg', e.target.value)}/>
+                                <Input placeholder='Jenis Barang' value={data.j_brg} onChange={(e) => setData('j_brg', e.target.value)} readOnly/>
                             </div>                        
                             <div className='gap-2'>
                                 <Label htmlFor='Description'> Description </Label>
-                                <Textarea placeholder='Description' value={data.desk} onChange={(e) => setData('desk', e.target.value)}/>
+                                <Textarea placeholder='Description' value={data.desk} onChange={(e) => setData('desk', e.target.value)} />
                             </div>
 
                         </div>
@@ -165,23 +165,23 @@ export default function edit({product} : props) {
 
                                     <div className='gap-2 md:col-span-1 sm:col-span-3'>
                                         <Label htmlFor='Quantity'> Quantity (Kg) </Label>
-                                        <Input placeholder='Quantity' value={data.qty_kg} onChange={(e) => setData('qty_kg', e.target.value)}/>
+                                        <Input placeholder='Quantity' value={data.qty_kg} onChange={(e) => setData('qty_kg', e.target.value)} readOnly/>
                                     </div>
                                     <div className='gap-2 md:col-span-1 sm:col-span-3'>
                                         <Label htmlFor='Price'> Price /Qty </Label>
-                                        <Input placeholder='Price' value={data.price_qty} onChange={(e) => setData('price_qty', e.target.value)}/>
+                                        <Input placeholder='Price' value={data.price_qty} onChange={(e) => setData('price_qty', e.target.value)} readOnly/>
                                     </div>
                                     <div className='gap-2 md:col-span-1 sm:col-span-3'>
                                         <Label htmlFor='Amount'> Amount </Label>
-                                        <Input placeholder='Amount' value={data.amount} onChange={(e) => setData('amount', e.target.value)}/>
+                                        <Input placeholder='Amount' value={data.amount} onChange={(e) => setData('amount', e.target.value)} readOnly/>
                                     </div>
                                     <div className='gap-2 md:col-span-1 sm:col-span-3'>
                                         <Label htmlFor='Keping'> Keping / Buah</Label>
-                                        <Input placeholder='Keping' value={data.keping} onChange={(e) => setData('keping', e.target.value)}/>
+                                        <Input placeholder='Keping' value={data.keping} onChange={(e) => setData('keping', e.target.value)} readOnly/>
                                     </div>
                                     <div className='gap-2 md:col-span-1 sm:col-span-3'>
                                         <Label htmlFor='Kualitas'> Kualitas </Label>
-                                        <Input placeholder='Kualitas' value={data.kualitas} onChange={(e) => setData('kualitas', e.target.value)}/>
+                                        <Input placeholder='Kualitas' value={data.kualitas} onChange={(e) => setData('kualitas', e.target.value)} readOnly/>
                                     </div>
 
                                     <div className='gap-2 sm:col-span-3 mt-5'>
@@ -190,23 +190,23 @@ export default function edit({product} : props) {
 
                                     <div className='gap-2 md:col-span-1 sm:col-span-3'>
                                         <Label htmlFor='Quantity'> Quantity (Kg) </Label>
-                                        <Input placeholder='Quantity' value={data.qty_out} onChange={(e) => setData('qty_out', e.target.value)}/>
+                                        <Input placeholder='Quantity' value={data.qty_out} onChange={(e) => setData('qty_out', e.target.value)} readOnly/>
                                     </div>
                                     <div className='gap-2 md:col-span-1 sm:col-span-3'>
                                         <Label htmlFor='Price'> Price /Qty </Label>
-                                        <Input placeholder='Price' value={data.price_out} onChange={(e) => setData('price_out', e.target.value)}/>
+                                        <Input placeholder='Price' value={data.price_out} onChange={(e) => setData('price_out', e.target.value)} readOnly/>
                                     </div>
                                     <div className='gap-2 md:col-span-1 sm:col-span-3'>
                                         <Label htmlFor='Amount'> Amount </Label>
-                                        <Input placeholder='Amount' value={data.amount_out} onChange={(e) => setData('amount_out', e.target.value)}/>
+                                        <Input placeholder='Amount' value={data.amount_out} onChange={(e) => setData('amount_out', e.target.value)} readOnly/>
                                     </div>
                                     <div className='gap-2 md:col-span-1 sm:col-span-3'>
                                         <Label htmlFor='Keping'> Keping / Buah </Label>
-                                        <Input placeholder='Keping Keluar' value={data.keping_out} onChange={(e) => setData('keping_out', e.target.value)}/>
+                                        <Input placeholder='Keping Keluar' value={data.keping_out} onChange={(e) => setData('keping_out', e.target.value)} readOnly/>
                                     </div>
                                     <div className='gap-2 md:col-span-1 sm:col-span-3'>
                                         <Label htmlFor='Kualitas'> Kualitas </Label>
-                                        <Input placeholder='Kualitas' value={data.kualitas_out} onChange={(e) => setData('kualitas_out', e.target.value)}/>
+                                        <Input placeholder='Kualitas' value={data.kualitas_out} onChange={(e) => setData('kualitas_out', e.target.value)} readOnly/>
                                     </div>
                                                                         
                                 </div>

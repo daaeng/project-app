@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/table";
 
 import { Head, Link, router } from '@inertiajs/react';
-import { CirclePlus, Eye, FileDown, Megaphone, Package, Pencil, Search, Sprout, Trash, Undo2 } from 'lucide-react';
+import { CirclePlus, Eye, FileDown, Megaphone, Package, Search, Send, Sprout, Trash, Undo2 } from 'lucide-react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Product Information', href: '/products' },
@@ -338,7 +338,7 @@ export default function TsaPage({
                                                         <TableCell>{formatCurrency(product.amount)}</TableCell>
                                                         <TableCell className="text-center space-x-1">
                                                             {can('products.view') && <Link href={route('products.show', product.id)}><Button size="icon" variant="ghost"><Eye className="h-4 w-4 text-gray-500" /></Button></Link>}
-                                                            {can('products.edit') && <Link href={route('products.edit', product.id)}><Button size="icon" variant="ghost"><Pencil className="h-4 w-4 text-blue-500" /></Button></Link>}
+                                                            {can('products.edit') && <Link href={route('products.edit', product.id)}><Button size="icon" variant="ghost"><Send className="h-4 w-4 text-blue-500" /></Button></Link>}
                                                             {can('products.delete') && <Button size="icon" variant="ghost" onClick={() => handleDelete(product.id, product.product)}><Trash className="h-4 w-4 text-red-500" /></Button>}
                                                         </TableCell>
                                                     </TableRow>
@@ -381,8 +381,8 @@ export default function TsaPage({
                                                         <TableCell>{formatCurrency(product.amount)}</TableCell>
                                                         <TableCell className="text-center space-x-1">
                                                             {can('products.view') && <Link href={route('products.show', product.id)}><Button size="icon" variant="ghost"><Eye className="h-4 w-4 text-gray-500" /></Button></Link>}
-                                                            {can('products.edit') && <Link href={route('products.edit', product.id)}><Button size="icon" variant="ghost"><Pencil className="h-4 w-4 text-blue-500" /></Button></Link>}
-                                                            {can('products.delete') && <Button size="icon" variant="ghost" onClick={() => handleDelete(product.id, product.product)}><Trash className="h-4 w-4 text-red-500" /></Button>}
+                                                            {/* {can('products.edit') && <Link href={route('products.edit', product.id)}><Button size="icon" variant="ghost"><Pencil className="h-4 w-4 text-blue-500" /></Button></Link>} */}
+                                                            {/* {can('products.delete') && <Button size="icon" variant="ghost" onClick={() => handleDelete(product.id, product.product)}><Trash className="h-4 w-4 text-red-500" /></Button>} */}
                                                         </TableCell>
                                                     </TableRow>
                                                 ))

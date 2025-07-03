@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, router } from '@inertiajs/react';
-import { Eye, FileDown, Megaphone, Package, Pencil, Search, Sprout, Trash, Undo2 } from 'lucide-react';
+import { Eye, FileDown, Megaphone, Package, Search, Send, Sprout, Undo2 } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -37,11 +37,11 @@ interface Product {
   amount: number;
   keping: number;
   kualitas: string;
-  // qty_out: number;
-  // price_out: number;
-  // amount_out: number;
-  // keping_out: number;
-  // kualitas_out: string;
+  qty_out: number;
+  price_out: number;
+  amount_out: number;
+  keping_out: number;
+  kualitas_out: string;
 }
 
 interface PaginationLink {
@@ -135,17 +135,17 @@ export default function GkaPage({
     }
   };
 
-  const handleDelete = (id: number, product: string) => {
-    if (confirm(`Do you want to delete this - ${id}. ${product}`)) {
-      router.delete(route('products.destroy', id), {
-        preserveState: true,
-        preserveScroll: true,
-        onSuccess: () => {
-          router.get(route('products.gka'), { search: searchValue, time_period: timePeriod }, { preserveState: true }); // Preserve time_period after delete
-        },
-      });
-    }
-  };
+  // const handleDelete = (id: number, product: string) => {
+  //   if (confirm(`Do you want to delete this - ${id}. ${product}`)) {
+  //     router.delete(route('products.destroy', id), {
+  //       preserveState: true,
+  //       preserveScroll: true,
+  //       onSuccess: () => {
+  //         router.get(route('products.gka'), { search: searchValue, time_period: timePeriod }, { preserveState: true }); // Preserve time_period after delete
+  //       },
+  //     });
+  //   }
+  // };
 
   const renderPagination = (pagination: PageProps['products']) => {
     return (
@@ -237,6 +237,19 @@ export default function GkaPage({
               </Alert>
             )}
 
+            <div>
+                {can('products.create') && 
+                    <div className='w-full justify-end h-auto flex mb-5 gap-2'>
+                        <Link href={route('products.c_send')}>
+                            <Button className='bg-green-600 hover:bg-green-400'>
+                                <Send />
+                                Kirim Barang
+                            </Button>
+                        </Link>
+                    </div>
+                }
+            </div>
+
             <div className="flex flex-col gap-4 py-4 sm:flex-row sm:items-center">
               <div className="relative flex-1">
                 <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
@@ -303,7 +316,7 @@ export default function GkaPage({
                                   </Button>
                                 </Link>
                               )}
-                              {can('products.edit') && (
+                              {/* {can('products.edit') && (
                                 <Link href={route('products.edit', product.id)}>
                                   <Button className="bg-transparent hover:bg-gray-700">
                                     <Pencil color="blue" />
@@ -317,7 +330,7 @@ export default function GkaPage({
                                 >
                                   <Trash color="red" />
                                 </Button>
-                              )}
+                              )} */}
                             </TableCell>
                           </TableRow>
                         ))
@@ -355,8 +368,8 @@ export default function GkaPage({
                             <TableCell>{product.date}</TableCell>
                             <TableCell>{product.nm_supplier}</TableCell>
                             <TableCell>{product.j_brg}</TableCell>
-                            <TableCell>{product.qty_kg}</TableCell>
-                            <TableCell>{formatCurrency(product.amount)}</TableCell>
+                            <TableCell>{product.qty_out}</TableCell>
+                            <TableCell>{formatCurrency(product.amount_out)}</TableCell>
                             <TableCell className="text-center space-x-2">
                               {can('products.view') && (
                                 <Link href={route('products.show', product.id)}>
@@ -365,7 +378,7 @@ export default function GkaPage({
                                   </Button>
                                 </Link>
                               )}
-                              {can('products.edit') && (
+                              {/* {can('products.edit') && (
                                 <Link href={route('products.edit', product.id)}>
                                   <Button className="bg-transparent hover:bg-gray-700">
                                     <Pencil color="blue" />
@@ -379,7 +392,7 @@ export default function GkaPage({
                                 >
                                   <Trash color="red" />
                                 </Button>
-                              )}
+                              )} */}
                             </TableCell>
                           </TableRow>
                         ))

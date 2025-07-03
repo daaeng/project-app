@@ -27,16 +27,16 @@ export default function index() {
         nm_supplier: '',
         j_brg: '',
         desk: '',
-        qty_kg: '',
-        price_qty: '',
-        amount: '',
-        keping: '',
-        kualitas: '',
-        // qty_out: '',
-        // price_out: '',
-        // amount_out: '',
-        // keping_out: '',
-        // kualitas_out: '',
+        // qty_kg: '',
+        // price_qty: '',
+        // amount: '',
+        // keping: '',
+        // kualitas: '',
+        qty_out: '',
+        price_out: '',
+        amount_out: '',
+        keping_out: '',
+        kualitas_out: '',
         status: '',
     })
 
@@ -140,33 +140,8 @@ export default function index() {
 
                                 <div className='grid md:grid-cols-2 sm:grid-cols-1 gap-3 p-2'>
 
-                                    <div className='gap-2 sm:col-span-3'>
-                                        <Label htmlFor='In'> Data Stock </Label>
-                                    </div>
-
-                                    <div className='gap-2 md:col-span-1 sm:col-span-3'>
-                                        <Label htmlFor='Quantity'> Quantity (Kg) </Label>
-                                        <Input placeholder='Quantity' value={data.qty_kg} onChange={(e) => setData('qty_kg', e.target.value)}/>
-                                    </div>
-                                    <div className='gap-2 md:col-span-1 sm:col-span-3'>
-                                        <Label htmlFor='Price'> Price /Qty </Label>
-                                        <Input placeholder='Price' value={data.price_qty} onChange={(e) => setData('price_qty', e.target.value)}/>
-                                    </div>
-                                    <div className='gap-2 md:col-span-1 sm:col-span-3'>
-                                        <Label htmlFor='Amount'> Amount </Label>
-                                        <Input placeholder='Amount' value={data.amount} onChange={(e) => setData('amount', e.target.value)}/>
-                                    </div>
-                                    <div className='gap-2 md:col-span-1 sm:col-span-3'>
-                                        <Label htmlFor='Keping'> Keping </Label>
-                                        <Input placeholder='Keping' value={data.keping} onChange={(e) => setData('keping', e.target.value)}/>
-                                    </div>
-                                    <div className='gap-2 md:col-span-1 sm:col-span-3'>
-                                        <Label htmlFor='Kualitas'> Kualitas </Label>
-                                        <Input placeholder='Kualitas' value={data.kualitas} onChange={(e) => setData('kualitas', e.target.value)}/>
-                                    </div>
-
-                                    {/* <div className='gap-2 sm:col-span-3 mt-5'>
-                                        <Label htmlFor='In'> KELUAR </Label>
+                                    <div className='gap-2 sm:col-span-3 mt-5'>
+                                        <Label htmlFor='In'> Stock Keluar </Label>
                                     </div>
 
                                     <div className='gap-2 md:col-span-1 sm:col-span-3'>
@@ -188,7 +163,7 @@ export default function index() {
                                     <div className='gap-2 md:col-span-1 sm:col-span-3'>
                                         <Label htmlFor='Kualitas'> Kualitas </Label>
                                         <Input placeholder='Kualitas' value={data.kualitas_out} onChange={(e) => setData('kualitas_out', e.target.value)}/>
-                                    </div> */}
+                                    </div>
                                                                         
                                 </div>
                                 

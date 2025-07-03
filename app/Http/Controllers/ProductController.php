@@ -53,6 +53,11 @@ class ProductController extends Controller
     {
             return inertia('Products/create');
     }
+    
+    public function c_send()
+    {
+            return inertia('Products/c_send');
+    }
 
     public function store(Request $request)
     {
@@ -63,20 +68,47 @@ class ProductController extends Controller
             'nm_supplier' => 'required|string|max:250',
             'j_brg' => 'required|string|max:250',
             'desk' => 'nullable|string',
-            'qty_kg' => 'required|numeric',
-            'price_qty' => 'required|numeric',
-            'amount' => 'required|numeric',
-            'keping' => 'required|numeric',
-            'qty_out' => 'required|numeric',
-            'price_out' => 'required|numeric',
-            'amount_out' => 'required|numeric',
-            'keping_out' => 'required|numeric',
+            'qty_kg' => 'nullable|numeric',
+            'price_qty' => 'nullable|numeric',
+            'amount' => 'nullable|numeric',
+            'keping' => 'nullable|numeric',
+            'kualitas' => 'nullable|string|max:250',
+            'qty_out' => 'nullable|numeric',
+            'price_out' => 'nullable|numeric',
+            'amount_out' => 'nullable|numeric',
+            'keping_out' => 'nullable|numeric',
+            'kualitas_out' => 'nullable|string|max:250',
             'status' => 'required|string|max:250',
         ]);
 
         Product::create($request->all());
         return redirect()->route('products.index')->with('message', 'Product Created Successfully');        
     }
+    
+    // public function c_store(Request $request)
+    // {
+    //     $request->validate([
+    //         'product' => 'required|string|max:250',
+    //         'date' => 'required|date',
+    //         'no_invoice' => 'required|string|max:250',
+    //         'nm_supplier' => 'required|string|max:250',
+    //         'j_brg' => 'required|string|max:250',
+    //         'desk' => 'nullable|string',
+    //         // 'qty_kg' => 'required|numeric',
+    //         // 'price_qty' => 'required|numeric',
+    //         // 'amount' => 'required|numeric',
+    //         // 'keping' => 'required|numeric',
+    //         'qty_out' => 'required|numeric',
+    //         'price_out' => 'required|numeric',
+    //         'amount_out' => 'required|numeric',
+    //         'keping_out' => 'required|numeric',
+    //         'kualitas_out' => 'required|numeric',
+    //         'status' => 'required|string|max:250',
+    //     ]);
+
+    //     Product::create($request->all());
+    //     return redirect()->route('products.index')->with('message', 'Product Created Successfully');        
+    // }
 
     public function edit(Product $product){
         return inertia('Products/Edit', compact('product'));
@@ -91,14 +123,16 @@ class ProductController extends Controller
             'nm_supplier' => 'required|string|max:250',
             'j_brg' => 'required|string|max:250',
             'desk' => 'nullable|string',
-            'qty_kg' => 'required|numeric',
-            'price_qty' => 'required|numeric',
-            'amount' => 'required|numeric',
-            'keping' => 'required|numeric',
-            'qty_out' => 'required|numeric',
-            'price_out' => 'required|numeric',
-            'amount_out' => 'required|numeric',
-            'keping_out' => 'required|numeric',
+            'qty_kg' => 'nullable|numeric',
+            'price_qty' => 'nullable|numeric',
+            'amount' => 'nullable|numeric',
+            'keping' => 'nullable|numeric',
+            'kualitas' => 'nullable|string|max:250',
+            'qty_out' => 'nullable|numeric',
+            'price_out' => 'nullable|numeric',
+            'amount_out' => 'nullable|numeric',
+            'keping_out' => 'nullable|numeric',
+            'kualitas_out' => 'nullable|string|max:250',
             'status' => 'required|string|max:250',
         ]);
         
@@ -113,10 +147,12 @@ class ProductController extends Controller
             'price_qty' => $request->input('price_qty'),
             'amount' => $request->input('amount'),
             'keping' => $request->input('keping'),
+            'kualitas' => $request->input('kualitas'),
             'qty_out' => $request->input('qty_out'),
             'price_out' => $request->input('price_out'),
             'amount_out' => $request->input('amount_out'),
             'keping_out' => $request->input('keping_out'),
+            'kualitas_out' => $request->input('kualitas_out'),
             'status' => $request->input('status'),
         ]);
 
@@ -244,7 +280,7 @@ class ProductController extends Controller
     
     public function tsa(Request $request) 
     {
-        $perPage = 5; 
+        $perPage = 10; 
         $searchTerm = $request->input('search');
         $timePeriod = $request->input('time_period', 'all-time'); // Get time_period, default to 'all-time'
 
@@ -327,12 +363,7 @@ class ProductController extends Controller
                 }
             });
 
-        // Statistik Karet
-        $karet = $statsQuery->clone()->where('status', 'tsa')->where('product', 'karet')->sum('qty_kg');
-        $karet2 = $statsQuery->clone()->where('status', 'tsa')->where('product', 'karet')->sum('qty_out');
-        $saldoin = $statsQuery->clone()->where('status', 'tsa')->where('product', 'karet')->sum('amount');
-        $saldoout = $statsQuery->clone()->where('status', 'gka')->where('product', 'karet')->sum('amount');
-
+            
         // TEMADU totals based on filtered data
         $tm_slin = $statsQuery->clone()->where('nm_supplier', 'Temadu')->where('status', 'tsa')->where('product', 'karet')->sum('amount');
         $tm_slou = $statsQuery->clone()->where('nm_supplier', 'Temadu')->where('status', 'gka')->where('product', 'karet')->sum('amount');
@@ -344,14 +375,20 @@ class ProductController extends Controller
         $ts_slou = $statsQuery->clone()->where('nm_supplier', 'Sebayar')->where('status', 'gka')->where('product', 'karet')->sum('amount');
         $ts_sin = $statsQuery->clone()->where('nm_supplier', 'Sebayar')->where('status', 'tsa')->where('product', 'karet')->sum('qty_kg');
         $ts_sou = $statsQuery->clone()->where('nm_supplier', 'Sebayar')->where('status', 'gka')->where('product', 'karet')->sum('qty_kg');
-
+        
+        // Statistik Karet
+        $karet = $statsQuery->clone()->where('nm_supplier', 'Sebayar')->where('status', 'tsa')->where('product', 'karet')->sum('qty_kg');
+        $karet2 = $statsQuery->clone()->where('nm_supplier', 'Temadu')->where('status', 'tsa')->where('product', 'karet')->sum('qty_kg');
+        
+        $saldoin = $statsQuery->clone()->where('status', 'tsa')->where('product', 'karet')->sum('amount');
+        $saldoout = $statsQuery->clone()->where('status', 'gka')->where('product', 'karet')->sum('amount');
 
         return Inertia::render("Products/tsa", [
             "products" => $products,
             "products2" => $product2,
             "filter" => $request->only(['search', 'time_period']), // Kirim kembali filter ke frontend
 
-            "hsl_karet" => $karet - $karet2,
+            "hsl_karet" => $karet + $karet2,
             "saldoin" => $saldoin,
             "saldoout" => $saldoout,
             

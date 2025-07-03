@@ -13,22 +13,25 @@ return new class extends Migration
     {
         Schema::create('products', function (Blueprint $table) {
             $table->id();
+            
             $table->string('product');
             $table->date('date');
             $table->string('no_invoice');
             $table->string('nm_supplier');
             $table->string('j_brg');
             $table->text('desk')->nullable();
-            $table->integer('qty_kg');
-            $table->decimal('price_qty', 19, 2);
-            $table->decimal('amount', 19, 2);
-            $table->integer('keping');
-            $table->string('kualitas');
-            $table->integer('qty_out');
-            $table->decimal('price_out', 19, 2);
-            $table->decimal('amount_out', 19, 2);
-            $table->integer('keping_out');
-            $table->string('kualitas_out');
+
+            $table->integer('qty_kg')->nullable();
+            $table->decimal('price_qty', 19, 2)->nullable();
+            $table->decimal('amount', 19, 2)->nullable();
+            $table->integer('keping')->nullable();
+            $table->string('kualitas')->nullable();
+
+            $table->integer('qty_out')->nullable();
+            $table->decimal('price_out', 19, 2)->nullable();
+            $table->decimal('amount_out', 19, 2)->nullable();
+            $table->integer('keping_out')->nullable();
+            $table->string('kualitas_out')->nullable();
             
             $table->string('status')->default('tsa');
 
