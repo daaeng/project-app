@@ -452,7 +452,7 @@ class ProductController extends Controller
         // --- Query untuk Tabel Penjualan Karet (products2) ---
         $product2 = $baseQuery->clone()
             ->where('product', 'Pupuk')
-            ->where('qty_out', '>', 0) 
+            ->where('qty_kg', '>', 0) 
             ->where('status', 'gka')
             ->orderBy('created_at', 'DESC')
             ->paginate($perPage, ['*'], 'page2') 

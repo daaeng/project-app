@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, router } from '@inertiajs/react';
-import { Eye, FileDown, Megaphone, Package, Search, Send, Sprout, Undo2 } from 'lucide-react';
+import { Eye, FileDown, Megaphone, Package, Pencil, Search, Send, Sprout, Trash, Undo2 } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -135,17 +135,17 @@ export default function GkaPage({
     }
   };
 
-  // const handleDelete = (id: number, product: string) => {
-  //   if (confirm(`Do you want to delete this - ${id}. ${product}`)) {
-  //     router.delete(route('products.destroy', id), {
-  //       preserveState: true,
-  //       preserveScroll: true,
-  //       onSuccess: () => {
-  //         router.get(route('products.gka'), { search: searchValue, time_period: timePeriod }, { preserveState: true }); // Preserve time_period after delete
-  //       },
-  //     });
-  //   }
-  // };
+  const handleDelete = (id: number, product: string) => {
+    if (confirm(`Do you want to delete this - ${id}. ${product}`)) {
+      router.delete(route('products.destroy', id), {
+        preserveState: true,
+        preserveScroll: true,
+        onSuccess: () => {
+          router.get(route('products.gka'), { search: searchValue, time_period: timePeriod }, { preserveState: true }); // Preserve time_period after delete
+        },
+      });
+    }
+  };
 
   const renderPagination = (pagination: PageProps['products']) => {
     return (
@@ -202,8 +202,8 @@ export default function GkaPage({
                 </div>
                 </CardHeader>
                 <CardContent className="lg:-mt-4 text-blue-700">
-                <div className="flex gap-2"><p className="text-green-400">IN</p> {formatCurrency(saldoin)}</div>
-                <div className="flex gap-2"><p className="text-red-400">OUT</p> {formatCurrency(saldoout)}</div>
+                <div className="flex gap-2"><p className="text-red-400">OUT</p> {formatCurrency(saldoin)}</div>
+                <div className="flex gap-2"><p className="text-green-400">IN</p> {formatCurrency(saldoout)}</div>
                 </CardContent>
             </Card>
             <Card className="shadow-sm transition-shadow hover:shadow-md bg-amber-50">
@@ -217,8 +217,8 @@ export default function GkaPage({
                 </CardHeader>
                 <CardContent className="lg:-mt-4 text-amber-700">
                 <div className="grid grid-cols-2">
-                    <div className="flex gap-2"><p className="text-green-400">IN</p> {formatCurrency(tm_slin)}</div>
-                    <div className="flex gap-2"><p className="text-red-400">OUT</p> {formatCurrency(tm_slou)}</div>
+                    <div className="flex gap-2"><p className="text-red-400">IN</p> {formatCurrency(tm_slin)}</div>
+                    <div className="flex gap-2"><p className="text-green-400">OUT</p> {formatCurrency(tm_slou)}</div>
                     <div className="text-2xl w-full justify-center flex font-bold">{tm_sin} Kg</div>
                     <div className="text-2xl w-full justify-center flex font-bold">{tm_sou} Kg</div>
                 </div>
@@ -316,21 +316,23 @@ export default function GkaPage({
                                   </Button>
                                 </Link>
                               )}
-                              {/* {can('products.edit') && (
+                              
+                              {/* {can('roles.edit') && (
                                 <Link href={route('products.edit', product.id)}>
                                   <Button className="bg-transparent hover:bg-gray-700">
-                                    <Pencil color="blue" />
+                                    <Send color="blue" />
                                   </Button>
                                 </Link>
-                              )}
-                              {can('products.delete') && (
+                              )} */}
+
+                              {can('roles.delete') && (
                                 <Button
                                   onClick={() => handleDelete(product.id, product.product)}
                                   className="bg-transparent hover:bg-gray-700"
                                 >
                                   <Trash color="red" />
                                 </Button>
-                              )} */}
+                              )}
                             </TableCell>
                           </TableRow>
                         ))
@@ -378,21 +380,23 @@ export default function GkaPage({
                                   </Button>
                                 </Link>
                               )}
-                              {/* {can('products.edit') && (
+                              
+                              {can('roles.edit') && (
                                 <Link href={route('products.edit', product.id)}>
                                   <Button className="bg-transparent hover:bg-gray-700">
                                     <Pencil color="blue" />
                                   </Button>
                                 </Link>
                               )}
-                              {can('products.delete') && (
+
+                              {can('roles.delete') && (
                                 <Button
                                   onClick={() => handleDelete(product.id, product.product)}
                                   className="bg-transparent hover:bg-gray-700"
                                 >
                                   <Trash color="red" />
                                 </Button>
-                              )} */}
+                              )} 
                             </TableCell>
                           </TableRow>
                         ))

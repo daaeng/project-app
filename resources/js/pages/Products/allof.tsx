@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import Tag_Karet from '@/components/ui/tag_karet';
 import { useState, useEffect } from 'react';
+import { can } from '@/lib/can';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Product Information', href: '/products' },
@@ -292,6 +293,31 @@ export default function AllofPage({ // Ganti nama komponen agar lebih deskriptif
                                                 <TableCell className="text-center">
                                                     <Tag_Karet status={product.status} />
                                                 </TableCell>
+
+                                                {can('roles.view') && (
+                                                    <Link href={route('products.show', product.id)}>
+                                                    <Button className="bg-transparent hover:bg-gray-700">
+                                                        <Eye color="gray" />
+                                                    </Button>
+                                                    </Link>
+                                                )}
+                                                
+                                                {can('roles.edit') && (
+                                                    <Link href={route('products.edit', product.id)}>
+                                                    <Button className="bg-transparent hover:bg-gray-700">
+                                                        <Send color="blue" />
+                                                    </Button>
+                                                    </Link>
+                                                )}
+
+                                                {can('roles.delete') && (
+                                                    <Button
+                                                    onClick={() => handleDelete(product.id, product.product)}
+                                                    className="bg-transparent hover:bg-gray-700"
+                                                    >
+                                                    <Trash color="red" />
+                                                    </Button>
+                                                )}
                                             </TableRow>
                                         ))
                                     ) : (

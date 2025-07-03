@@ -113,13 +113,11 @@ export default function index() {
                                 </select>
                             </div>
                             <div className='gap-2 sm:col-span-3'>
-                                <Label htmlFor='Product Name'> Supplier</Label>
+                                <Label htmlFor='Product Name'> Status</Label>
                                 {/* <Input placeholder='Product Name' value={data.product} onChange={(e) => setData('product', e.target.value)} /> */}
                                 <select value={data.status} onChange={(e) => setData('status', e.target.value)} className='w-full border p-1 rounded-md text-destructive-foreground' required>
-                                    <option value="" disabled selected>Pilih Lokasi Kebun</option>
-                                    <option value="TSA" >TSA</option>
-                                    <option value="Agro" >GK Agro</option>
-                                    <option value="GKA" >GKA</option>
+                                    <option value="" disabled selected>Status</option>
+                                    <option value="Buyer" >GKA - Buyer</option>
                                 </select>
                             </div>
                             <div className='gap-2'>

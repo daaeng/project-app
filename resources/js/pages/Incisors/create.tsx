@@ -120,8 +120,8 @@ export default function index() {
 
                             <div>
                                 <div className='gap-2'>
-                                    <Label htmlFor='Password'> Agama </Label>
-                                    <Input placeholder='Password' 
+                                    <Label htmlFor='Agama'> Agama </Label>
+                                    <Input placeholder='Agama' 
                                         value={data.agama} onChange={(e) => setData('agama', e.target.value)}
                                     />
                                 </div>
