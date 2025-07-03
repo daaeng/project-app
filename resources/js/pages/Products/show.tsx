@@ -8,6 +8,7 @@ import AppLayout from '@/layouts/app-layout';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { CircleAlert, Undo2 } from 'lucide-react';
 import { type BreadcrumbItem } from '@/types';
+import Tag_Karet from '@/components/ui/tag_karet';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -33,6 +34,7 @@ interface Product{
     amount_out: number,
     keping_out: number,
     kualitas_out: string,
+    status: string,
 }
 
 interface props{
@@ -59,6 +61,7 @@ export default function edit({product} : props) {
         amount_out: product.amount_out,
         keping_out: product.keping_out,
         kualitas_out: product.kualitas_out,
+        status: product.status,
 
     })
 
@@ -124,6 +127,12 @@ export default function edit({product} : props) {
                             <div className='gap-2'>
                                 <Label htmlFor='Description'> Description </Label>
                                 <Textarea placeholder='Description' value={data.desk} readOnly />
+                            </div>
+                            <div className='gap-2'>
+                                <Label htmlFor='Status'> Status </Label>
+                                <div>
+                                    <Tag_Karet status={product.status} />
+                                </div>
                             </div>
 
                         </div>

@@ -166,7 +166,7 @@ class ProductController extends Controller
 
     public function gka(Request $request)
     {
-        $perPage = 5; 
+        $perPage = 10; 
         $searchTerm = $request->input('search');
         $timePeriod = $request->input('time_period', 'all-time'); // Get time_period, default to 'all-time'
 
@@ -257,6 +257,7 @@ class ProductController extends Controller
         // GKA totals based on filtered data
         $tm_slin = $statsQuery->clone()->where('status', 'gka')->where('product', 'karet')->SUM('amount');
         $tm_slou = $statsQuery->clone()->where('status', 'buyer')->where('product', 'karet')->SUM('amount_out');
+        
         $tm_sin = $statsQuery->clone()->where('status', 'gka')->where('product', 'karet')->SUM('qty_kg');
         $tm_sou = $statsQuery->clone()->where('status', 'buyer')->where('product', 'karet')->SUM('qty_out');
 
@@ -275,6 +276,8 @@ class ProductController extends Controller
             
             "tm_sin" => $tm_sin,
             "tm_sou" => $tm_sou,
+
+            "s_ready" => $tm_sin - $tm_sou,
         ]);
     }
     

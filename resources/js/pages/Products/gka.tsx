@@ -78,6 +78,7 @@ interface PageProps {
   tm_slou: number;
   tm_sin: number;
   tm_sou: number;
+  s_ready: number
   filter?: { search?: string; time_period?: string }; // Added time_period to filter
 }
 
@@ -91,7 +92,7 @@ const formatCurrency = (value: number) => {
 
 export default function GkaPage({
   flash, products, products2, saldoin, saldoout,
-  tm_slin, tm_slou, tm_sin, tm_sou, filter,
+  tm_slin, tm_slou, tm_sin, tm_sou, filter, s_ready
 }: PageProps) {
   const [searchValue, setSearchValue] = useState(filter?.search || '');
   const [timePeriod, setTimePeriod] = useState(filter?.time_period || 'all-time'); // State for time period filter
@@ -192,50 +193,57 @@ export default function GkaPage({
 
         <div className='w-full justify-center h-auto flex mb-5 gap-2'>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Card className="shadow-sm transition-shadow hover:shadow-md bg-blue-50">
-                <CardHeader className="bg-blue-300">
-                <div className="flex items-center p-1 justify-between">
-                    <CardTitle className="text-sm font-medium text-gray-700">Available Stock Karet</CardTitle>
-                    <div className="rounded-lg bg-blue-100 p-2">
-                    <Package size={18} className="text-blue-600" />
+            
+              <Card className="shadow-sm transition-shadow hover:shadow-md bg-blue-50">
+                  <CardHeader className="bg-blue-300">
+                  <div className="flex items-center p-1 justify-between">
+                      <CardTitle className="text-sm font-medium text-gray-700">Available Stock Karet</CardTitle>
+                      <div className="rounded-lg bg-blue-100 p-2">
+                      <Package size={18} className="text-blue-600" />
+                      </div>
+                  </div>
+                  </CardHeader>
+                  <CardContent className="lg:-mt-4 text-blue-700">
+                    <div className='grid grid-cols-2'>
+                      <div className="flex gap-2"><p className="text-red-400">OUT</p> {formatCurrency(saldoin)}</div>
+                      <div className="text-2xl w-full justify-center flex font-bold">{s_ready} Kg</div>
+                      <div className="flex gap-2"><p className="text-green-400">IN</p> {formatCurrency(saldoout)}</div>
                     </div>
-                </div>
-                </CardHeader>
-                <CardContent className="lg:-mt-4 text-blue-700">
-                <div className="flex gap-2"><p className="text-red-400">OUT</p> {formatCurrency(saldoin)}</div>
-                <div className="flex gap-2"><p className="text-green-400">IN</p> {formatCurrency(saldoout)}</div>
-                </CardContent>
-            </Card>
-            <Card className="shadow-sm transition-shadow hover:shadow-md bg-amber-50">
-                <CardHeader className="bg-amber-300">
-                <div className="flex items-center p-1 justify-between">
-                    <CardTitle className="text-sm font-medium text-gray-700">Stock Information</CardTitle>
-                    <div className="rounded-lg bg-amber-100 p-2">
-                    <Sprout size={18} className="text-amber-600" />
-                    </div>
-                </div>
-                </CardHeader>
-                <CardContent className="lg:-mt-4 text-amber-700">
-                <div className="grid grid-cols-2">
-                    <div className="flex gap-2"><p className="text-red-400">IN</p> {formatCurrency(tm_slin)}</div>
-                    <div className="flex gap-2"><p className="text-green-400">OUT</p> {formatCurrency(tm_slou)}</div>
-                    <div className="text-2xl w-full justify-center flex font-bold">{tm_sin} Kg</div>
-                    <div className="text-2xl w-full justify-center flex font-bold">{tm_sou} Kg</div>
-                </div>
-                </CardContent>
-            </Card>
+                  </CardContent>
+              </Card>
+
+              <Card className="shadow-sm transition-shadow hover:shadow-md bg-amber-50">
+                  <CardHeader className="bg-amber-300">
+                  <div className="flex items-center p-1 justify-between">
+                      <CardTitle className="text-sm font-medium text-gray-700">Stock Information</CardTitle>
+                      <div className="rounded-lg bg-amber-100 p-2">
+                      <Sprout size={18} className="text-amber-600" />
+                      </div>
+                  </div>
+                  </CardHeader>
+                  <CardContent className="lg:-mt-4 text-amber-700">
+                  <div className="grid grid-cols-2">
+                      <div className="flex gap-2"><p className="text-red-400">IN</p> {formatCurrency(tm_slin)}</div>
+                      <div className="flex gap-2"><p className="text-green-400">OUT</p> {formatCurrency(tm_slou)}</div>
+                      <div className="text-2xl w-full justify-center flex font-bold">{tm_sin} Kg</div>
+                      <div className="text-2xl w-full justify-center flex font-bold">{tm_sou} Kg</div>
+                  </div>
+                  </CardContent>
+              </Card>
+              
             </div>
         </div>
 
+          {flash?.message && (
+            <Alert className="mb-4">
+              <Megaphone className="h-4 w-4" />
+              <AlertTitle className="text-green-600">Notification</AlertTitle>
+              <AlertDescription>{flash.message}</AlertDescription>
+            </Alert>
+          )}
+
         <Card>
           <CardContent className="p-1">
-            {flash?.message && (
-              <Alert className="mb-4">
-                <Megaphone className="h-4 w-4" />
-                <AlertTitle className="text-green-600">Notification</AlertTitle>
-                <AlertDescription>{flash.message}</AlertDescription>
-              </Alert>
-            )}
 
             <div>
                 {can('products.create') && 
@@ -250,7 +258,7 @@ export default function GkaPage({
                 }
             </div>
 
-            <div className="flex flex-col gap-4 py-4 sm:flex-row sm:items-center">
+            <div className="flex flex-col gap-4 mt-4 mb-2 sm:flex-row sm:items-center">
               <div className="relative flex-1">
                 <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
                 <Input

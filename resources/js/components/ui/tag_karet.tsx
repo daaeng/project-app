@@ -1,5 +1,5 @@
 interface TagProps {
-  status: 'TSA'| 'Agro' | 'gka' | 'Buyer';
+  status: 'TSA'| 'Agro' | 'GKA' | 'Buyer';
 }
 
 function Tag_Karet({ status }: TagProps) {
@@ -15,7 +15,7 @@ function Tag_Karet({ status }: TagProps) {
     tagText = 'GK Agro';
     tagColor = '#FFD5D5';
     textColor = 'red';
-  } else  if (status === 'gka') {
+  } else  if (status === 'GKA') {
     tagText = 'GKA';
     tagColor = '#FFFC94';
     textColor = 'orange';

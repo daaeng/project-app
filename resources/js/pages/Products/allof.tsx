@@ -294,7 +294,7 @@ export default function AllofPage({ // Ganti nama komponen agar lebih deskriptif
                                                     <Tag_Karet status={product.status} />
                                                 </TableCell>
 
-                                                {can('roles.view') && (
+                                                {/* {can('roles.view') && (
                                                     <Link href={route('products.show', product.id)}>
                                                     <Button className="bg-transparent hover:bg-gray-700">
                                                         <Eye color="gray" />
@@ -317,7 +317,7 @@ export default function AllofPage({ // Ganti nama komponen agar lebih deskriptif
                                                     >
                                                     <Trash color="red" />
                                                     </Button>
-                                                )}
+                                                )} */}
                                             </TableRow>
                                         ))
                                     ) : (
