@@ -88,6 +88,7 @@ interface PageProps {
     ts_slou: number;
     ts_sin: number;
     ts_sou: number;
+    hsl_jual: number;
     filter?: { search?: string; time_period?: string }; // Added time_period to filter
     auth?: any;
 }
@@ -102,7 +103,7 @@ const formatCurrency = (value: number) => {
 
 export default function TsaPage({
     flash, products, products2, hsl_karet, saldoin, saldoout,
-    tm_slin, tm_slou, tm_sin, tm_sou, ts_slin, ts_slou, ts_sin, ts_sou, filter,
+    tm_slin, tm_slou, tm_sin, tm_sou, ts_slin, ts_slou, ts_sin, ts_sou, filter, hsl_jual
 }: PageProps) {
     const [searchValue, setSearchValue] = useState(filter?.search || '');
     const [timePeriod, setTimePeriod] = useState(filter?.time_period || 'all-time'); // State for time period filter
@@ -214,9 +215,16 @@ export default function TsaPage({
                             </CardHeader>
                             <CardContent className="lg:-mt-4 text-blue-700">
                                 <div className='grid grid-cols-2 gap-1'>
-                                    <div className="flex gap-2"><p className="text-green-400">IN</p> {formatCurrency(saldoin)}</div>
-                                    <div className="text-2xl font-bold row-span-2 flex justify-end">{hsl_karet} Kg</div>
-                                    <div className="flex gap-2"><p className="text-red-400">OUT</p> {formatCurrency(saldoout)}</div>
+                                    <div>
+                                        <div className="flex gap-2"><p className="text-green-400">IN</p> {formatCurrency(saldoin)}</div>
+                                        <div className="flex gap-2"><p className="text-red-400">OUT</p> {formatCurrency(saldoout)}</div>
+
+                                    </div>
+                                    <div>
+                                        <div className="text-2xl font-bold row-span-2 flex justify-end">{hsl_karet} Kg</div>
+                                        <div className="text-2xl font-bold row-span-2 flex justify-end">{hsl_jual} Kg</div>
+
+                                    </div>
                                 </div>
                             </CardContent>
                         </Card>

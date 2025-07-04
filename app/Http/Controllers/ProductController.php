@@ -200,6 +200,7 @@ class ProductController extends Controller
                 }
             });
 
+        //----------KARET
         $products = $baseQuery->clone()
             ->where('product', 'karet')
             ->where('qty_kg', '>', 0)
@@ -209,13 +210,26 @@ class ProductController extends Controller
 
         $product2 = $baseQuery->clone()
             ->where('product', 'karet')
-            ->where('qty_out', '>', 0) // Changed from 'qty_kg' to 'qty_out' for sales data
-            ->where('status', 'buyer') // Changed from 'gka' to 'buyer' for sales data
+            ->where('qty_out', '>', 0)  
+            ->where('status', 'buyer') 
+            ->orderBy('created_at', 'DESC')
+            ->paginate($perPage);
+        
+        //---------PUPUK
+        $products3 = $baseQuery->clone()
+            ->where('product', 'pupuk')
+            ->where('qty_kg', '>', 0)
+            ->where('status', 'gka')
             ->orderBy('created_at', 'DESC')
             ->paginate($perPage);
 
-        // For statistics, apply the same time and search filters
-        // Start a new query for stats to avoid interfering with pagination queries
+        $product4 = $baseQuery->clone()
+            ->where('product', 'pupuk')
+            ->where('qty_out', '>', 0)  
+            ->where('status', 'buyer') 
+            ->orderBy('created_at', 'DESC')
+            ->paginate($perPage);
+ 
         $statsQuery = Product::query()
             ->when($searchTerm, function ($query, $search) {
                 $query->where(function($q) use ($search) {
@@ -265,6 +279,9 @@ class ProductController extends Controller
         return Inertia::render("Products/gka", [
             "products" => $products,
             "products2" => $product2,
+
+            "products3" => $products3,
+            "products4" => $product4,
             "filter" => $request->only(['search', 'time_period']), // Send back both filters
             
             // Send filtered stats
@@ -383,6 +400,9 @@ class ProductController extends Controller
         $karet = $statsQuery->clone()->where('nm_supplier', 'Sebayar')->where('status', 'tsa')->where('product', 'karet')->sum('qty_kg');
         $karet2 = $statsQuery->clone()->where('nm_supplier', 'Temadu')->where('status', 'tsa')->where('product', 'karet')->sum('qty_kg');
         
+        $jual = $statsQuery->clone()->where('nm_supplier', 'Sebayar')->where('status', 'gka')->where('product', 'karet')->sum('qty_kg');
+        $jual2 = $statsQuery->clone()->where('nm_supplier', 'Temadu')->where('status', 'gka')->where('product', 'karet')->sum('qty_kg');
+        
         $saldoin = $statsQuery->clone()->where('status', 'tsa')->where('product', 'karet')->sum('amount');
         $saldoout = $statsQuery->clone()->where('status', 'gka')->where('product', 'karet')->sum('amount');
 
@@ -392,6 +412,8 @@ class ProductController extends Controller
             "filter" => $request->only(['search', 'time_period']), // Kirim kembali filter ke frontend
 
             "hsl_karet" => $karet + $karet2,
+            "hsl_jual" => $jual + $jual2,
+            
             "saldoin" => $saldoin,
             "saldoout" => $saldoout,
             

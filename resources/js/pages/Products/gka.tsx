@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, router } from '@inertiajs/react';
-import { Eye, FileDown, Megaphone, Package, Pencil, Search, Send, Sprout, Trash, Undo2 } from 'lucide-react';
+import { CirclePlus, Eye, FileDown, Megaphone, Package, Pencil, Search, Send, Sprout, Trash, Undo2 } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -72,6 +72,26 @@ interface PageProps {
       total: number;
     };
   };
+  products3: {
+    data: Product[];
+    links: PaginationLink[];
+    meta: {
+      current_page: number;
+      last_page: number;
+      per_page: number;
+      total: number;
+    };
+  };
+  products4: {
+    data: Product[];
+    links: PaginationLink[];
+    meta: {
+      current_page: number;
+      last_page: number;
+      per_page: number;
+      total: number;
+    };
+  };
   saldoin: number;
   saldoout: number;
   tm_slin: number;
@@ -91,7 +111,7 @@ const formatCurrency = (value: number) => {
 };
 
 export default function GkaPage({
-  flash, products, products2, saldoin, saldoout,
+  flash, products, products2,  products3, products4, saldoin, saldoout,
   tm_slin, tm_slou, tm_sin, tm_sou, filter, s_ready
 }: PageProps) {
   const [searchValue, setSearchValue] = useState(filter?.search || '');
@@ -114,7 +134,7 @@ export default function GkaPage({
       {
         preserveState: true,
         replace: true,
-        only: ['products', 'products2', 'filter', 'saldoin', 'saldoout', 'tm_slin', 'tm_slou', 'tm_sin', 'tm_sou'],
+        only: ['products', 'products2', 'products3', 'products4', 'filter', 'saldoin', 'saldoout', 'tm_slin', 'tm_slou', 'tm_sin', 'tm_sou'],
       }
     );
   };
@@ -125,7 +145,7 @@ export default function GkaPage({
       {
         preserveState: true,
         replace: true,
-        only: ['products', 'products2', 'filter', 'saldoin', 'saldoout', 'tm_slin', 'tm_slou', 'tm_sin', 'tm_sou'],
+        only: ['products', 'products2', 'products3', 'products4', 'filter', 'saldoin', 'saldoout', 'tm_slin', 'tm_slou', 'tm_sin', 'tm_sou'],
       }
     );
   };
@@ -242,23 +262,30 @@ export default function GkaPage({
             </Alert>
           )}
 
-        <Card>
+        <div>
+          {can('products.create') && 
+            <div className='w-full justify-end h-auto flex mb-5 gap-2'>
+              <Link href={route('products.c_send')}>
+                  <Button className='bg-green-600 hover:bg-green-400'>
+                      <Send />
+                      Kirim Barang
+                  </Button>
+              </Link>
+
+              <Link href={route('products.create')}>
+                  <Button className="bg-yellow-600 hover:bg-yellow-500">
+                      <CirclePlus className="w-4 h-4 " /> Product
+                  </Button>
+              </Link>
+
+            </div>
+          }
+        </div>
+
+        <div>
           <CardContent className="p-1">
 
-            <div>
-                {can('products.create') && 
-                    <div className='w-full justify-end h-auto flex mb-5 gap-2'>
-                        <Link href={route('products.c_send')}>
-                            <Button className='bg-green-600 hover:bg-green-400'>
-                                <Send />
-                                Kirim Barang
-                            </Button>
-                        </Link>
-                    </div>
-                }
-            </div>
-
-            <div className="flex flex-col gap-4 mt-4 mb-2 sm:flex-row sm:items-center">
+            <div className="flex flex-col gap-4 py-5 sm:flex-row sm:items-center">
               <div className="relative flex-1">
                 <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
                 <Input
@@ -422,7 +449,143 @@ export default function GkaPage({
               </div>
             </div>
           </CardContent>
-        </Card>
+        </div>
+        
+        <div>
+          <CardContent className="p-1">
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="border p-2 rounded-lg">
+                <div className="font-bold text-2xl mb-4">Data Pembelian Pupuk</div>
+                <div className="rounded-md border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Tanggal</TableHead>
+                        <TableHead>Supplier</TableHead>
+                        <TableHead>Barang</TableHead>
+                        <TableHead>Qty </TableHead>
+                        <TableHead>Outcome</TableHead>
+                        <TableHead className="text-center">Action</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {products3.data.length > 0 ? (
+                        products3.data.map((product) => (
+                          <TableRow key={product.id}>
+                            <TableCell>{product.date}</TableCell>
+                            <TableCell>{product.nm_supplier}</TableCell>
+                            <TableCell>{product.j_brg}</TableCell>
+                            <TableCell>{product.qty_kg}</TableCell>
+                            <TableCell>{formatCurrency(product.amount)}</TableCell>
+                            <TableCell className="text-center space-x-2">
+                              {can('products.view') && (
+                                <Link href={route('products.show', product.id)}>
+                                  <Button className="bg-transparent hover:bg-gray-700">
+                                    <Eye color="gray" />
+                                  </Button>
+                                </Link>
+                              )}
+                              
+                              {/* {can('roles.edit') && (
+                                <Link href={route('products.edit', product.id)}>
+                                  <Button className="bg-transparent hover:bg-gray-700">
+                                    <Send color="blue" />
+                                  </Button>
+                                </Link>
+                              )} */}
+
+                              {can('roles.delete') && (
+                                <Button
+                                  onClick={() => handleDelete(product.id, product.product)}
+                                  className="bg-transparent hover:bg-gray-700"
+                                >
+                                  <Trash color="red" />
+                                </Button>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      ) : (
+                        <TableRow>
+                          <TableCell colSpan={6} className="h-24 text-center">
+                            No results found.
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+                {products3.data.length > 0 && renderPagination(products3)}
+              </div>
+
+              <div className="border p-2 rounded-lg">
+                <div className="font-bold text-2xl mb-4">Data Penjualan Pupuk</div>
+                <div className="rounded-md border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Tanggal</TableHead>
+                        <TableHead>Supplier</TableHead>
+                        <TableHead>Barang</TableHead>
+                        <TableHead>Qty </TableHead>
+                        <TableHead>Income</TableHead>
+                        <TableHead className="text-center">Action</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {products4.data.length > 0 ? (
+                        products4.data.map((product) => (
+                          <TableRow key={product.id}>
+                            <TableCell>{product.date}</TableCell>
+                            <TableCell>{product.nm_supplier}</TableCell>
+                            <TableCell>{product.j_brg}</TableCell>
+                            <TableCell>{product.qty_out}</TableCell>
+                            <TableCell>{formatCurrency(product.amount_out)}</TableCell>
+                            <TableCell className="text-center space-x-2">
+                              {can('products.view') && (
+                                <Link href={route('products.show', product.id)}>
+                                  <Button className="bg-transparent hover:bg-gray-700">
+                                    <Eye color="gray" />
+                                  </Button>
+                                </Link>
+                              )}
+                              
+                              {can('roles.edit') && (
+                                <Link href={route('products.edit', product.id)}>
+                                  <Button className="bg-transparent hover:bg-gray-700">
+                                    <Pencil color="blue" />
+                                  </Button>
+                                </Link>
+                              )}
+
+                              {can('roles.delete') && (
+                                <Button
+                                  onClick={() => handleDelete(product.id, product.product)}
+                                  className="bg-transparent hover:bg-gray-700"
+                                >
+                                  <Trash color="red" />
+                                </Button>
+                              )} 
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      ) : (
+                        <TableRow>
+                          <TableCell colSpan={6} className="h-24 text-center">
+                            No results found.
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+                {products4.data.length > 0 && renderPagination(products4)}
+              </div>
+            </div>
+          </CardContent>
+        </div>
+
       </div>
     </AppLayout>
   );
