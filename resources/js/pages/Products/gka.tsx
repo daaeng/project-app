@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, router } from '@inertiajs/react';
-import { CirclePlus, Eye, FileDown, Megaphone, Package, Pencil, Search, Send, Sprout, Trash, Undo2 } from 'lucide-react';
+import { CirclePlus, Eye, FileDown, Megaphone, Pencil, Search, Send, Sprout, Trash, TreePalm, Undo2, Wheat } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -92,13 +92,46 @@ interface PageProps {
       total: number;
     };
   };
+  products5: {
+    data: Product[];
+    links: PaginationLink[];
+    meta: {
+      current_page: number;
+      last_page: number;
+      per_page: number;
+      total: number;
+    };
+  };
+  products6: {
+    data: Product[];
+    links: PaginationLink[];
+    meta: {
+      current_page: number;
+      last_page: number;
+      per_page: number;
+      total: number;
+    };
+  };
   saldoin: number;
   saldoout: number;
   tm_slin: number;
   tm_slou: number;
   tm_sin: number;
   tm_sou: number;
-  s_ready: number
+  s_ready: number;
+  
+  ppk_slin: number;
+  ppk_slou: number;
+  ppk_sin: number;
+  ppk_sou: number;
+  p_ready: number;
+  
+  klp_slin: number;
+  klp_slou: number;
+  klp_sin: number;
+  klp_sou: number;
+  klp_ready: number
+  
   filter?: { search?: string; time_period?: string }; // Added time_period to filter
 }
 
@@ -111,8 +144,11 @@ const formatCurrency = (value: number) => {
 };
 
 export default function GkaPage({
-  flash, products, products2,  products3, products4, saldoin, saldoout,
-  tm_slin, tm_slou, tm_sin, tm_sou, filter, s_ready
+  flash, products, products2, products3, products4, products5, products6, 
+  // saldoin, saldoout,
+  tm_slin, tm_slou, tm_sin, tm_sou, filter, s_ready,
+  ppk_slin, ppk_slou, ppk_sin, ppk_sou, p_ready,
+  klp_slin, klp_slou, klp_sin, klp_sou, klp_ready,
 }: PageProps) {
   const [searchValue, setSearchValue] = useState(filter?.search || '');
   const [timePeriod, setTimePeriod] = useState(filter?.time_period || 'all-time'); // State for time period filter
@@ -212,9 +248,93 @@ export default function GkaPage({
         </div>
 
         <div className='w-full justify-center h-auto flex mb-5 gap-2'>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             
+              <Card className="shadow-sm transition-shadow hover:shadow-md bg-amber-50">
+                  <CardHeader className="bg-amber-300">
+                  <div className="flex items-center p-1 justify-between">
+                      <CardTitle className="text-sm font-medium text-gray-700">
+                        <div className='grid grid-cols-2'>
+                          <div>
+                            Stock Karet Information
+                          </div>
+                          <div className='flex justify-end mr-2'>
+                            {s_ready} Kg
+                          </div>
+                        </div>
+                      </CardTitle>
+                      <div className="rounded-lg bg-amber-100 p-2">
+                      <Sprout size={18} className="text-amber-600" />
+                      </div>
+                  </div>
+                  </CardHeader>
+                  <CardContent className="lg:-mt-4 text-amber-700">
+                  <div className="grid grid-cols-2">
+                      <div className="flex gap-2"><p className="text-red-400">IN</p> {formatCurrency(tm_slin)}</div>
+                      <div className="flex gap-2"><p className="text-green-400">OUT</p> {formatCurrency(tm_slou)}</div>
+                      <div className="text-2xl w-full justify-center flex font-bold">{tm_sin} Kg</div>
+                      <div className="text-2xl w-full justify-center flex font-bold">{tm_sou} Kg</div>
+                  </div>
+                  </CardContent>
+              </Card>
+
+              <Card className="shadow-sm transition-shadow hover:shadow-md bg-red-50">
+                  <CardHeader className="bg-red-300">
+                  <div className="flex items-center p-1 justify-between">
+                      <CardTitle className="text-sm font-medium text-gray-700">
+                        <div className='grid grid-cols-2'>
+                          <div>
+                            Stock Pupuk Information
+                          </div>
+                          <div className='flex justify-end mr-2'>
+                            {p_ready} Kg
+                          </div>
+                        </div>
+                      </CardTitle>
+                      <div className="rounded-lg bg-red-100 p-2">
+                      <Wheat size={18} className="text-red-600" />
+                      </div>
+                  </div>
+                  </CardHeader>
+                  <CardContent className="lg:-mt-4 text-red-700">
+                  <div className="grid grid-cols-2">
+                      <div className="flex gap-2"><p className="text-red-400">IN</p> {formatCurrency(ppk_slin)}</div>
+                      <div className="flex gap-2"><p className="text-green-400">OUT</p> {formatCurrency(ppk_slou)}</div>
+                      <div className="text-2xl w-full justify-center flex font-bold">{ppk_sin} Kg</div>
+                      <div className="text-2xl w-full justify-center flex font-bold">{ppk_sou} Kg</div>
+                  </div>
+                  </CardContent>
+              </Card>
+              
               <Card className="shadow-sm transition-shadow hover:shadow-md bg-blue-50">
+                  <CardHeader className="bg-blue-300">
+                  <div className="flex items-center p-1 justify-between">
+                      <CardTitle className="text-sm font-medium text-gray-700">
+                        <div className='grid grid-cols-2'>
+                          <div>
+                            Stock Kelapa Information
+                          </div>
+                          <div className='flex justify-end mr-2'>
+                            {klp_ready} Kg
+                          </div>
+                        </div>
+                      </CardTitle>
+                      <div className="rounded-lg bg-blue-100 p-2">
+                      <TreePalm size={18} className="text-blue-600" />
+                      </div>
+                  </div>
+                  </CardHeader>
+                  <CardContent className="lg:-mt-4 text-blue-700">
+                  <div className="grid grid-cols-2">
+                      <div className="flex gap-2"><p className="text-red-400">IN</p> {formatCurrency(klp_slin)}</div>
+                      <div className="flex gap-2"><p className="text-green-400">OUT</p> {formatCurrency(klp_slou)}</div>
+                      <div className="text-2xl w-full justify-center flex font-bold">{klp_sin} Kg</div>
+                      <div className="text-2xl w-full justify-center flex font-bold">{klp_sou} Kg</div>
+                  </div>
+                  </CardContent>
+              </Card>
+
+              {/* <Card className="shadow-sm transition-shadow hover:shadow-md bg-blue-50">
                   <CardHeader className="bg-blue-300">
                   <div className="flex items-center p-1 justify-between">
                       <CardTitle className="text-sm font-medium text-gray-700">Available Stock Karet</CardTitle>
@@ -230,26 +350,7 @@ export default function GkaPage({
                       <div className="flex gap-2"><p className="text-green-400">IN</p> {formatCurrency(saldoout)}</div>
                     </div>
                   </CardContent>
-              </Card>
-
-              <Card className="shadow-sm transition-shadow hover:shadow-md bg-amber-50">
-                  <CardHeader className="bg-amber-300">
-                  <div className="flex items-center p-1 justify-between">
-                      <CardTitle className="text-sm font-medium text-gray-700">Stock Information</CardTitle>
-                      <div className="rounded-lg bg-amber-100 p-2">
-                      <Sprout size={18} className="text-amber-600" />
-                      </div>
-                  </div>
-                  </CardHeader>
-                  <CardContent className="lg:-mt-4 text-amber-700">
-                  <div className="grid grid-cols-2">
-                      <div className="flex gap-2"><p className="text-red-400">IN</p> {formatCurrency(tm_slin)}</div>
-                      <div className="flex gap-2"><p className="text-green-400">OUT</p> {formatCurrency(tm_slou)}</div>
-                      <div className="text-2xl w-full justify-center flex font-bold">{tm_sin} Kg</div>
-                      <div className="text-2xl w-full justify-center flex font-bold">{tm_sou} Kg</div>
-                  </div>
-                  </CardContent>
-              </Card>
+              </Card>              */}
               
             </div>
         </div>
@@ -486,14 +587,6 @@ export default function GkaPage({
                                   </Button>
                                 </Link>
                               )}
-                              
-                              {/* {can('roles.edit') && (
-                                <Link href={route('products.edit', product.id)}>
-                                  <Button className="bg-transparent hover:bg-gray-700">
-                                    <Send color="blue" />
-                                  </Button>
-                                </Link>
-                              )} */}
 
                               {can('roles.delete') && (
                                 <Button
@@ -581,6 +674,133 @@ export default function GkaPage({
                   </Table>
                 </div>
                 {products4.data.length > 0 && renderPagination(products4)}
+              </div>
+            </div>
+          </CardContent>
+        </div>
+        
+        <div>
+          <CardContent className="p-1">
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="border p-2 rounded-lg">
+                <div className="font-bold text-2xl mb-4">Data Pembelian Kelapa</div>
+                <div className="rounded-md border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Tanggal</TableHead>
+                        <TableHead>Supplier</TableHead>
+                        <TableHead>Barang</TableHead>
+                        <TableHead>Qty </TableHead>
+                        <TableHead>Outcome</TableHead>
+                        <TableHead className="text-center">Action</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {products5.data.length > 0 ? (
+                        products5.data.map((product) => (
+                          <TableRow key={product.id}>
+                            <TableCell>{product.date}</TableCell>
+                            <TableCell>{product.nm_supplier}</TableCell>
+                            <TableCell>{product.j_brg}</TableCell>
+                            <TableCell>{product.qty_kg}</TableCell>
+                            <TableCell>{formatCurrency(product.amount)}</TableCell>
+                            <TableCell className="text-center space-x-2">
+                              {can('products.view') && (
+                                <Link href={route('products.show', product.id)}>
+                                  <Button className="bg-transparent hover:bg-gray-700">
+                                    <Eye color="gray" />
+                                  </Button>
+                                </Link>
+                              )}
+
+                              {can('roles.delete') && (
+                                <Button
+                                  onClick={() => handleDelete(product.id, product.product)}
+                                  className="bg-transparent hover:bg-gray-700"
+                                >
+                                  <Trash color="red" />
+                                </Button>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      ) : (
+                        <TableRow>
+                          <TableCell colSpan={6} className="h-24 text-center">
+                            No results found.
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+                {products5.data.length > 0 && renderPagination(products5)}
+              </div>
+
+              <div className="border p-2 rounded-lg">
+                <div className="font-bold text-2xl mb-4">Data Penjualan Pupuk</div>
+                <div className="rounded-md border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Tanggal</TableHead>
+                        <TableHead>Supplier</TableHead>
+                        <TableHead>Barang</TableHead>
+                        <TableHead>Qty </TableHead>
+                        <TableHead>Income</TableHead>
+                        <TableHead className="text-center">Action</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {products6.data.length > 0 ? (
+                        products6.data.map((product) => (
+                          <TableRow key={product.id}>
+                            <TableCell>{product.date}</TableCell>
+                            <TableCell>{product.nm_supplier}</TableCell>
+                            <TableCell>{product.j_brg}</TableCell>
+                            <TableCell>{product.qty_out}</TableCell>
+                            <TableCell>{formatCurrency(product.amount_out)}</TableCell>
+                            <TableCell className="text-center space-x-2">
+                              {can('products.view') && (
+                                <Link href={route('products.show', product.id)}>
+                                  <Button className="bg-transparent hover:bg-gray-700">
+                                    <Eye color="gray" />
+                                  </Button>
+                                </Link>
+                              )}
+                              
+                              {can('roles.edit') && (
+                                <Link href={route('products.edit', product.id)}>
+                                  <Button className="bg-transparent hover:bg-gray-700">
+                                    <Pencil color="blue" />
+                                  </Button>
+                                </Link>
+                              )}
+
+                              {can('roles.delete') && (
+                                <Button
+                                  onClick={() => handleDelete(product.id, product.product)}
+                                  className="bg-transparent hover:bg-gray-700"
+                                >
+                                  <Trash color="red" />
+                                </Button>
+                              )} 
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      ) : (
+                        <TableRow>
+                          <TableCell colSpan={6} className="h-24 text-center">
+                            No results found.
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+                {products6.data.length > 0 && renderPagination(products6)}
               </div>
             </div>
           </CardContent>

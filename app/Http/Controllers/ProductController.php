@@ -84,31 +84,6 @@ class ProductController extends Controller
         Product::create($request->all());
         return redirect()->route('products.index')->with('message', 'Product Created Successfully');        
     }
-    
-    // public function c_store(Request $request)
-    // {
-    //     $request->validate([
-    //         'product' => 'required|string|max:250',
-    //         'date' => 'required|date',
-    //         'no_invoice' => 'required|string|max:250',
-    //         'nm_supplier' => 'required|string|max:250',
-    //         'j_brg' => 'required|string|max:250',
-    //         'desk' => 'nullable|string',
-    //         // 'qty_kg' => 'required|numeric',
-    //         // 'price_qty' => 'required|numeric',
-    //         // 'amount' => 'required|numeric',
-    //         // 'keping' => 'required|numeric',
-    //         'qty_out' => 'required|numeric',
-    //         'price_out' => 'required|numeric',
-    //         'amount_out' => 'required|numeric',
-    //         'keping_out' => 'required|numeric',
-    //         'kualitas_out' => 'required|numeric',
-    //         'status' => 'required|string|max:250',
-    //     ]);
-
-    //     Product::create($request->all());
-    //     return redirect()->route('products.index')->with('message', 'Product Created Successfully');        
-    // }
 
     public function edit(Product $product){
         return inertia('Products/Edit', compact('product'));
@@ -229,6 +204,21 @@ class ProductController extends Controller
             ->where('status', 'buyer') 
             ->orderBy('created_at', 'DESC')
             ->paginate($perPage);
+        
+        //---------KELAPA
+        $products5 = $baseQuery->clone()
+            ->where('product', 'kelapa')
+            ->where('qty_kg', '>', 0)
+            ->where('status', 'gka')
+            ->orderBy('created_at', 'DESC')
+            ->paginate($perPage);
+
+        $product6 = $baseQuery->clone()
+            ->where('product', 'kelapa')
+            ->where('qty_out', '>', 0)  
+            ->where('status', 'buyer') 
+            ->orderBy('created_at', 'DESC')
+            ->paginate($perPage);
  
         $statsQuery = Product::query()
             ->when($searchTerm, function ($query, $search) {
@@ -265,15 +255,29 @@ class ProductController extends Controller
         $karet_in = $statsQuery->clone()->where('status', 'gka')->where('product', 'karet')->SUM('qty_kg');
         $karet_out = $statsQuery->clone()->where('status', 'buyer')->where('product', 'karet')->SUM('qty_out');
 
-        $saldoin = $statsQuery->clone()->where('status', 'gka')->where('product', 'karet')->SUM('amount');
-        $saldoout = $statsQuery->clone()->where('status', 'buyer')->where('product', 'karet')->SUM('amount_out');
+        // $saldoin = $statsQuery->clone()->where('status', 'gka')->where('product', 'karet')->SUM('amount');
+        // $saldoout = $statsQuery->clone()->where('status', 'buyer')->where('product', 'karet')->SUM('amount_out');
 
-        // GKA totals based on filtered data
+        // GKA totals based on filtered data KARET
         $tm_slin = $statsQuery->clone()->where('status', 'gka')->where('product', 'karet')->SUM('amount');
         $tm_slou = $statsQuery->clone()->where('status', 'buyer')->where('product', 'karet')->SUM('amount_out');
         
         $tm_sin = $statsQuery->clone()->where('status', 'gka')->where('product', 'karet')->SUM('qty_kg');
         $tm_sou = $statsQuery->clone()->where('status', 'buyer')->where('product', 'karet')->SUM('qty_out');
+        
+        // GKA totals based on filtered data PUPUK
+        $ppk_slin = $statsQuery->clone()->where('status', 'gka')->where('product', 'pupuk')->SUM('amount');
+        $ppk_slou = $statsQuery->clone()->where('status', 'buyer')->where('product', 'pupuk')->SUM('amount_out');
+        
+        $ppk_sin = $statsQuery->clone()->where('status', 'gka')->where('product', 'pupuk')->SUM('qty_kg');
+        $ppk_sou = $statsQuery->clone()->where('status', 'buyer')->where('product', 'pupuk')->SUM('qty_out');
+        
+        // GKA totals based on filtered data KELAPA
+        $klp_slin = $statsQuery->clone()->where('status', 'gka')->where('product', 'kelapa')->SUM('amount');
+        $klp_slou = $statsQuery->clone()->where('status', 'buyer')->where('product', 'kelapa')->SUM('amount_out');
+        
+        $klp_sin = $statsQuery->clone()->where('status', 'gka')->where('product', 'kelapa')->SUM('qty_kg');
+        $klp_sou = $statsQuery->clone()->where('status', 'buyer')->where('product', 'kelapa')->SUM('qty_out');
 
 
         return Inertia::render("Products/gka", [
@@ -282,12 +286,16 @@ class ProductController extends Controller
 
             "products3" => $products3,
             "products4" => $product4,
+            
+            "products5" => $products5,
+            "products6" => $product6,
             "filter" => $request->only(['search', 'time_period']), // Send back both filters
             
             // Send filtered stats
-            "saldoin" => $saldoin,
-            "saldoout" => $saldoout,
+            // "saldoin" => $saldoin,
+            // "saldoout" => $saldoout,
             
+            // KARET
             "tm_slin" => $tm_slin,
             "tm_slou" => $tm_slou,
             
@@ -295,6 +303,24 @@ class ProductController extends Controller
             "tm_sou" => $tm_sou,
 
             "s_ready" => $tm_sin - $tm_sou,
+            
+            // PUPUK
+            "ppk_slin" => $ppk_slin,
+            "ppk_slou" => $ppk_slou,
+            
+            "ppk_sin" => $ppk_sin,
+            "ppk_sou" => $ppk_sou,
+
+            "p_ready" => $ppk_sin - $ppk_sou,
+            
+            // KELAPA
+            "klp_slin" => $klp_slin,
+            "klp_slou" => $klp_slou,
+            
+            "klp_sin" => $klp_sin,
+            "klp_sou" => $klp_sou,
+
+            "klp_ready" => $klp_sin - $klp_sou,
         ]);
     }
     

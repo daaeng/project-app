@@ -11,7 +11,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import Tag_Karet from '@/components/ui/tag_karet';
 import { useState, useEffect } from 'react';
-import { can } from '@/lib/can';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Product Information', href: '/products' },
@@ -237,6 +236,7 @@ export default function AllofPage({ // Ganti nama komponen agar lebih deskriptif
                                 />
                             </div>
                             <Button onClick={performSearch}><Search className="h-4 w-4 mr-2" />Search</Button>
+                            
                             <div className="flex items-center gap-2">
                                 {/* Select filter by time period */}
                                 <Select value={timePeriod} onValueChange={handleTimePeriodChange}>
