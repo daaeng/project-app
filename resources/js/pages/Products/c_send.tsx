@@ -11,10 +11,9 @@ import { CircleAlert, Undo2 } from 'lucide-react';
 
 
 const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Product',
-        href: '/products',
-    },
+  { title: 'Product Information', href: '/products' },
+  { title: 'PT. Garuda Karya Amanat', href: '/products/gka' },
+  { title: 'Send Product', href: '/products/c_send' },
 ];
 
 export default function index() {
@@ -47,11 +46,11 @@ export default function index() {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Create Product" />
+            <Head title="Send Product" />
 
             <div className="h-full flex-col rounded-xl p-4">
             
-                <Heading title='Create Product'/>
+                <Heading title='Send Product'/>
 
                 <Link href={route('products.index')}>
                     <Button className='bg-auto w-25 hover:bg-accent hover:text-accent-foreground'>
@@ -102,13 +101,13 @@ export default function index() {
                                 <Input placeholder='No. Bukti' value={data.no_invoice} onChange={(e) => setData('no_invoice', e.target.value)} />
                             </div>
                             <div className='gap-2'>
-                                <Label htmlFor='Name Supplier'> Lokasi Kebun </Label>
+                                <Label htmlFor='Name Supplier'> Supplier </Label>
                                 {/* <Input placeholder='Name Supplier' value={data.nm_supplier} onChange={(e) => setData('nm_supplier', e.target.value)} /> */}
                                 <select value={data.nm_supplier} onChange={(e) => setData('nm_supplier', e.target.value)} className='w-full border p-1 rounded-md text-destructive-foreground' required>
                                     <option value="" disabled selected>Pilih Supplier</option>
-                                    <option value="Sebayar" >Sebayar</option>
+                                    {/* <option value="Sebayar" >Sebayar</option>
                                     <option value="Temadu" >Temadu</option>
-                                    <option value="Agro" >GK Agro</option>
+                                    <option value="Agro" >GK Agro</option> */}
                                     <option value="GKA" >GKA</option>
                                 </select>
                             </div>
