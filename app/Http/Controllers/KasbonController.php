@@ -60,10 +60,19 @@ class KasbonController extends Controller
             })
             ->withQueryString();
 
+        // Calculate summary data for the cards
+        $totalPendingKasbon = Kasbon::where('status', 'Pending')->count();
+        $totalApprovedKasbon = Kasbon::where('status', 'Approved')->count();
+        $sumApprovedKasbonAmount = Kasbon::where('status', 'Approved')->sum('kasbon');
+
+
         return Inertia::render("Kasbons/index", [
             'kasbons' => $kasbons,
             'filter' => $request->only('search'),
             'statuses' => $this->statuses, // Kirim daftar status ke frontend
+            'totalPendingKasbon' => $totalPendingKasbon,
+            'totalApprovedKasbon' => $totalApprovedKasbon,
+            'sumApprovedKasbonAmount' => $sumApprovedKasbonAmount,
         ]);
     }
 
@@ -337,3 +346,4 @@ class KasbonController extends Controller
         }
     }
 }
+

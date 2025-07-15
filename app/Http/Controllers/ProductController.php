@@ -143,7 +143,8 @@ class ProductController extends Controller
     {
         $perPage = 10; 
         $searchTerm = $request->input('search');
-        $timePeriod = $request->input('time_period', 'all-time'); // Get time_period, default to 'all-time'
+        $timePeriod = $request->input('time_period', 'all-time');
+        $productType = $request->input('product_type', 'all'); // Get product_type, default to 'all'
 
         $baseQuery = Product::query()
             ->when($searchTerm, function ($query, $search) {
@@ -175,7 +176,7 @@ class ProductController extends Controller
                 }
             });
 
-        //----------KARET
+        // KARET
         $products = $baseQuery->clone()
             ->where('product', 'karet')
             ->where('qty_kg', '>', 0)
@@ -190,7 +191,7 @@ class ProductController extends Controller
             ->orderBy('created_at', 'DESC')
             ->paginate($perPage);
         
-        //---------PUPUK
+        // PUPUK
         $products3 = $baseQuery->clone()
             ->where('product', 'pupuk')
             ->where('qty_kg', '>', 0)
@@ -205,7 +206,7 @@ class ProductController extends Controller
             ->orderBy('created_at', 'DESC')
             ->paginate($perPage);
         
-        //---------KELAPA
+        // KELAPA
         $products5 = $baseQuery->clone()
             ->where('product', 'kelapa')
             ->where('qty_kg', '>', 0)
@@ -251,31 +252,20 @@ class ProductController extends Controller
             });
 
         // Statistik Karet
-        // Ensure to clone the statsQuery before each sum to prevent side effects
-        $karet_in = $statsQuery->clone()->where('status', 'gka')->where('product', 'karet')->SUM('qty_kg');
-        $karet_out = $statsQuery->clone()->where('status', 'buyer')->where('product', 'karet')->SUM('qty_out');
-
-        // $saldoin = $statsQuery->clone()->where('status', 'gka')->where('product', 'karet')->SUM('amount');
-        // $saldoout = $statsQuery->clone()->where('status', 'buyer')->where('product', 'karet')->SUM('amount_out');
-
-        // GKA totals based on filtered data KARET
         $tm_slin = $statsQuery->clone()->where('status', 'gka')->where('product', 'karet')->SUM('amount');
         $tm_slou = $statsQuery->clone()->where('status', 'buyer')->where('product', 'karet')->SUM('amount_out');
-        
         $tm_sin = $statsQuery->clone()->where('status', 'gka')->where('product', 'karet')->SUM('qty_kg');
         $tm_sou = $statsQuery->clone()->where('status', 'buyer')->where('product', 'karet')->SUM('qty_out');
         
-        // GKA totals based on filtered data PUPUK
+        // Statistik PUPUK
         $ppk_slin = $statsQuery->clone()->where('status', 'gka')->where('product', 'pupuk')->SUM('amount');
         $ppk_slou = $statsQuery->clone()->where('status', 'buyer')->where('product', 'pupuk')->SUM('amount_out');
-        
         $ppk_sin = $statsQuery->clone()->where('status', 'gka')->where('product', 'pupuk')->SUM('qty_kg');
         $ppk_sou = $statsQuery->clone()->where('status', 'buyer')->where('product', 'pupuk')->SUM('qty_out');
         
-        // GKA totals based on filtered data KELAPA
+        // Statistik KELAPA
         $klp_slin = $statsQuery->clone()->where('status', 'gka')->where('product', 'kelapa')->SUM('amount');
         $klp_slou = $statsQuery->clone()->where('status', 'buyer')->where('product', 'kelapa')->SUM('amount_out');
-        
         $klp_sin = $statsQuery->clone()->where('status', 'gka')->where('product', 'kelapa')->SUM('qty_kg');
         $klp_sou = $statsQuery->clone()->where('status', 'buyer')->where('product', 'kelapa')->SUM('qty_out');
 
@@ -289,11 +279,7 @@ class ProductController extends Controller
             
             "products5" => $products5,
             "products6" => $product6,
-            "filter" => $request->only(['search', 'time_period']), // Send back both filters
-            
-            // Send filtered stats
-            // "saldoin" => $saldoin,
-            // "saldoout" => $saldoout,
+            "filter" => $request->only(['search', 'time_period', 'product_type']), // Send back all filters
             
             // KARET
             "tm_slin" => $tm_slin,

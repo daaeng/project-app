@@ -33,9 +33,18 @@ class NotaController extends Controller
             ->paginate($perPage)
             ->withQueryString(); // Keep search parameters in pagination links
 
+        // Calculate summary data for the cards
+        $totalPendingNotas = Nota::where('status', 'Pending')->count();
+        $totalApprovedNotas = Nota::where('status', 'Approved')->count();
+        $sumApprovedNotasAmount = Nota::where('status', 'Approved')->sum('dana');
+
+
         return Inertia::render("Notas/index", [
             "notas" => $notas,
             "filter" => $request->only('search'), // Send back the current search filter
+            "totalPendingNotas" => $totalPendingNotas,
+            "totalApprovedNotas" => $totalApprovedNotas,
+            "sumApprovedNotasAmount" => $sumApprovedNotasAmount,
         ]);
     }
 
@@ -225,3 +234,4 @@ class NotaController extends Controller
         return redirect()->route('notas.index')->with('message', 'Invoice deleted Successfully');
     }
 }
+

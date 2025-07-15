@@ -1,16 +1,15 @@
 import Heading from '@/components/heading';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'; // Import CardHeader and CardTitle
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, useForm, usePage, router } from '@inertiajs/react';
-import { CirclePlus, Eye, Megaphone, Pencil, Search, Trash } from 'lucide-react';
+import { CirclePlus, Eye, Megaphone, Pencil, Search, Trash, Clock, CheckCircle2, Wallet } from 'lucide-react'; // Added Clock, CheckCircle2, Wallet icons
 import { can } from '@/lib/can';
 import { Input } from '@/components/ui/input';
 import { useState, useEffect } from 'react';
-import { PaginationLink } from '@/types/inertia';
 import Tag from '@/components/ui/tag';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -34,6 +33,12 @@ interface Kasbon {
     created_at: string;
 }
 
+interface PaginationLink {
+  url: string | null;
+  label: string;
+  active: boolean;
+}
+
 interface PageProps {
     flash: {
         message?: string;
@@ -50,6 +55,9 @@ interface PageProps {
         };
     };
     filter?: { search?: string };
+    totalPendingKasbon: number; // New prop for total pending kasbon
+    totalApprovedKasbon: number; // New prop for total approved kasbon
+    sumApprovedKasbonAmount: number; // New prop for sum of approved kasbon amount
 }
 
 const formatCurrency = (value: number) => {
@@ -61,7 +69,7 @@ const formatCurrency = (value: number) => {
 };
 
 export default function KasbonIndex() { // Renamed component for clarity
-    const { kasbons, flash, filter } = usePage().props as PageProps;
+    const { kasbons, flash, filter, totalPendingKasbon, totalApprovedKasbon, sumApprovedKasbonAmount } = usePage().props as PageProps;
 
     // Adjusted useForm to match KasbonController destroy method, removing 'processing' as it's not used
     const { delete: destroy } = useForm();
@@ -83,7 +91,7 @@ export default function KasbonIndex() { // Renamed component for clarity
             {
                 preserveState: true,
                 replace: true,
-                only: ['kasbons', 'filter'],
+                only: ['kasbons', 'filter', 'totalPendingKasbon', 'totalApprovedKasbon', 'sumApprovedKasbonAmount'], // Include new props in `only`
             }
         );
     };
@@ -147,6 +155,42 @@ export default function KasbonIndex() { // Renamed component for clarity
 
             <div className="h-full flex-col rounded-xl p-4">
                 <Heading title='Data Kasbon' />
+
+                {/* Summary Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <Card className="shadow-sm transition-shadow hover:shadow-md">
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Kasbon Pending</CardTitle>
+                            <Clock className="h-4 w-4 text-gray-500" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{totalPendingKasbon}</div>
+                            <p className="text-xs text-gray-500">Total kasbon yang menunggu persetujuan</p>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="shadow-sm transition-shadow hover:shadow-md">
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Kasbon Disetujui</CardTitle>
+                            <CheckCircle2 className="h-4 w-4 text-gray-500" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{totalApprovedKasbon}</div>
+                            <p className="text-xs text-gray-500">Total kasbon yang telah disetujui</p>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="shadow-sm transition-shadow hover:shadow-md">
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Total Kasbon Disetujui</CardTitle>
+                            <Wallet className="h-4 w-4 text-gray-500" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{formatCurrency(sumApprovedKasbonAmount)}</div>
+                            <p className="text-xs text-gray-500">Jumlah total kasbon yang disetujui</p>
+                        </CardContent>
+                    </Card>
+                </div>
 
                 <div className='border h-auto p-3 rounded-lg  shadow-sm'>
                     {/* Add New Button */}
