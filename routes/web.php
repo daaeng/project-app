@@ -85,6 +85,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // ~~~~~~~~~~~~~ ADMINISTRASI ~~~~~~~~~~~~~
     route::get('/administrasis', [AdministrasiController::class, 'index'])->name('administrasis.index');
+    route::get('/administrasis/create', [AdministrasiController::class, 'create'])->name('administrasis.create'); // Tambahkan ini
+    route::post('/administrasis', [AdministrasiController::class, 'store'])->name('administrasis.store'); // Tambahkan ini
 
 
     // ~~~~~~~~~~~~~ Role ~~~~~~~~~~~~~

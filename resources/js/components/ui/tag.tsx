@@ -22,7 +22,7 @@ function Tag({ status }: TagProps) {
   }
 
   return (
-    <span style={{ backgroundColor: tagColor, color: textColor, padding: '5px 10px', borderRadius: '10px', fontSize:13 }}>
+    <span style={{ backgroundColor: tagColor, color: textColor, padding: '5px 10px', borderRadius: '30px', fontSize:13 }} className="px-2 py-1 rounded-full text-xs font-semibold">
       {tagText}
     </span>
   );
