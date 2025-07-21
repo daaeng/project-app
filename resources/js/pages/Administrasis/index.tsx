@@ -19,24 +19,18 @@ const breadcrumbs: BreadcrumbItem[] = [
 // Interface untuk data Request Letter
 interface RequestData {
     id: number;
-    // document_number: string; // Dihapus
     date: string; // Tanggal Pengajuan
     devisi: string;
     j_pengajuan: string; // Jenis Pengajuan / Perihal
     dana: string;
     status: string;
     created_at: string;
-    // approved_at?: string; // Dihapus
-    // pic?: string; // Dihapus
-    // has_attachment?: boolean; // Dihapus
-    // internal_notes?: string; // Dihapus
     updated_at?: string; // Tambahkan untuk Tgl. Update
 }
 
 // Interface untuk data Nota/Kwitansi
 interface NotaData {
     id: number;
-    // document_number: string; // Dihapus
     name: string; // Nama Pengaju/Pihak
     date: string; // Tanggal Transaksi
     devisi: string;
@@ -44,10 +38,6 @@ interface NotaData {
     dana: string;
     status: string;
     created_at: string;
-    // approved_at?: string; // Dihapus
-    // pic?: string; // Dihapus
-    // has_attachment?: boolean; // Dihapus
-    // internal_notes?: string; // Dihapus
     updated_at?: string; // Tambahkan untuk Tgl. Update
 }
 
@@ -56,7 +46,6 @@ interface CombinedAdminItem {
     id: number;
     originalId: number; // ID asli dari Request atau Nota
     type: 'request' | 'nota'; // Tipe dokumen: 'request' atau 'nota'
-    // documentNumber: string; // Dihapus
     transactionDate: string; // Tanggal Pengajuan/Transaksi
     requesterOrParty: string; // Pengaju/Pihak Terkait
     subjectOrDescription: string; // Perihal/Deskripsi Singkat
@@ -65,10 +54,6 @@ interface CombinedAdminItem {
     status: string;
     createdAt: string; // Untuk sorting
     updatedAt?: string; // Tgl. Update (opsional)
-    // approvalDate?: string; // Dihapus
-    // pic?: string; // Dihapus
-    // hasAttachment?: boolean; // Dihapus
-    // internalNotes?: string; // Dihapus
 }
 
 // Interface untuk data ringkasan/statistik
@@ -123,7 +108,6 @@ export default function AdminPage() {
             id: item.id,
             originalId: item.id,
             type: 'request',
-            // documentNumber: item.document_number || '-', // Dihapus
             transactionDate: item.date,
             requesterOrParty: item.devisi, // Untuk request, devisi bisa jadi pengaju
             subjectOrDescription: item.j_pengajuan,
@@ -131,17 +115,12 @@ export default function AdminPage() {
             dana: item.dana,
             status: item.status,
             createdAt: item.created_at || item.date,
-            updatedAt: item.updated_at || undefined, // Gunakan updated_at
-            // approvalDate: item.approved_at || undefined, // Dihapus
-            // pic: item.pic || undefined, // Dihapus
-            // hasAttachment: item.has_attachment || false, // Dihapus
-            // internalNotes: item.internal_notes || undefined, // Dihapus
+            updatedAt: item.updated_at || undefined, 
         })),
         ...notas.data.map(item => ({
             id: item.id,
             originalId: item.id,
             type: 'nota',
-            // documentNumber: item.document_number || '-', // Dihapus
             transactionDate: item.date,
             requesterOrParty: item.name, // Nama pengaju/pihak untuk nota
             subjectOrDescription: item.desk,
@@ -150,10 +129,6 @@ export default function AdminPage() {
             status: item.status,
             createdAt: item.created_at || item.date,
             updatedAt: item.updated_at || undefined, // Gunakan updated_at
-            // approvalDate: item.approved_at || undefined, // Dihapus
-            // pic: item.pic || undefined, // Dihapus
-            // hasAttachment: item.has_attachment || false, // Dihapus
-            // internalNotes: item.internal_notes || undefined, // Dihapus
         }))
     ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()); // Urutkan berdasarkan tanggal terbaru
 
@@ -220,7 +195,7 @@ export default function AdminPage() {
                     {/* Card 4: Total Dana Disetujui (Contoh) */}
                     <div className="bg-gradient-to-r from-purple-500 to-purple-600 text-white p-5 rounded-lg shadow-lg flex items-center justify-between">
                         <div>
-                            <div className="text-sm font-medium opacity-90">Total Dana Disetujui</div>
+                            <div className="text-sm font-medium opacity-90">Total Kwitansi/Nota Dana Disetujui</div>
                             <div className="text-3xl font-bold mt-1">{formatCurrency(summary.totalApprovedDana)}</div> {/* Menggunakan totalApprovedDana */}
                         </div>
                         <DollarSign size={40} className="opacity-70" />
@@ -241,9 +216,7 @@ export default function AdminPage() {
                                 <TableHead className="w-[100px]">Devisi</TableHead>
                                 <TableHead className="text-right w-[120px]">Dana</TableHead>
                                 <TableHead className="w-[100px]">Status</TableHead>
-                                <TableHead className="w-[120px]">Tgl. Update</TableHead> {/* Diubah */}
-                                {/* <TableHead className="w-[100px]">PIC</TableHead> Dihapus */}
-                                {/* <TableHead className="w-[80px] text-center">Lampiran</TableHead> Dihapus */}
+                                <TableHead className="w-[120px]">Tgl. Update</TableHead> 
                                 <TableHead className="text-center w-[120px]">Aksi</TableHead>
                             </TableRow>
                         </TableHeader>
@@ -267,11 +240,7 @@ export default function AdminPage() {
                                         <TableCell>
                                             <Tag status={item.status} />
                                         </TableCell>
-                                        <TableCell>{item.updatedAt || '-'}</TableCell> {/* Menggunakan Tgl. Update */}
-                                        {/* <TableCell>{item.pic || '-'}</TableCell> Dihapus */}
-                                        {/* <TableCell className="text-center"> Dihapus */}
-                                            {/* {item.hasAttachment ? <Paperclip size={16} className="text-gray-500 mx-auto" /> : '-'} Dihapus */}
-                                        {/* </TableCell> Dihapus */}
+                                        <TableCell>{item.updatedAt || '-'}</TableCell> 
                                         <TableCell className="text-center space-x-2">
                                             {/* Aksi untuk Request Letter */}
                                             {item.type === 'request' && (

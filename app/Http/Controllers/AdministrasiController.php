@@ -22,17 +22,10 @@ class AdministrasiController extends Controller
         // --- Hitung Data Summary ---
         $totalRequests = Requested::count();
         $totalNotas = Nota::count();
-        $pendingRequests = Requested::where('status', 'Pending')->count();
-        // Contoh: Total dana dari nota yang statusnya 'Approved'
-        $totalDanaApproved = Nota::where('status', 'Approved')->sum('dana');
-        // Pastikan kolom 'dana' di database bertipe numerik (misal: decimal, double)
-        // Jika 'dana' disimpan sebagai string, Anda mungkin perlu mengonversinya
-        // $totalDanaApproved = Nota::where('status', 'Approved')
-        //     ->get()
-        //     ->sum(function($nota) {
-        //         return (float) $nota->dana;
-        //     });
-
+        $pendingRequests = Requested::where('status', 'belum ACC')->count();
+        $pendingNotas = Nota::where('status', 'belum ACC')->count();
+        $totalPendingRequests = $pendingRequests + $pendingNotas; // Perhitungan baru
+        $totalApprovedDana = Nota::where('status', 'diterima')->sum('dana'); // Perhitungan diperbarui
 
         return Inertia::render("Administrasis/index", [
             "requests" => $requests,
@@ -40,8 +33,8 @@ class AdministrasiController extends Controller
             "summary" => [ // Kirim data summary ke frontend
                 "totalRequests" => $totalRequests,
                 "totalNotas" => $totalNotas,
-                "pendingRequests" => $pendingRequests,
-                "totalDanaApproved" => $totalDanaApproved,
+                "totalPendingRequests" => $totalPendingRequests, // Kirim total pending gabungan
+                "totalApprovedDana" => $totalApprovedDana, // Kirim total dana disetujui gabungan
             ],
         ]);
     }
