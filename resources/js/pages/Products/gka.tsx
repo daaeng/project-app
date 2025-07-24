@@ -325,12 +325,12 @@ export default function GkaPage({
                   </div>
                   </CardHeader>
                   <CardContent className="lg:-mt-4 text-amber-700">
-                  <div className="grid grid-cols-2">
-                      <div className="flex gap-2"><p className="text-red-400">MASUK</p> {formatCurrency(tm_slin)}</div>
-                      <div className="flex gap-2"><p className="text-green-400">KELUAR</p> {formatCurrency(tm_slou)}</div>
-                      <div className="text-2xl w-full justify-center flex font-bold">{tm_sin} Kg</div>
-                      <div className="text-2xl w-full justify-center flex font-bold">{tm_sou} Kg</div>
-                  </div>
+                    <div className="grid grid-cols-2">
+                        <div className="flex gap-2"><p className="text-red-400">IN</p> {formatCurrency(tm_slin)}</div>
+                        <div className="flex gap-2"><p className="text-green-400">OUT</p> {formatCurrency(tm_slou)}</div>
+                        <div className="text-2xl w-full justify-center flex font-bold">{tm_sin} Kg</div>
+                        <div className="text-2xl w-full justify-center flex font-bold">{tm_sou} Kg</div>
+                    </div>
                   </CardContent>
               </Card>
 
@@ -354,8 +354,8 @@ export default function GkaPage({
                   </CardHeader>
                   <CardContent className="lg:-mt-4 text-red-700">
                   <div className="grid grid-cols-2">
-                      <div className="flex gap-2"><p className="text-red-400">MASUK</p> {formatCurrency(ppk_slin)}</div>
-                      <div className="flex gap-2"><p className="text-green-400">KELUAR</p> {formatCurrency(ppk_slou)}</div>
+                      <div className="flex gap-2"><p className="text-red-400">IN</p> {formatCurrency(ppk_slin)}</div>
+                      <div className="flex gap-2"><p className="text-green-400">OUT</p> {formatCurrency(ppk_slou)}</div>
                       <div className="text-2xl w-full justify-center flex font-bold">{ppk_sin} Kg</div>
                       <div className="text-2xl w-full justify-center flex font-bold">{ppk_sou} Kg</div>
                   </div>
@@ -382,8 +382,8 @@ export default function GkaPage({
                   </CardHeader>
                   <CardContent className="lg:-mt-4 text-blue-700">
                   <div className="grid grid-cols-2">
-                      <div className="flex gap-2"><p className="text-red-400">MASUK</p> {formatCurrency(klp_slin)}</div>
-                      <div className="flex gap-2"><p className="text-green-400">KELUAR</p> {formatCurrency(klp_slou)}</div>
+                      <div className="flex gap-2"><p className="text-red-400">IN</p> {formatCurrency(klp_slin)}</div>
+                      <div className="flex gap-2"><p className="text-green-400">OUT</p> {formatCurrency(klp_slou)}</div>
                       <div className="text-2xl w-full justify-center flex font-bold">{klp_sin} Kg</div>
                       <div className="text-2xl w-full justify-center flex font-bold">{klp_sou} Kg</div>
                   </div>

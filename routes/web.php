@@ -19,11 +19,13 @@ Route::get('/', function () {
 })->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::resource('dashboard', DashboardController::class);
+    // Route::resource('dashboard', DashboardController::class);
 
-    Route::get('dashboard', function () {
-        return Inertia::render("Dashboard/Index");
-    })->name('dashboard');
+    // Route::get('dashboard', function () {
+    //     return Inertia::render("Dashboard/Index");
+    // })->name('dashboard');
+
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     
     // ~~~~~~~~~~~~~ PRODUCT ~~~~~~~~~~~~~
     route::get('/products', [ProductController::class, 'index'])->name('products.index');

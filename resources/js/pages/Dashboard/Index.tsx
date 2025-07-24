@@ -1,32 +1,22 @@
-import React, { useState, useEffect } from 'react'; // Import React, useState, useEffect
-
-// --- START REVERT: Re-adding original AppLayout and Head imports ---
-import AppLayout from '@/layouts/app-layout'; // Dikembalikan seperti semula
+import React, { useState } from 'react'; 
+import AppLayout from '@/layouts/app-layout'; 
 import { type BreadcrumbItem } from '@/types';
-import { Head } from '@inertiajs/react'; // Dikembalikan seperti semula
-// --- END REVERT ---
-
-// Import UI components from shadcn/ui
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Input } from '@/components/ui/input';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Archive, ChevronDown, FileText, MoreHorizontal, Package2, Receipt, Search, UserCheck, UserCog, Users, TrendingUp, DollarSign, Factory, Leaf } from 'lucide-react';
-
-// Import Recharts components
+import { Head } from '@inertiajs/react'; 
 import {
     LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
     XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
 } from 'recharts';
+import {
+  FaChartBar,
+  FaUserTie,
+  FaUsers,
+  FaBoxOpen,
+  FaClipboardList,
+  FaFileInvoice,
+  FaMoneyBill,
+  FaChartPie,
+  FaUserFriends,
+} from 'react-icons/fa';
 
 
 // Breadcrumbs for navigation
@@ -37,7 +27,23 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-// Helper function to format currency to IDR
+const pieData = [
+  { name: 'Grade A', value: 400 },
+  { name: 'Grade B', value: 300 },
+  { name: 'Grade C', value: 300 },
+  { name: 'Reject', value: 200 },
+];
+
+const pieColors = ['#22C55E', '#3B82F6', '#FACC15', '#EF4444'];
+
+const topPenoreh = [
+  { name: 'Budi', value: 120000 },
+  { name: 'Agus', value: 95000 },
+  { name: 'Sari', value: 86000 },
+  { name: 'Dewi', value: 78000 },
+  { name: 'Rudi', value: 69000 },
+];
+
 const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('id-ID', {
         style: 'currency',
@@ -46,738 +52,357 @@ const formatCurrency = (value: number) => {
     }).format(value);
 };
 
-// Main Dashboard Component
-const Dashboard = () => {
-    // State for chart filter (weekly, monthly, yearly)
-    const [selectedPeriod, setSelectedPeriod] = useState('monthly');
+const allStockData: StockItem[] = [
+  { name: 'Karet Mentah', code: 'KM-01', qty: 500, status: 'in stock' },
+  { name: 'Temadu', code: 'TD-02', qty: 120, status: 'low stock' },
+  { name: 'Karet Grade A', code: 'GA-03', qty: 0, status: 'out of stock' },
+  { name: 'Karet Grade B', code: 'GB-04', qty: 180, status: 'low stock' },
+  { name: 'Saponifikasi', code: 'SP-05', qty: 600, status: 'in stock' },
+  { name: 'Getah Asli', code: 'GT-06', qty: 0, status: 'out of stock' },
+  { name: 'Lateks Premium', code: 'LP-07', qty: 220, status: 'low stock' },
+  { name: 'Karet Olahan', code: 'KO-08', qty: 900, status: 'in stock' },
+  { name: 'Lump Rubber', code: 'LR-09', qty: 60, status: 'low stock' },
+  { name: 'Temadu Super', code: 'TS-10', qty: 480, status: 'in stock' },
+  { name: 'Karet Sintetik', code: 'KS-11', qty: 300, status: 'in stock' },
+  { name: 'Karet Ekspor', code: 'KE-12', qty: 50, status: 'low stock' },
+  { name: 'Karet Dalam Negeri', code: 'KN-13', qty: 0, status: 'out of stock' },
+];
 
-    // Dummy data for analytics cards
-    const analyticsData = {
-        totalProducts: 254, // Total produk karet (stok)
-        totalUsers: 1823, // Total pengguna sistem
-        totalIncisors: 150, // Total penoreh
-        totalIncisedAmount: 75000000, // Total pendapatan toreh (dari penoreh)
-        totalRubberProductionTSA: 125000, // Total produksi karet dari TSA (kg)
-        totalRubberSalesPTGKA: 980000000, // Total penjualan karet oleh PT. GKA (IDR)
-        pendingRequestLetters: 5, // Pengajuan surat tertunda
-        pendingInvoices: 12, // Faktur belum dibayar
-        totalCashReceipts: 35000000, // Total penerimaan kas (non-penjualan)
-        totalRoles: 7, // Total peran pengguna
-    };
+interface StockItem {
+  name: string;
+  code: string;
+  qty: number;
+  status: 'in stock' | 'low stock' | 'out of stock';
+}
 
-    // Dummy data for charts - will be dynamically generated based on filter
-    const [productionSalesData, setProductionSalesData] = useState([]);
-    const [revenueTrendData, setRevenueTrendData] = useState([]);
-    const [stockQualityData, setStockQualityData] = useState([]);
-    const [topIncisorsData, setTopIncisorsData] = useState([]);
+interface StatCardProps {
+  icon: React.ElementType;
+  title: string;
+  value: string;
+  subtitle: string;
+  gradient: string;
+}
 
-    // Function to generate dummy chart data based on selected period
-    const generateChartData = (period: string) => {
-        let prodSales = [];
-        let revenueTrend = [];
-        let stockQuality = [
-            { name: 'Kualitas A', value: 400 },
-            { name: 'Kualitas B', value: 300 },
-            { name: 'Kualitas C', value: 200 },
-            { name: 'Kualitas D', value: 100 },
-        ];
-        let topIncisors = [
-            { name: 'Budi Santoso', earnings: 15000000 },
-            { name: 'Siti Aminah', earnings: 12000000 },
-            { name: 'Joko Susanto', earnings: 10000000 },
-            { name: 'Dewi Lestari', earnings: 9000000 },
-            { name: 'Agus Salim', earnings: 8500000 },
-        ];
+const StatCard: React.FC<StatCardProps> = ({ icon: Icon, title, value, subtitle, gradient }) => (
+    <div className={`p-4 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 bg-gradient-to-r ${gradient} text-white`}>
+        <div className="flex items-center gap-3">
+            <div className="bg-white bg-opacity-20 p-3 rounded-full">
+                <Icon className="text-blue-500 text-xl" />
+            </div>
+            <div>
+                <h4 className="text-sm font-medium">{title}</h4>
+                <p className="text-xl font-semibold">{value}</p>
+                <p className="text-xs opacity-90">{subtitle}</p>
+            </div>
+        </div>
+    </div>
+);
 
-        if (period === 'weekly') {
-            // Dummy weekly data for the last 4 weeks
-            for (let i = 0; i < 4; i++) {
-                const week = `Minggu ${4 - i}`;
-                prodSales.push({
-                    name: week,
-                    'Produksi Temadu (kg)': Math.floor(Math.random() * 5000) + 1000,
-                    'Produksi Sebayar (kg)': Math.floor(Math.random() * 4000) + 800,
-                    'Penjualan PT. GKA (kg)': Math.floor(Math.random() * 8000) + 2000,
-                });
-                revenueTrend.push({
-                    name: week,
-                    'Pendapatan (IDR)': (Math.floor(Math.random() * 500) + 100) * 1000000,
-                });
-            }
-        } else if (period === 'monthly') {
-            // Dummy monthly data for the last 6 months
-            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun'];
-            for (let i = 0; i < months.length; i++) {
-                prodSales.push({
-                    name: months[i],
-                    'Produksi Temadu (kg)': Math.floor(Math.random() * 20000) + 5000,
-                    'Produksi Sebayar (kg)': Math.floor(Math.random() * 15000) + 4000,
-                    'Penjualan PT. GKA (kg)': Math.floor(Math.random() * 30000) + 8000,
-                });
-                revenueTrend.push({
-                    name: months[i],
-                    'Pendapatan (IDR)': (Math.floor(Math.random() * 2000) + 500) * 1000000,
-                });
-            }
-        } else if (period === 'yearly') {
-            // Dummy yearly data for the last 5 years
-            for (let i = 0; i < 5; i++) {
-                const year = 2025 - i;
-                prodSales.push({
-                    name: year.toString(),
-                    'Produksi Temadu (kg)': Math.floor(Math.random() * 200000) + 50000,
-                    'Produksi Sebayar (kg)': Math.floor(Math.random() * 150000) + 40000,
-                    'Penjualan PT. GKA (kg)': Math.floor(Math.random() * 300000) + 80000,
-                });
-                revenueTrend.push({
-                    name: year.toString(),
-                    'Pendapatan (IDR)': (Math.floor(Math.random() * 20000) + 5000) * 1000000,
-                });
-            }
-        }
+const StockStatusBadge = ({ status }: { status: StockItem['status'] }) => {
+  const colorMap = {
+    'in stock': 'bg-green-200 text-green-800',
+    'low stock': 'bg-yellow-200 text-yellow-800',
+    'out of stock': 'bg-red-200 text-red-800',
+  };
 
-        setProductionSalesData(prodSales);
-        setRevenueTrendData(revenueTrend);
-        setStockQualityData(stockQuality);
-        setTopIncisorsData(topIncisors);
-    };
+  return (
+    <span className={`px-3 py-1 rounded-full text-xs font-semibold transition-all duration-300 ${colorMap[status]}`}>
+      {status.replace(/^\w/, (c) => c.toUpperCase())}
+    </span>
+  );
+};
 
-    // Effect to generate data when the period changes
-    useEffect(() => {
-        generateChartData(selectedPeriod);
-    }, [selectedPeriod]);
+interface PageProps {    
+    totalAmountOutKaret: number;
+}
 
-    // Colors for the Pie Chart
-    const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
+export default function Dashboard({ totalAmountOutKaret }: PageProps) {
 
-    // Dummy data for tables
-    const recentProducts = [
-        { id: 1, name: 'Karet Mentah (Temadu)', category: 'Karet', origin: 'Temadu', qty_kg: 500, quality: 'A', status: 'In Stock', image: 'https://placehold.co/60x60/4CAF50/ffffff?text=TM' },
-        { id: 2, name: 'Karet Mentah (Sebayar)', category: 'Karet', origin: 'Sebayar', qty_kg: 450, quality: 'B', status: 'In Stock', image: 'https://placehold.co/60x60/8BC34A/ffffff?text=SB' },
-        { id: 3, name: 'Karet Olahan (Sheet)', category: 'Karet Olahan', origin: 'PT. GKA', qty_kg: 300, quality: 'A', status: 'In Stock', image: 'https://placehold.co/60x60/2196F3/ffffff?text=SH' },
-        { id: 4, name: 'Karet Olahan (SIR 20)', category: 'Karet Olahan', origin: 'PT. GKA', qty_kg: 250, quality: 'B', status: 'Low Stock', image: 'https://placehold.co/60x60/03A9F4/ffffff?text=S20' },
-        { id: 5, name: 'Karet Mentah (Temadu)', category: 'Karet', origin: 'Temadu', qty_kg: 600, quality: 'A', status: 'In Stock', image: 'https://placehold.co/60x60/4CAF50/ffffff?text=TM' },
-    ];
+    const [search, setSearch] = useState('');
+    const filteredStock = allStockData.filter(item =>
+        item.name.toLowerCase().includes(search.toLowerCase())
+    );
+
+    console.log('Total Amount Out Karet:', totalAmountOutKaret);
+    const displayValue = formatCurrency(totalAmountOutKaret || 0);
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Dashboard" /> {/* Dikembalikan seperti semula */}
             <div className="min-h-screen p-6 sm:p-8  font-inter">
-                <div className="mb-8">
-                    <h1 className="mb-2 text-3xl font-extrabold text-gray-800">Dashboard Analitik Bisnis Karet</h1>
-                    <p className="text-gray-600">Selamat datang kembali! Berikut adalah gambaran singkat performa PT. GKA, TSA, dan GK Agro.</p>
+
+                <div className="bg-[#2b75c4] rounded-xl p-5 shadow-md mb-6">
+                    <h2 className="text-2xl font-bold text-white">
+                        Dashboard Analitik Bisnis Karet
+                    </h2>
+                    <p className="text-sm text-gray-200 mt-1">
+                        Selamat datang kembali 👋 Berikut adalah gambaran performa PT GKA, TSA, dan GK Agro.
+                    </p>
                 </div>
 
-                {/* Kartu Analitik Kinerja Utama */}
-                <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                    {/* Total Penjualan Karet PT. GKA */}
-                    <Card className="rounded-xl border border-gray-200 bg-white shadow-lg transition-transform transform hover:scale-103 duration-300">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-                            <CardTitle className="text-base font-semibold text-gray-700">Total Penjualan Karet</CardTitle>
-                            <div className="rounded-full bg-blue-100 p-2 shadow-sm">
-                                <DollarSign size={20} className="text-blue-600" />
-                            </div>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-3xl font-bold text-gray-900">{formatCurrency(analyticsData.totalRubberSalesPTGKA)}</div>
-                            <p className="text-xs text-gray-500 mt-1">oleh PT. GKA</p>
-                        </CardContent>
-                    </Card>
+                {/* <Stat_Card/> */}
 
-                    {/* Total Produksi Karet TSA */}
-                    <Card className="rounded-xl border border-gray-200 bg-white shadow-lg transition-transform transform hover:scale-103 duration-300">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-                            <CardTitle className="text-base font-semibold text-gray-700">Total Produksi Karet</CardTitle>
-                            <div className="rounded-full bg-green-100 p-2 shadow-sm">
-                                <Factory size={20} className="text-green-600" />
-                            </div>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-3xl font-bold text-gray-900">{analyticsData.totalRubberProductionTSA} kg</div>
-                            <p className="text-xs text-gray-500 mt-1">dari TSA (Temadu & Sebayar)</p>
-                        </CardContent>
-                    </Card>
-
-                    {/* Total Stok Karet Tersedia */}
-                    <Card className="rounded-xl border border-gray-200 bg-white shadow-lg transition-transform transform hover:scale-103 duration-300">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-                            <CardTitle className="text-base font-semibold text-gray-700">Total Stok Karet</CardTitle>
-                            <div className="rounded-full bg-purple-100 p-2 shadow-sm">
-                                <Package2 size={20} className="text-purple-600" />
-                            </div>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-3xl font-bold text-gray-900">{analyticsData.totalProducts} unit</div>
-                            <p className="text-xs text-gray-500 mt-1">di gudang PT. GKA</p>
-                        </CardContent>
-                    </Card>
-
-                    {/* Total Penoreh Aktif */}
-                    <Card className="rounded-xl border border-gray-200 bg-white shadow-lg transition-transform transform hover:scale-103 duration-300">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-                            <CardTitle className="text-base font-semibold text-gray-700">Total Penoreh Aktif</CardTitle>
-                            <div className="rounded-full bg-orange-100 p-2 shadow-sm">
-                                <UserCog size={20} className="text-orange-600" />
-                            </div>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-3xl font-bold text-gray-900">{analyticsData.totalIncisors}</div>
-                            <p className="text-xs text-gray-500 mt-1">terdaftar</p>
-                        </CardContent>
-                    </Card>
-
-                    {/* Pengajuan Surat Tertunda */}
-                    <Card className="rounded-xl border border-gray-200 bg-white shadow-lg transition-transform transform hover:scale-103 duration-300">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-                            <CardTitle className="text-base font-semibold text-gray-700">Pengajuan Tertunda</CardTitle>
-                            <div className="rounded-full bg-red-100 p-2 shadow-sm">
-                                <FileText size={20} className="text-red-600" />
-                            </div>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-3xl font-bold text-gray-900">{analyticsData.pendingRequestLetters}</div>
-                            <p className="text-xs text-gray-500 mt-1">menunggu persetujuan</p>
-                        </CardContent>
-                    </Card>
-
-                    {/* Faktur Belum Dibayar */}
-                    <Card className="rounded-xl border border-gray-200 bg-white shadow-lg transition-transform transform hover:scale-103 duration-300">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-                            <CardTitle className="text-base font-semibold text-gray-700">Faktur Belum Dibayar</CardTitle>
-                            <div className="rounded-full bg-yellow-100 p-2 shadow-sm">
-                                <Receipt size={20} className="text-yellow-600" />
-                            </div>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-3xl font-bold text-gray-900">{analyticsData.pendingInvoices}</div>
-                            <p className="text-xs text-gray-500 mt-1">faktur</p>
-                        </CardContent>
-                    </Card>
-
-                    {/* Total Kasbon Pending */}
-                    <Card className="rounded-xl border border-gray-200 bg-white shadow-lg transition-transform transform hover:scale-103 duration-300">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-                            <CardTitle className="text-base font-semibold text-gray-700">Total Kasbon Pending</CardTitle>
-                            <div className="rounded-full bg-pink-100 p-2 shadow-sm">
-                                <Archive size={20} className="text-pink-600" /> {/* Reusing Archive for Kasbon */}
-                            </div>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-3xl font-bold text-gray-900">{formatCurrency(analyticsData.totalIncisedAmount)}</div> {/* Assuming this is total pending kasbon amount */}
-                            <p className="text-xs text-gray-500 mt-1">menunggu persetujuan</p>
-                        </CardContent>
-                    </Card>
-
-                     {/* Total Peran */}
-                     <Card className="rounded-xl border border-gray-200 bg-white shadow-lg transition-transform transform hover:scale-103 duration-300">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-                            <CardTitle className="text-base font-semibold text-gray-700">Total Peran Pengguna</CardTitle>
-                            <div className="rounded-full bg-cyan-100 p-2 shadow-sm">
-                                <UserCheck size={20} className="text-cyan-600" />
-                            </div>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-3xl font-bold text-gray-900">{analyticsData.totalRoles}</div>
-                            <p className="text-xs text-gray-500 mt-1">peran terdaftar</p>
-                        </CardContent>
-                    </Card>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                
+                    <StatCard
+                        icon={FaMoneyBill}
+                        title="Total Penjualan Karet"
+                        value={displayValue}
+                        subtitle="oleh PT GKA"
+                        gradient="from-green-400 to-green-600"
+                    />
+                    
+                    <StatCard 
+                        icon={FaBoxOpen} 
+                        title="Total Produksi Karet" 
+                        value="250,000 KG" 
+                        subtitle="oleh TSA" 
+                        gradient="from-blue-400 to-blue-600" 
+                    />
+                    
+                    <StatCard 
+                        icon={FaClipboardList} 
+                        title="Pengajuan Tertunda" 
+                        value="18" 
+                        subtitle="Menunggu Persetujuan" 
+                        gradient="from-red-400 to-red-600" 
+                    />
+                    
+                    <StatCard 
+                        icon={FaBoxOpen} 
+                        title="Total Stok Karet" 
+                        value="12,000 Unit" 
+                        subtitle="di Gudang PT GKA" 
+                        gradient="from-yellow-400 to-yellow-600" 
+                    />
+                    
+                    <StatCard 
+                        icon={FaUsers} 
+                        title="Total Penoreh Aktif" 
+                        value="340" 
+                        subtitle="Terdaftar" 
+                        gradient="from-purple-400 to-purple-600" 
+                    />
+                    
+                    <StatCard 
+                        icon={FaFileInvoice} 
+                        title="Faktur Belum Dibayar" 
+                        value="22" subtitle="Faktur" 
+                        gradient="from-pink-400 to-pink-600" 
+                    />
+                    
+                    <StatCard 
+                        icon={FaMoneyBill} 
+                        title="Total Kasbon Pending" 
+                        value="Rp 56 Jt" 
+                        subtitle="Menunggu Persetujuan" 
+                        gradient="from-orange-400 to-orange-600" 
+                    />
+                    
+                    <StatCard 
+                        icon={FaUserTie} 
+                        title="Total Peran Pengguna"
+                        value="7" 
+                        subtitle="Peran Terdaftar" 
+                        gradient="from-indigo-400 to-indigo-600" 
+                    />
+        
                 </div>
 
-                {/* Bagian Chart Analitik */}
-                <div className="mb-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
-                    {/* Chart Produksi & Penjualan Karet */}
-                    <Card className="rounded-xl border border-gray-200 bg-white shadow-lg">
-                        <CardHeader className="flex flex-row items-center justify-between pb-4">
-                            <CardTitle className="text-xl font-bold text-gray-800">Produksi TSA & Penjualan PT. GKA</CardTitle>
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button variant="outline" className="px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-100 flex items-center gap-1">
-                                        {selectedPeriod === 'weekly' ? 'Mingguan' : selectedPeriod === 'monthly' ? 'Bulanan' : 'Tahunan'}
-                                        <ChevronDown className="ml-2 h-4 w-4" />
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="bg-white shadow-lg rounded-md border border-gray-200">
-                                    <DropdownMenuItem onClick={() => setSelectedPeriod('weekly')}>Mingguan</DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => setSelectedPeriod('monthly')}>Bulanan</DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => setSelectedPeriod('yearly')}>Tahunan</DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                        </CardHeader>
-                        <CardContent className="p-4 h-80 md:h-96">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <BarChart
-                                    data={productionSalesData}
-                                    margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                                >
-                                    <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
-                                    <XAxis dataKey="name" stroke="#555" />
-                                    <YAxis stroke="#555" label={{ value: 'Volume (kg)', angle: -90, position: 'insideLeft', fill: '#555' }} />
-                                    <Tooltip formatter={(value: number) => `${value} kg`} />
-                                    <Legend />
-                                    <Bar dataKey="Produksi Temadu (kg)" fill="#8884d8" name="Produksi Temadu" />
-                                    <Bar dataKey="Produksi Sebayar (kg)" fill="#82ca9d" name="Produksi Sebayar" />
-                                    <Bar dataKey="Penjualan PT. GKA (kg)" fill="#ffc658" name="Penjualan PT. GKA" />
-                                </BarChart>
-                            </ResponsiveContainer>
-                        </CardContent>
-                    </Card>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                    {/* Bar Chart: Produksi & Penjualan */}
+                    <div className="bg-white p-6 rounded-2xl shadow-md hover:shadow-lg transition-all duration-300">
+                        <div className="flex items-center gap-2 mb-4">
+                        <div className="bg-blue-100 p-2 rounded-full">
+                            <FaChartBar className="text-blue-600 text-xl" />
+                        </div>
+                        <h4 className="text-lg font-semibold text-gray-800">
+                            Produksi TSA & Penjualan PT GKA
+                        </h4>
+                        </div>
 
-                    {/* Chart Tren Pendapatan Tahunan */}
-                    <Card className="rounded-xl border border-gray-200 bg-white shadow-lg">
-                        <CardHeader className="flex flex-row items-center justify-between pb-4">
-                            <CardTitle className="text-xl font-bold text-gray-800">Tren Pendapatan Penjualan Karet</CardTitle>
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button variant="outline" className="px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-100 flex items-center gap-1">
-                                        {selectedPeriod === 'weekly' ? 'Mingguan' : selectedPeriod === 'monthly' ? 'Bulanan' : 'Tahunan'}
-                                        <ChevronDown className="ml-2 h-4 w-4" />
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="bg-white shadow-lg rounded-md border border-gray-200">
-                                    <DropdownMenuItem onClick={() => setSelectedPeriod('weekly')}>Mingguan</DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => setSelectedPeriod('monthly')}>Bulanan</DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => setSelectedPeriod('yearly')}>Tahunan</DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                        </CardHeader>
-                        <CardContent className="p-4 h-80 md:h-96">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <LineChart
-                                    data={revenueTrendData}
-                                    margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                                >
-                                    <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
-                                    <XAxis dataKey="name" stroke="#555" />
-                                    <YAxis stroke="#555" tickFormatter={formatCurrency} label={{ value: 'Pendapatan (IDR)', angle: -90, position: 'insideLeft', fill: '#555' }} />
-                                    <Tooltip formatter={(value: number) => formatCurrency(value)} />
-                                    <Legend />
-                                    <Line type="monotone" dataKey="Pendapatan (IDR)" stroke="#8884d8" activeDot={{ r: 8 }} />
-                                </LineChart>
-                            </ResponsiveContainer>
-                        </CardContent>
-                    </Card>
+                        <ResponsiveContainer width="100%" height={300}>
+                        <BarChart
+                            data={[
+                            { name: 'Jan', produksi: 4000, penjualan: 2400 },
+                            { name: 'Feb', produksi: 3000, penjualan: 1398 },
+                            { name: 'Mar', produksi: 2000, penjualan: 9800 },
+                            { name: 'Apr', produksi: 2780, penjualan: 3908 },
+                            ]}
+                            margin={{ top: 20, right: 20, left: -10, bottom: 10 }}
+                        >
+                            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                            <XAxis dataKey="name" />
+                            <YAxis />
+                            <Tooltip contentStyle={{ borderRadius: 8 }} />
+                            <Legend />
 
-                    {/* Chart Distribusi Kualitas Stok Karet */}
-                    <Card className="rounded-xl border border-gray-200 bg-white shadow-lg">
-                        <CardHeader className="flex flex-row items-center justify-between pb-4">
-                            <CardTitle className="text-xl font-bold text-gray-800">Distribusi Stok Karet Berdasarkan Kualitas</CardTitle>
-                        </CardHeader>
-                        <CardContent className="p-4 h-80 md:h-96 flex items-center justify-center">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <PieChart>
-                                    <Pie
-                                        data={stockQualityData}
-                                        cx="50%"
-                                        cy="50%"
-                                        labelLine={false}
-                                        outerRadius={120}
-                                        fill="#8884d8"
-                                        dataKey="value"
-                                        label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
-                                    >
-                                        {stockQualityData.map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                        ))}
-                                    </Pie>
-                                    <Tooltip formatter={(value: number) => `${value} unit`} />
-                                    <Legend />
-                                </PieChart>
-                            </ResponsiveContainer>
-                        </CardContent>
-                    </Card>
+                            {/* Bar chart */}
+                            <Bar dataKey="produksi" fill="#3B82F6" radius={[8, 8, 0, 0]} />
+                            <Bar dataKey="penjualan" fill="#22C55E" radius={[8, 8, 0, 0]} />
 
-                    {/* Chart Pendapatan Penoreh Teratas */}
-                    <Card className="rounded-xl border border-gray-200 bg-white shadow-lg">
-                        <CardHeader className="flex flex-row items-center justify-between pb-4">
-                            <CardTitle className="text-xl font-bold text-gray-800">Pendapatan Penoreh Teratas</CardTitle>
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button variant="outline" className="px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-100 flex items-center gap-1">
-                                        {selectedPeriod === 'weekly' ? 'Mingguan' : selectedPeriod === 'monthly' ? 'Bulanan' : 'Tahunan'}
-                                        <ChevronDown className="ml-2 h-4 w-4" />
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="bg-white shadow-lg rounded-md border border-gray-200">
-                                    <DropdownMenuItem onClick={() => setSelectedPeriod('weekly')}>Mingguan</DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => setSelectedPeriod('monthly')}>Bulanan</DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => setSelectedPeriod('yearly')}>Tahunan</DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                        </CardHeader>
-                        <CardContent className="p-4 h-80 md:h-96">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <BarChart
-                                    layout="vertical"
-                                    data={topIncisorsData}
-                                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                                >
-                                    <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
-                                    <XAxis type="number" tickFormatter={formatCurrency} stroke="#555" />
-                                    <YAxis type="category" dataKey="name" stroke="#555" width={100} />
-                                    <Tooltip formatter={(value: number) => formatCurrency(value)} />
-                                    <Legend />
-                                    <Bar dataKey="earnings" fill="#FF5733" name="Pendapatan" />
-                                </BarChart>
-                            </ResponsiveContainer>
-                        </CardContent>
-                    </Card>
+                            {/* Line overlay (trend line) */}
+                            <Line type="monotone" dataKey="produksi" stroke="#1D4ED8" strokeWidth={2} dot={{ r: 3 }} />
+                            <Line type="monotone" dataKey="penjualan" stroke="#16A34A" strokeWidth={2} strokeDasharray="5 5" dot={{ r: 3 }} />
+                        </BarChart>
+                        </ResponsiveContainer>
+                    </div>
+
+
+                    {/* Line Chart: Tren Pendapatan */}
+                    <div className="bg-white p-6 rounded-2xl shadow-md hover:shadow-lg transition-all duration-300">
+                        <div className="flex items-center gap-2 mb-4">
+                        <div className="bg-green-100 p-2 rounded-full">
+                            <FaMoneyBill className="text-green-600 text-xl" />
+                        </div>
+                        <h4 className="text-lg font-semibold text-gray-800">Tren Pendapatan Penjualan Karet</h4>
+                        </div>
+
+                        <ResponsiveContainer width="100%" height={300}>
+                        <LineChart
+                            data={[
+                            { name: 'Jan', value: 4000 },
+                            { name: 'Feb', value: 3000 },
+                            { name: 'Mar', value: 5000 },
+                            { name: 'Apr', value: 4200 },
+                            ]}
+                            margin={{ top: 20, right: 20, left: -10, bottom: 10 }}
+                        >
+                            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                            <XAxis dataKey="name" />
+                            <YAxis />
+                            <Tooltip contentStyle={{ borderRadius: 8 }} />
+                            <Legend />
+                            <Line
+                            type="monotone"
+                            dataKey="value"
+                            stroke="#10B981"
+                            strokeWidth={3}
+                            dot={{ r: 5, fill: '#10B981' }}
+                            activeDot={{ r: 8 }}
+                            />
+                        </LineChart>
+                        </ResponsiveContainer>
+                    </div>
+                </div>   
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                    {/* PIE CHART: Distribusi Kualitas Stok */}
+                    <div className="bg-white p-6 rounded-2xl shadow-md hover:shadow-lg transition-all duration-300">
+                        <div className="flex items-center gap-2 mb-4">
+                        <div className="bg-rose-100 p-2 rounded-full">
+                            <FaChartPie className="text-rose-600 text-xl" />
+                        </div>
+                        <h4 className="text-lg font-semibold text-gray-800">Distribusi Stok Karet Berdasarkan Kualitas</h4>
+                        </div>
+
+                        <ResponsiveContainer width="100%" height={300}>
+                        <PieChart>
+                            <Pie
+                            data={pieData}
+                            dataKey="value"
+                            nameKey="name"
+                            cx="50%"
+                            cy="50%"
+                            outerRadius={100}
+                            innerRadius={50}
+                            paddingAngle={5}
+                            label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                            >
+                            {pieData.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={pieColors[index % pieColors.length]} />
+                            ))}
+                            </Pie>
+                            <Legend verticalAlign="bottom" height={36} />
+                            <Tooltip
+                            contentStyle={{ borderRadius: 10, boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}
+                            formatter={(value: number, name: string) => [`${value} unit`, name]}
+                            />
+                        </PieChart>
+                        </ResponsiveContainer>
+                    </div>
+
+                    {/* BAR CHART: Pendapatan Penoreh */}
+                    <div className="bg-white p-6 rounded-2xl shadow-md hover:shadow-lg transition-all duration-300">
+                        <div className="flex items-center gap-2 mb-4">
+                        <div className="bg-indigo-100 p-2 rounded-full">
+                            <FaUserFriends className="text-indigo-600 text-xl" />
+                        </div>
+                        <h4 className="text-lg font-semibold text-gray-800">Pendapatan Penoreh Teratas</h4>
+                        </div>
+
+                        <ResponsiveContainer width="100%" height={300}>
+                        <BarChart
+                            data={topPenoreh}
+                            margin={{ top: 20, right: 20, left: 0, bottom: 10 }}
+                        >
+                            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                            <XAxis dataKey="name" />
+                            <YAxis />
+                            <Tooltip
+                            contentStyle={{ borderRadius: 10, boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}
+                            formatter={(value: number, name: string) => [`Rp ${value.toLocaleString()}`, 'Pendapatan']}
+                            />
+                            <Bar
+                            dataKey="value"
+                            fill="#6366F1"
+                            radius={[10, 10, 0, 0]}
+                            animationDuration={800}
+                            />
+                        </BarChart>
+                        </ResponsiveContainer>
+                    </div>
                 </div>
 
-                {/* Tabel Produk Terbaru */}
-                <div className="mb-8">
-                    <Card className="rounded-xl border border-gray-200 bg-white shadow-lg">
-                        <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between pb-4 space-y-2 md:space-y-0">
-                            <CardTitle className="text-xl font-bold text-gray-800">Produk Karet Terbaru (Stok Masuk)</CardTitle>
-                            <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
-                                <div className="relative w-full sm:w-64">
-                                    <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-500" />
-                                    <Input placeholder="Cari produk..." className="w-full pl-10 pr-4 py-2 rounded-md border border-gray-300 focus:ring-blue-500 focus:border-blue-500" />
-                                </div>
-                                <Button className="bg-blue-600 hover:bg-blue-700 text-white rounded-md px-4 py-2 shadow-md">Tambah Produk Masuk</Button>
-                            </div>
-                        </CardHeader>
-                        <CardContent className="p-0 overflow-hidden">
-                            <div className="overflow-x-auto">
-                                <Table className="min-w-full divide-y divide-gray-200">
-                                    <TableHeader className="bg-gray-50">
-                                        <TableRow className="text-gray-600">
-                                            <TableHead className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Produk</TableHead>
-                                            <TableHead className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Asal Kebun</TableHead>
-                                            <TableHead className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Kualitas</TableHead>
-                                            <TableHead className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Qty (kg)</TableHead>
-                                            <TableHead className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Status</TableHead>
-                                            <TableHead className="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider"></TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody className="bg-white divide-y divide-gray-100">{recentProducts.map((product) => (
-                                        <TableRow key={product.id} className="hover:bg-gray-50 transition-colors">
-                                            <TableCell className="px-6 py-4 whitespace-nowrap">
-                                                <div className="flex items-center gap-3">
-                                                    <img src={product.image} alt={product.name} className="h-10 w-10 rounded-md object-cover border border-gray-200 shadow-sm" />
-                                                    <span className="font-medium text-gray-900">{product.name}</span>
-                                                </div>
-                                            </TableCell>
-                                            <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{product.origin}</TableCell>
-                                            <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{product.quality}</TableCell>
-                                            <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{product.qty_kg}</TableCell>
-                                            <TableCell className="px-6 py-4 whitespace-nowrap">
-                                                <Badge
-                                                    className={
-                                                        product.status === 'In Stock'
-                                                            ? 'bg-green-100 text-green-800 hover:bg-green-100'
-                                                            : product.status === 'Low Stock'
-                                                              ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-100'
-                                                              : 'bg-red-100 text-red-800 hover:bg-red-100'
-                                                    }
-                                                >
-                                                    {product.status}
-                                                </Badge>
-                                            </TableCell>
-                                            <TableCell className="px-6 py-4 whitespace-nowrap text-right">
-                                                <DropdownMenu>
-                                                    <DropdownMenuTrigger asChild>
-                                                        <Button variant="ghost" size="icon" className="text-gray-500 hover:bg-gray-100">
-                                                            <MoreHorizontal className="h-4 w-4" />
-                                                        </Button>
-                                                    </DropdownMenuTrigger>
-                                                    <DropdownMenuContent align="end" className="bg-white shadow-lg rounded-md border border-gray-200">
-                                                        <DropdownMenuLabel className="px-4 py-2 text-sm font-semibold text-gray-700">Aksi</DropdownMenuLabel>
-                                                        <DropdownMenuItem className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">Edit</DropdownMenuItem>
-                                                        <DropdownMenuItem className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">Lihat Detail</DropdownMenuItem>
-                                                        <DropdownMenuSeparator className="bg-gray-200 my-1" />
-                                                        <DropdownMenuItem className="px-4 py-2 text-sm text-red-600 hover:bg-red-50 hover:text-red-700 cursor-pointer">Hapus</DropdownMenuItem>
-                                                    </DropdownMenuContent>
-                                                </DropdownMenu>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))
-                                    }</TableBody>
-                                </Table>
-                            </div>
-                        </CardContent>
-                        <CardFooter className="flex flex-col sm:flex-row justify-between items-center px-6 py-4 bg-gray-50 border-t border-gray-200">
-                            <div className="text-sm text-gray-600 mb-2 sm:mb-0">Menampilkan 5 dari {analyticsData.totalProducts} produk karet</div>
-                            <div className="flex gap-2">
-                                <Button variant="outline" size="sm" disabled className="px-4 py-2 rounded-md border border-gray-300 text-gray-500 cursor-not-allowed">
-                                    Sebelumnya
-                                </Button>
-                                <Button variant="outline" size="sm" className="px-4 py-2 rounded-md border border-blue-500 text-blue-600 hover:bg-blue-50">
-                                    Berikutnya
-                                </Button>
-                            </div>
-                        </CardFooter>
-                    </Card>
+                <div className="bg-white p-6 rounded-2xl shadow-md hover:shadow-lg transition-all duration-300">
+                    <div className="flex items-center gap-3 mb-5">
+                        <div className="bg-blue-100 p-2 rounded-full">
+                        <FaBoxOpen className="text-blue-600 text-lg" />
+                        </div>
+                        <h4 className="text-lg font-semibold text-gray-800">
+                        Produksi Karet Terpadu <span className="text-sm text-gray-400">(Stok Masuk)</span>
+                        </h4>
+                    </div>
+
+                    <input
+                        type="text"
+                        placeholder="🔍 Cari nama produk..."
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        className="border border-gray-300 rounded-lg px-4 py-2 mb-4 w-full text-sm text-black focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all"
+                    />
+
+                    <div className="overflow-x-auto">
+                        <table className="min-w-full text-sm text-left text-gray-700 rounded-lg overflow-hidden">
+                        <thead className="bg-gray-50 text-gray-600">
+                            <tr>
+                            <th className="py-3 px-4">Nama Produk</th>
+                            <th className="py-3 px-4">Kode</th>
+                            <th className="py-3 px-4">Jumlah</th>
+                            <th className="py-3 px-4">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {filteredStock.map((item, idx) => (
+                            <tr
+                                key={idx}
+                                className={`transition-colors duration-200 ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'} hover:bg-blue-50`}
+                            >
+                                <td className="py-2.5 px-4 font-medium">{item.name}</td>
+                                <td className="py-2.5 px-4">{item.code}</td>
+                                <td className="py-2.5 px-4">{item.qty}</td>
+                                <td className="py-2.5 px-4">
+                                <StockStatusBadge status={item.status} />
+                                </td>
+                            </tr>
+                            ))}
+                        </tbody>
+                        </table>
+                    </div>
                 </div>
+
   
             </div>
         </AppLayout>
     );
 };
-
-export default Dashboard;
-
-// import AppLayout from '@/layouts/app-layout';
-// import { type BreadcrumbItem } from '@/types';
-// import { Head } from '@inertiajs/react';
-// const breadcrumbs: BreadcrumbItem[] = [
-//     {
-//         title: 'Dashboard',
-//         href: '/dashboard',
-//     },
-// ];
-
-// import { Badge } from '@/components/ui/badge';
-// import { Button } from '@/components/ui/button';
-// import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-// import {
-//     DropdownMenu,
-//     DropdownMenuContent,
-//     DropdownMenuItem,
-//     DropdownMenuLabel,
-//     DropdownMenuSeparator,
-//     DropdownMenuTrigger,
-// } from '@/components/ui/dropdown-menu';
-// import { Input } from '@/components/ui/input';
-// import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-// import { Archive, FileText, MoreHorizontal, Package2, Receipt, Search, UserCheck, UserCog, Users } from 'lucide-react';
-
-
-// const formatCurrency = (value: number) => {
-//     return new Intl.NumberFormat('id-ID', {
-//         style: 'currency',
-//         currency: 'IDR',
-//         minimumFractionDigits: 0,
-//     }).format(value);
-// };
-
-
-// const Dashboard = () => {
-//     // Dummy data yang disesuaikan dengan modul Anda, dipindahkan ke dalam komponen
-//     const analyticsData = {
-//         totalProducts: 254, // Dari Product
-//         totalUsers: 1823, // Dari User Management
-//         totalIncisors: 150, // Dari Incisor
-//         totalIncisedAmount: 75000000, // Dari Incised Data (total pendapatan toreh)
-//         pendingRequestLetters: 5, // Dari Request Letter
-//         pendingInvoices: 12, // Dari Invoice
-//         totalCashReceipts: 35000000, // Dari Cash Receipt
-//         totalRoles: 7, // Dari Role Management
-//     };
-
-//     // Dummy data untuk tabel baru, dipindahkan ke dalam komponen
-//     const recentProducts = [
-//         { id: 1, name: 'Ergonomic Chair', category: 'Furniture', price: 199.99, stock: 24, status: 'In Stock', image: 'https://placehold.co/60x60/A0D911/ffffff?text=EC' },
-//         { id: 2, name: 'MacBook Pro M3', category: 'Electronics', price: 1999.99, stock: 12, status: 'Low Stock', image: 'https://placehold.co/60x60/2874A6/ffffff?text=MB' },
-//         { id: 3, name: 'Wireless Earbuds', category: 'Audio', price: 129.99, stock: 45, status: 'In Stock', image: 'https://placehold.co/60x60/FFC300/ffffff?text=WE' },
-//         { id: 4, name: 'Office Desk', category: 'Furniture', price: 349.99, stock: 8, status: 'Low Stock', image: 'https://placehold.co/60x60/5C2D91/ffffff?text=OD' },
-//         { id: 5, name: 'Smart Watch Series 8', category: 'Wearables', price: 399.99, stock: 0, status: 'Out of Stock', image: 'https://placehold.co/60x60/C70039/ffffff?text=SW' },
-//     ];
-
-//     return (
-//         <AppLayout breadcrumbs={breadcrumbs}>
-//             <Head title="Dashboard" />
-//             <div className="min-h-screen p-6 sm:p-8">
-//                 <div className="mb-8">
-//                     <h1 className="mb-2 text-3xl font-extrabold text-gray-800">Dashboard Analitik</h1>
-//                     <p className="text-gray-600">Selamat datang kembali! Berikut adalah gambaran singkat performa Anda.</p>
-//                 </div>
-
-//                 {/* Kartu Analitik */}
-//                 <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-//                     {/* Kartu Total Produk */}
-//                     <Card className="rounded-xl border border-gray-200 bg-white shadow-lg transition-transform transform hover:scale-103 duration-300">
-//                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-//                             <CardTitle className="text-base font-semibold text-gray-700">Total Produk</CardTitle>
-//                             <div className="rounded-full bg-blue-100 p-2 shadow-sm">
-//                                 <Package2 size={20} className="text-blue-600" />
-//                             </div>
-//                         </CardHeader>
-//                         <CardContent>
-//                             <div className="text-3xl font-bold text-gray-900">{analyticsData.totalProducts}</div>
-//                         </CardContent>
-//                     </Card>
-
-//                     {/* Kartu Total Pengguna */}
-//                     <Card className="rounded-xl border border-gray-200 bg-white shadow-lg transition-transform transform hover:scale-103 duration-300">
-//                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-//                             <CardTitle className="text-base font-semibold text-gray-700">Total Pengguna</CardTitle>
-//                             <div className="rounded-full bg-green-100 p-2 shadow-sm">
-//                                 <Users size={20} className="text-green-600" />
-//                             </div>
-//                         </CardHeader>
-//                         <CardContent>
-//                             <div className="text-3xl font-bold text-gray-900">{analyticsData.totalUsers}</div>
-//                         </CardContent>
-//                     </Card>
-
-//                     {/* Kartu Total Penoreh */}
-//                     <Card className="rounded-xl border border-gray-200 bg-white shadow-lg transition-transform transform hover:scale-103 duration-300">
-//                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-//                             <CardTitle className="text-base font-semibold text-gray-700">Total Penoreh</CardTitle>
-//                             <div className="rounded-full bg-purple-100 p-2 shadow-sm">
-//                                 <UserCog size={20} className="text-purple-600" /> {/* Ikon baru */}
-//                             </div>
-//                         </CardHeader>
-//                         <CardContent>
-//                             <div className="text-3xl font-bold text-gray-900">{analyticsData.totalIncisors}</div>
-//                         </CardContent>
-//                     </Card>
-
-//                     {/* Kartu Total Hasil Toreh */}
-//                     <Card className="rounded-xl border border-gray-200 bg-white shadow-lg transition-transform transform hover:scale-103 duration-300">
-//                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-//                             <CardTitle className="text-base font-semibold text-gray-700">Total Hasil Toreh</CardTitle>
-//                             <div className="rounded-full bg-orange-100 p-2 shadow-sm">
-//                                 <Archive size={20} className="text-orange-600" /> {/* Ikon baru */}
-//                             </div>
-//                         </CardHeader>
-//                         <CardContent>
-//                             <div className="text-3xl font-bold text-gray-900">{formatCurrency(analyticsData.totalIncisedAmount)}</div>
-//                         </CardContent>
-//                     </Card>
-
-//                     {/* Kartu Pengajuan Tertunda */}
-//                     <Card className="rounded-xl border border-gray-200 bg-white shadow-lg transition-transform transform hover:scale-103 duration-300">
-//                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-//                             <CardTitle className="text-base font-semibold text-gray-700">Pengajuan Tertunda</CardTitle>
-//                             <div className="rounded-full bg-red-100 p-2 shadow-sm">
-//                                 <FileText size={20} className="text-red-600" /> {/* Ikon baru */}
-//                             </div>
-//                         </CardHeader>
-//                         <CardContent>
-//                             <div className="text-3xl font-bold text-gray-900">{analyticsData.pendingRequestLetters}</div>
-//                         </CardContent>
-//                     </Card>
-
-//                     {/* Kartu Faktur Belum Dibayar */}
-//                     <Card className="rounded-xl border border-gray-200 bg-white shadow-lg transition-transform transform hover:scale-103 duration-300">
-//                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-//                             <CardTitle className="text-base font-semibold text-gray-700">Faktur Belum Dibayar</CardTitle>
-//                             <div className="rounded-full bg-yellow-100 p-2 shadow-sm">
-//                                 <Receipt size={20} className="text-yellow-600" />
-//                             </div>
-//                         </CardHeader>
-//                         <CardContent>
-//                             <div className="text-3xl font-bold text-gray-900">{analyticsData.pendingInvoices}</div>
-//                         </CardContent>
-//                     </Card>
-
-//                     {/* Kartu Total Penerimaan Kas */}
-//                     <Card className="rounded-xl border border-gray-200 bg-white shadow-lg transition-transform transform hover:scale-103 duration-300">
-//                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-//                             <CardTitle className="text-base font-semibold text-gray-700">Total Penerimaan Kas</CardTitle>
-//                             <div className="rounded-full bg-teal-100 p-2 shadow-sm">
-//                                 <Receipt size={20} className="text-teal-600" />
-//                             </div>
-//                         </CardHeader>
-//                         <CardContent>
-//                             <div className="text-3xl font-bold text-gray-900">{formatCurrency(analyticsData.totalCashReceipts)}</div>
-//                         </CardContent>
-//                     </Card>
-
-//                      {/* Kartu Total Peran */}
-//                      <Card className="rounded-xl border border-gray-200 bg-white shadow-lg transition-transform transform hover:scale-103 duration-300">
-//                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-//                             <CardTitle className="text-base font-semibold text-gray-700">Total Peran</CardTitle>
-//                             <div className="rounded-full bg-cyan-100 p-2 shadow-sm">
-//                                 <UserCheck size={20} className="text-cyan-600" />
-//                             </div>
-//                         </CardHeader>
-//                         <CardContent>
-//                             <div className="text-3xl font-bold text-gray-900">{analyticsData.totalRoles}</div>
-//                         </CardContent>
-//                     </Card>
-//                 </div>
-
-//                 {/* Tabel Produk Terbaru */}
-//                 <div className="mb-8">
-//                     <Card className="rounded-xl border border-gray-200 bg-white shadow-lg">
-//                         <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between pb-4 space-y-2 md:space-y-0">
-//                             <CardTitle className="text-xl font-bold text-gray-800">Produk Terbaru</CardTitle>
-//                             <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
-//                                 <div className="relative w-full sm:w-64">
-//                                     <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-500" />
-//                                     <Input placeholder="Cari produk..." className="w-full pl-10 pr-4 py-2 rounded-md border border-gray-300 focus:ring-blue-500 focus:border-blue-500" />
-//                                 </div>
-//                                 <Button className="bg-blue-600 hover:bg-blue-700 text-white rounded-md px-4 py-2 shadow-md">Tambah Produk</Button>
-//                             </div>
-//                         </CardHeader>
-//                         <CardContent className="p-0 overflow-hidden">
-//                             <div className="overflow-x-auto">
-//                                 <Table className="min-w-full divide-y divide-gray-200">
-//                                     <TableHeader className="bg-gray-50">
-//                                         <TableRow className="text-gray-600">
-//                                             <TableHead className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Produk</TableHead>
-//                                             <TableHead className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Kategori</TableHead>
-//                                             <TableHead className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Harga</TableHead>
-//                                             <TableHead className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Stok</TableHead>
-//                                             <TableHead className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Status</TableHead>
-//                                             <TableHead className="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider"></TableHead>
-//                                         </TableRow>
-//                                     </TableHeader>
-//                                     <TableBody className="bg-white divide-y divide-gray-100">
-//                                         {recentProducts.map((product) => (
-//                                             <TableRow key={product.id} className="hover:bg-gray-50 transition-colors">
-//                                                 <TableCell className="px-6 py-4 whitespace-nowrap">
-//                                                     <div className="flex items-center gap-3">
-//                                                         <img src={product.image} alt={product.name} className="h-10 w-10 rounded-md object-cover border border-gray-200 shadow-sm" />
-//                                                         <span className="font-medium text-gray-900">{product.name}</span>
-//                                                     </div>
-//                                                 </TableCell>
-//                                                 <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{product.category}</TableCell>
-//                                                 <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{formatCurrency(product.price)}</TableCell>
-//                                                 <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{product.stock}</TableCell>
-//                                                 <TableCell className="px-6 py-4 whitespace-nowrap">
-//                                                     <Badge
-//                                                         className={
-//                                                             product.status === 'In Stock'
-//                                                                 ? 'bg-green-100 text-green-800 hover:bg-green-100'
-//                                                                 : product.status === 'Low Stock'
-//                                                                   ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-100'
-//                                                                   : 'bg-red-100 text-red-800 hover:bg-red-100'
-//                                                         }
-//                                                     >
-//                                                         {product.status}
-//                                                     </Badge>
-//                                                 </TableCell>
-//                                                 <TableCell className="px-6 py-4 whitespace-nowrap text-right">
-//                                                     <DropdownMenu>
-//                                                         <DropdownMenuTrigger asChild>
-//                                                             <Button variant="ghost" size="icon" className="text-gray-500 hover:bg-gray-100">
-//                                                                 <MoreHorizontal className="h-4 w-4" />
-//                                                             </Button>
-//                                                         </DropdownMenuTrigger>
-//                                                         <DropdownMenuContent align="end" className="bg-white shadow-lg rounded-md border border-gray-200">
-//                                                             <DropdownMenuLabel className="px-4 py-2 text-sm font-semibold text-gray-700">Aksi</DropdownMenuLabel>
-//                                                             <DropdownMenuItem className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">Edit</DropdownMenuItem>
-//                                                             <DropdownMenuItem className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer">Lihat Detail</DropdownMenuItem>
-//                                                             <DropdownMenuSeparator className="bg-gray-200 my-1" />
-//                                                             <DropdownMenuItem className="px-4 py-2 text-sm text-red-600 hover:bg-red-50 hover:text-red-700 cursor-pointer">Hapus</DropdownMenuItem>
-//                                                         </DropdownMenuContent>
-//                                                     </DropdownMenu>
-//                                                 </TableCell>
-//                                             </TableRow>
-//                                         ))}
-//                                     </TableBody>
-//                                 </Table>
-//                             </div>
-//                         </CardContent>
-//                         <CardFooter className="flex flex-col sm:flex-row justify-between items-center px-6 py-4 bg-gray-50 border-t border-gray-200">
-//                             <div className="text-sm text-gray-600 mb-2 sm:mb-0">Menampilkan 5 dari {analyticsData.totalProducts} produk</div>
-//                             <div className="flex gap-2">
-//                                 <Button variant="outline" size="sm" disabled className="px-4 py-2 rounded-md border border-gray-300 text-gray-500 cursor-not-allowed">
-//                                     Sebelumnya
-//                                 </Button>
-//                                 <Button variant="outline" size="sm" className="px-4 py-2 rounded-md border border-blue-500 text-blue-600 hover:bg-blue-50">
-//                                     Berikutnya
-//                                 </Button>
-//                             </div>
-//                         </CardFooter>
-//                     </Card>
-//                 </div>
-//             </div>
-//         </AppLayout>
-//     );
-// };
-
-// export default Dashboard;

@@ -98,9 +98,9 @@ const formatCurrency = (value: number) => {
     }).format(value);
 };
 
-export default function AdminPage() {
+export default function AdminPage({ requests, notas, summary}: PageProps) {
     // Mengambil data requests, notas, dan summary dari props halaman
-    const { requests, notas, summary } = usePage().props as PageProps;
+    // const { requests, notas, summary } = usePage().props as PageProps;
 
     // Menggabungkan dan menstandardisasi data dari requests dan notas
     const combinedData: CombinedAdminItem[] = [

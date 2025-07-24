@@ -149,7 +149,6 @@ export default function edit({product} : props) {
                                     <option value="" disabled selected>Pilih Lokasi Kebun</option>
                                     <option value="tsa" >TSA</option>
                                     <option value="gka" >TSA to GKA</option>
-                                    <option value="buyer" >GKA to Buyyer</option>
                                 </select>
                             </div>
 
