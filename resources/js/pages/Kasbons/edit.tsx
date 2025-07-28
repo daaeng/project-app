@@ -224,7 +224,7 @@ export default function EditKasbon() { // Nama komponen diubah menjadi EditKasbo
         <AppLayout breadcrumbs={dynamicBreadcrumbs}>
             <Head title={`Edit Kasbon - ${kasbon.id}`} />
 
-            <div className="h-full flex-col rounded-xl p-4">
+            <div className="h-full flex-col rounded-xl p-4 bg-gray-50 dark:bg-black">
                 <Heading title={`Edit Kasbon (ID: ${kasbon.id})`} />
                 <div className="mb-4">
                     <Link href={route('kasbons.index')}>

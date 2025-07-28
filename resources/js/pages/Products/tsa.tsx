@@ -192,7 +192,7 @@ export default function TsaPage({
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Temadu Sebayar Agro" />
-            <div className="h-full flex-col rounded-xl p-4 space-y-4">
+            <div className="h-full flex-col rounded-xl p-4 space-y-4 bg-gray-50 dark:bg-black">
                 <Heading title="Temadu Sebayar Agro" />
                 <div className="mb-3">
                     <Link href={route('products.index')}>
@@ -216,8 +216,8 @@ export default function TsaPage({
                             <CardContent className="lg:-mt-4 text-blue-700">
                                 <div className='grid grid-cols-2 gap-1'>
                                     <div>
-                                        <div className="flex gap-2"><p className="text-green-400">IN</p> {formatCurrency(saldoin)}</div>
-                                        <div className="flex gap-2"><p className="text-red-400">OUT</p> {formatCurrency(saldoout)}</div>
+                                        <div className="flex gap-2"><p className="text-green-400">OUT</p> {formatCurrency(saldoin)}</div>
+                                        <div className="flex gap-2"><p className="text-red-400">IN</p> {formatCurrency(saldoout)}</div>
 
                                     </div>
                                     <div>
@@ -239,8 +239,8 @@ export default function TsaPage({
                             </CardHeader>
                             <CardContent className="lg:-mt-4 text-amber-700">
                                 <div className="grid grid-cols-2">
-                                    <div className="flex gap-2"><p className="text-green-400">IN</p> {formatCurrency(tm_slin)}</div>
-                                    <div className="flex gap-2"><p className="text-red-400">OUT</p> {formatCurrency(tm_slou)}</div>
+                                    <div className="flex gap-2"><p className="text-green-400">OUT</p> {formatCurrency(tm_slin)}</div>
+                                    <div className="flex gap-2"><p className="text-red-400">IN</p> {formatCurrency(tm_slou)}</div>
                                     <div className="text-2xl w-full justify-center flex font-bold">{tm_sin} Kg</div>
                                     <div className="text-2xl w-full justify-center flex font-bold">{tm_sou} Kg</div>
                                 </div>
@@ -257,8 +257,8 @@ export default function TsaPage({
                             </CardHeader>
                             <CardContent className="lg:-mt-4 text-red-700">
                                 <div className="grid grid-cols-2">
-                                    <div className="flex gap-2"><p className="text-green-400">IN</p> {formatCurrency(ts_slin)}</div>
-                                    <div className="flex gap-2"><p className="text-red-400">OUT</p> {formatCurrency(ts_slou)}</div>
+                                    <div className="flex gap-2"><p className="text-green-400">OUT</p> {formatCurrency(ts_slin)}</div>
+                                    <div className="flex gap-2"><p className="text-red-400">IN</p> {formatCurrency(ts_slou)}</div>
                                     <div className="text-2xl w-full justify-center flex font-bold">{ts_sin} Kg</div>
                                     <div className="text-2xl w-full justify-center flex font-bold">{ts_sou} Kg</div>
                                 </div>
@@ -329,7 +329,7 @@ export default function TsaPage({
                                             <TableRow>
                                                 <TableHead>Tanggal</TableHead>
                                                 <TableHead>Supplier</TableHead>
-                                                <TableHead>Barang</TableHead>
+                                                <TableHead>Keping</TableHead>
                                                 <TableHead>Qty (IN)</TableHead>
                                                 <TableHead>Outcome</TableHead>
                                                 <TableHead className="text-center">Action</TableHead>
@@ -341,7 +341,7 @@ export default function TsaPage({
                                                     <TableRow key={product.id}>
                                                         <TableCell>{product.date}</TableCell>
                                                         <TableCell>{product.nm_supplier}</TableCell>
-                                                        <TableCell>{product.j_brg}</TableCell>
+                                                        <TableCell>{product.keping}</TableCell>
                                                         <TableCell>{product.qty_kg}</TableCell>
                                                         <TableCell>{formatCurrency(product.amount)}</TableCell>
                                                         <TableCell className="text-center space-x-1">
@@ -372,7 +372,7 @@ export default function TsaPage({
                                             <TableRow>
                                                 <TableHead>Tanggal</TableHead>
                                                 <TableHead>Supplier</TableHead>
-                                                <TableHead>Barang</TableHead>
+                                                <TableHead>Keping</TableHead>
                                                 <TableHead>Qty (OUT)</TableHead>
                                                 <TableHead>Income</TableHead>
                                                 <TableHead className="text-center">Action</TableHead>
@@ -384,7 +384,7 @@ export default function TsaPage({
                                                     <TableRow key={product.id}>
                                                         <TableCell>{product.date}</TableCell>
                                                         <TableCell>{product.nm_supplier}</TableCell>
-                                                        <TableCell>{product.j_brg}</TableCell>
+                                                        <TableCell>{product.keping}</TableCell>
                                                         <TableCell>{product.qty_kg}</TableCell>
                                                         <TableCell>{formatCurrency(product.amount)}</TableCell>
                                                         <TableCell className="text-center space-x-1">

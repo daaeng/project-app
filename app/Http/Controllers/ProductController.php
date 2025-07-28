@@ -351,7 +351,7 @@ class ProductController extends Controller
             ->where('product', 'karet')
             ->where('qty_kg', '>', 0)
             ->where('status', 'tsa')
-            ->orderBy('created_at', 'DESC')
+            ->orderBy('date', 'DESC')
             ->paginate($perPage, ['*'], 'page') 
             ->withQueryString(); 
 

@@ -48,7 +48,7 @@ export default function index() {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Send Product" />
 
-            <div className="h-full flex-col rounded-xl p-4">
+            <div className="h-full flex-col rounded-xl p-4 bg-gray-50 dark:bg-black">
             
                 <Heading title='Send Product'/>
 
@@ -124,8 +124,8 @@ export default function index() {
                                 <Input placeholder='Jenis Barang' value={data.j_brg} onChange={(e) => setData('j_brg', e.target.value)}/>
                             </div>                        
                             <div className='gap-2'>
-                                <Label htmlFor='Description'> Description </Label>
-                                <Textarea placeholder='Description' value={data.desk} onChange={(e) => setData('desk', e.target.value)}/>
+                                <Label htmlFor='Description'> Pembeli </Label>
+                                <Textarea placeholder='Pembeli ( jika perusahaan tulis lengkap nama nya )' value={data.desk} onChange={(e) => setData('desk', e.target.value)}/>
                             </div>
 
                         </div>

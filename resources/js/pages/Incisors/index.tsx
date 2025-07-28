@@ -140,7 +140,7 @@ export default function Admin() { // Renamed to Admin (PascalCase for component 
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Incisor" />
 
-            <div className="h-full flex-col rounded-xl p-4">
+            <div className="h-full flex-col rounded-xl p-4 bg-gray-50 dark:bg-black">
                 <Heading title="Penoreh" />
 
                 <div className="border h-auto p-3 rounded-lg">

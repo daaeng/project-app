@@ -5,7 +5,7 @@ import { CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head, Link, useForm, usePage, router } from '@inertiajs/react'; // Added 'router'
+import { Head, Link, useForm, router } from '@inertiajs/react'; // Added 'router'
 import { CirclePlus, Eye, Megaphone, Pencil, Search, Trash } from 'lucide-react'; // Added 'Search' icon
 import { can } from '@/lib/can';
 import { Input } from '@/components/ui/input'; // Added Input component
@@ -53,8 +53,7 @@ interface PageProps {
     filter?: { search?: string }; // Added filter prop for search value
 }
 
-export default function Index() { // Renamed to Index (PascalCase for component names)
-    const { usermanagements, flash, filter } = usePage().props as PageProps; // Destructure filter from props
+export default function Index({ usermanagements, flash, filter } : PageProps) { // Destructure filter from props
 
     const { processing, delete: destroy } = useForm();
 
@@ -134,14 +133,14 @@ export default function Index() { // Renamed to Index (PascalCase for component 
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="User Management" />
 
-            <div className="h-full flex-col rounded-xl p-4">
+            <div className="h-full flex-col rounded-xl p-4 bg-gray-50 dark:bg-black">
                 <Heading title='User Management' />
 
                 <div className='border h-auto p-3 rounded-lg'>
                     {can('usermanagements.create') &&
                         <div className='w-full mb-2 justify-end h-auto flex gap-2'>
                             <Link href={route('usermanagements.create')}>
-                                <Button className='bg-blue-600 w-25 hover:bg-blue-500 text-white'>
+                                <Button className='bg-blue-600 w-30 hover:bg-blue-500 text-white'>
                                     <CirclePlus className="w-4 h-4 mr-2" /> {/* Added class for icon spacing */}
                                     Add User
                                 </Button>

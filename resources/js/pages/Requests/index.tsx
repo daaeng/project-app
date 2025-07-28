@@ -5,11 +5,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, useForm, usePage, router } from '@inertiajs/react'; // Added 'router'
-import { CirclePlus, Eye, Megaphone, Pencil, Search, Trash } from 'lucide-react'; // Added 'Search' icon
+import { CheckCircle2, CirclePlus, Clock, DollarSign, Eye, FileText, Megaphone, Pencil, Receipt, Search, Trash, Wallet } from 'lucide-react'; // Added 'Search' icon
 import { can } from '@/lib/can';
 import Tag from '@/components/ui/tag';
 import { Input } from '@/components/ui/input'; // Added Input component
 import { useState, useEffect } from 'react'; // Added useState and useEffect
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -28,6 +29,7 @@ interface Requested {
     desk: string;
     status: string;
     file: string;
+    dana: string;
 }
 
 interface PaginationLink { // Added PaginationLink interface for consistency
@@ -50,11 +52,23 @@ interface PageProps {
             total: number;
         };
     };
-    filter?: { search?: string }; // Added filter prop for search value
+    filter?: { search?: string };
+    jml_rl: number; 
+    totalPending: number; 
+    totalApproved: number; 
+    sumApproved: number;
 }
 
-export default function Index() { // Renamed to Index (PascalCase for component names)
-    const { requests, flash, filter } = usePage().props as PageProps; // Destructure filter from props
+const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        minimumFractionDigits: 0,
+    }).format(value);
+};
+
+export default function Index({ requests, flash, filter, totalPending, totalApproved, sumApproved, jml_rl } : PageProps) { 
+    // const { requests, flash, filter, totalPending, totalApproved, sumApproved } = usePage().props as PageProps; // Destructure filter from props
 
     const { processing, delete: destroy } = useForm();
 
@@ -134,8 +148,81 @@ export default function Index() { // Renamed to Index (PascalCase for component 
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Request" />
 
-            <div className="h-full flex-col rounded-xl p-4">
+            <div className="h-full flex-col rounded-xl p-4 bg-gray-50 dark:bg-black">
                 <Heading title="Request Latter" />
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                    {/* Card 1: Total Request Letters */}
+                    <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-5 rounded-lg shadow-lg flex items-center justify-between">
+                        <div>
+                            <div className="text-sm font-medium opacity-90">Total Nota/Kwitansi</div>
+                            <div className="text-3xl font-bold mt-1"> {jml_rl}</div>
+                        </div>
+                        <FileText size={40} className="opacity-70" />
+                    </div>
+
+                    {/* Card 2: Total Nota/Kwitansi */}
+                    <div className="bg-gradient-to-r from-green-500 to-green-600 text-white p-5 rounded-lg shadow-lg flex items-center justify-between">
+                        <div>
+                            <div className="text-sm font-medium opacity-90">Pengajuan ACC</div>
+                            <div className="text-3xl font-bold mt-1">{totalApproved}</div>
+                        </div>
+                        <Receipt size={40} className="opacity-70" />
+                    </div>
+
+                    {/* Card 3: Request Pending */}
+                    <div className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-white p-5 rounded-lg shadow-lg flex items-center justify-between">
+                        <div>
+                            <div className="text-sm font-medium opacity-90">Pengajuan Pending</div>
+                            <div className="text-3xl font-bold mt-1">{totalPending}</div> {/* Menggunakan totalPendingRequests */}
+                        </div>
+                        <Clock size={40} className="opacity-70" />
+                    </div>
+
+                    {/* Card 4: Total Dana Disetujui (Contoh) */}
+                    <div className="bg-gradient-to-r from-purple-500 to-purple-600 text-white p-5 rounded-lg shadow-lg flex items-center justify-between">
+                        <div>
+                            <div className="text-sm font-medium opacity-90">Total Pengajuan Dana Disetujui</div>
+                            <div className="text-3xl font-bold mt-1">{formatCurrency(sumApproved)}</div> {/* Menggunakan totalApprovedDana */}
+                        </div>
+                        <DollarSign size={40} className="opacity-70" />
+                    </div>
+                </div>
+
+                {/* <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <Card className="shadow-sm transition-shadow hover:shadow-md">
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Nota Pending</CardTitle>
+                            <Clock className="h-4 w-4 text-gray-500" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{totalPending}</div>
+                            <p className="text-xs text-gray-500">Total nota yang menunggu persetujuan</p>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="shadow-sm transition-shadow hover:shadow-md">
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Nota Disetujui</CardTitle>
+                            <CheckCircle2 className="h-4 w-4 text-gray-500" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{totalApproved}</div>
+                            <p className="text-xs text-gray-500">Total nota yang telah disetujui</p>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="shadow-sm transition-shadow hover:shadow-md">
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Total Dana Disetujui</CardTitle>
+                            <Wallet className="h-4 w-4 text-gray-500" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{formatCurrency(sumApproved)}</div>
+                            <p className="text-xs text-gray-500">Jumlah total dana nota yang disetujui</p>
+                        </CardContent>
+                    </Card>
+                </div> */}
 
                 <div className="rounded-lg border p-2">
                     <div className="grid grid-cols-2 items-center"> {/* Added items-center for alignment */}
@@ -189,6 +276,7 @@ export default function Index() { // Renamed to Index (PascalCase for component 
                                         <TableHead>Devisi</TableHead>
                                         <TableHead>Jenis Pengajuan</TableHead>
                                         <TableHead>Mengetahui</TableHead>
+                                        <TableHead>Dana</TableHead>
                                         <TableHead>Status</TableHead>
                                         <TableHead className="text-center">Action</TableHead>
                                     </TableRow>
@@ -202,6 +290,7 @@ export default function Index() { // Renamed to Index (PascalCase for component 
                                             <TableCell>{request.devisi}</TableCell>
                                             <TableCell>{request.j_pengajuan}</TableCell>
                                             <TableCell>{request.mengetahui}</TableCell>
+                                            <TableCell>{request.dana}</TableCell>
                                             <TableCell>
                                                 <Tag status={request.status} />
                                             </TableCell>

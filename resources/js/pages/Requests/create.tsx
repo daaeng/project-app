@@ -41,7 +41,7 @@ export default function index() {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Create Request" />
 
-            <div className="h-full flex-col rounded-xl p-4">
+            <div className="h-full flex-col rounded-xl p-4 bg-gray-50 dark:bg-black">
             
                 <Heading title='Form Pengajuan'/>
 

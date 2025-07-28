@@ -58,7 +58,7 @@ export default function index({incisor} : props) {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Incisor" />
 
-            <div className="h-full flex-col rounded-xl p-4">
+            <div className="h-full flex-col rounded-xl p-4 bg-gray-50 dark:bg-black">
             
                 <Heading title='Ubah Data Penoreh'/>
 

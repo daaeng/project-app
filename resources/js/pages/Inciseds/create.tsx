@@ -47,7 +47,7 @@ export default function CreateIncised({ noInvoicesWithNames }: { noInvoicesWithN
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Incised" />
 
-            <div className="h-full flex-col rounded-xl p-4">
+            <div className="h-full flex-col rounded-xl p-4 bg-gray-50 dark:bg-black">
                 <Heading title="Input Data Harian Penoreh" />
 
                 <div className="w-full h-auto">

@@ -12,12 +12,6 @@ use Illuminate\Support\Facades\Log;
 
 class NotaController extends Controller
 {
-    /**
-     * Display a listing of the Nota resources with search and pagination.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Inertia\Response
-     */
     public function index(Request $request) // Added Request injection
     {
         $perPage = 10; // Jumlah item per halaman, bisa disesuaikan
@@ -34,9 +28,10 @@ class NotaController extends Controller
             ->withQueryString(); // Keep search parameters in pagination links
 
         // Calculate summary data for the cards
-        $totalPendingNotas = Nota::where('status', 'Pending')->count();
-        $totalApprovedNotas = Nota::where('status', 'Approved')->count();
-        $sumApprovedNotasAmount = Nota::where('status', 'Approved')->sum('dana');
+        $jml_nota = Nota::count();
+        $totalPendingNotas = Nota::where('status', 'belum ACC')->count();
+        $totalApprovedNotas = Nota::where('status', 'diterima')->count();
+        $sumApprovedNotasAmount = Nota::where('status', 'diterima')->sum('dana');
 
 
         return Inertia::render("Notas/index", [
@@ -45,6 +40,7 @@ class NotaController extends Controller
             "totalPendingNotas" => $totalPendingNotas,
             "totalApprovedNotas" => $totalApprovedNotas,
             "sumApprovedNotasAmount" => $sumApprovedNotasAmount,
+            "jml_nota" => $jml_nota,
         ]);
     }
 

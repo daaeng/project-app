@@ -70,7 +70,7 @@ export default function edit({product} : props) {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Product" />
 
-            <div className="h-full flex-col rounded-xl p-4">
+            <div className="h-full flex-col rounded-xl p-4 bg-gray-50 dark:bg-black">
             
                 <Heading title='Show Data Product'/>
 

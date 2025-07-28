@@ -66,7 +66,12 @@ class UserManagementController extends Controller
     }
     
     public function show(User $user){
-        return inertia('UserManagements/show', compact('user'));
+        $user->load('roles'); //
+        return inertia('UserManagements/show', [
+            "user" => $user,
+            "userRoles" => $user->roles()->pluck('name') //
+        ]);
+        // return inertia('UserManagements/show', compact('user'));
     }
 
     public function update(Request $request, User $user)

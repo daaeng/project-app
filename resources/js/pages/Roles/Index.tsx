@@ -5,7 +5,7 @@ import { CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head, Link, useForm, usePage} from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
 import { CirclePlus, Eye, Megaphone, Pencil, Trash } from 'lucide-react';
 import { can } from '@/lib/can';
 
@@ -31,9 +31,7 @@ interface PageProps{
     roles: Role[]
 }
 
-export default function index() {
-
-    const { roles,  flash } = usePage().props as PageProps;
+export default function index({ roles,  flash } : PageProps) {
 
     const {processing, delete: destroy} = useForm();
     
@@ -47,7 +45,7 @@ export default function index() {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Roles" />
 
-            <div className="h-full flex-col rounded-xl p-4">
+            <div className="h-full flex-col rounded-xl p-4 bg-gray-50 dark:bg-black">
             
                 <Heading title='Roles User Management'/>
 

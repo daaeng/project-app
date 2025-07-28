@@ -27,10 +27,19 @@ class RequestController extends Controller
          ->orderBy('created_at', 'DESC')
          ->paginate($perPage)
          ->withQueryString(); // Keep search parameters in pagination links
+      
+      $jml_rl = Requested::count();
+      $totalPending = Requested::where('status', 'belum ACC')->count();
+      $totalApproved = Requested::where('status', 'diterima')->count();
+      $sumApprovedAmount = Requested::where('status', 'diterima')->sum('dana');
 
       return Inertia::render("Requests/index", [
          "requests" => $requests,
          "filter" => $request->only('search'), // Send back the current search filter
+         "jml_rl" => $jml_rl,
+         "totalPending" => $totalPending,
+         "totalApproved" => $totalApproved,
+         "sumApproved" => $sumApprovedAmount,
       ]);
    }
 

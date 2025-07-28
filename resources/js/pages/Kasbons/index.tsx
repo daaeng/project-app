@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head, Link, useForm, usePage, router } from '@inertiajs/react';
+import { Head, Link, useForm, router } from '@inertiajs/react';
 import { CirclePlus, Eye, Megaphone, Pencil, Search, Trash, Clock, CheckCircle2, Wallet } from 'lucide-react'; // Added Clock, CheckCircle2, Wallet icons
 import { can } from '@/lib/can';
 import { Input } from '@/components/ui/input';
@@ -68,8 +68,7 @@ const formatCurrency = (value: number) => {
     }).format(value);
 };
 
-export default function KasbonIndex() { // Renamed component for clarity
-    const { kasbons, flash, filter, totalPendingKasbon, totalApprovedKasbon, sumApprovedKasbonAmount } = usePage().props as PageProps;
+export default function KasbonIndex( { kasbons, flash, filter, totalPendingKasbon, totalApprovedKasbon, sumApprovedKasbonAmount } : PageProps) { 
 
     // Adjusted useForm to match KasbonController destroy method, removing 'processing' as it's not used
     const { delete: destroy } = useForm();
@@ -153,7 +152,7 @@ export default function KasbonIndex() { // Renamed component for clarity
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Data Kasbon" /> {/* Changed title */}
 
-            <div className="h-full flex-col rounded-xl p-4">
+            <div className="h-full flex-col rounded-xl p-4 bg-gray-50 dark:bg-black">
                 <Heading title='Data Kasbon' />
 
                 {/* Summary Cards */}

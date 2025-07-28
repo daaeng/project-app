@@ -1,12 +1,11 @@
 import Heading from '@/components/heading';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head, Link, useForm, usePage, router } from '@inertiajs/react';
-import { Eye, Megaphone, Pencil, Search, Trash, Upload, Clock, CheckCircle2, Wallet } from 'lucide-react'; // Added Clock, CheckCircle2, Wallet icons
+import { Head, Link, useForm, router } from '@inertiajs/react';
+import { Eye, Megaphone, Pencil, Search, Trash, Upload, Clock, FileText, Receipt, DollarSign } from 'lucide-react'; // Added Clock, CheckCircle2, Wallet icons
 import { can } from '@/lib/can';
 import Tag from '@/components/ui/tag';
 import { Input } from '@/components/ui/input';
@@ -52,9 +51,10 @@ interface PageProps {
         };
     };
     filter?: { search?: string };
-    totalPendingNotas: number; // New prop for total pending notas
-    totalApprovedNotas: number; // New prop for total approved notas
-    sumApprovedNotasAmount: number; // New prop for sum of approved notas amount
+    totalPendingNotas: number; 
+    totalApprovedNotas: number; 
+    sumApprovedNotasAmount: number; 
+    jml_nota: number; 
 }
 
 const formatCurrency = (value: number) => {
@@ -65,8 +65,7 @@ const formatCurrency = (value: number) => {
     }).format(value);
 };
 
-export default function Index() {
-    const { notas, flash, filter, totalPendingNotas, totalApprovedNotas, sumApprovedNotasAmount } = usePage().props as PageProps;
+export default function Index({ notas, flash, filter, totalPendingNotas, totalApprovedNotas, sumApprovedNotasAmount, jml_nota } : PageProps) {
 
     const { processing, delete: destroy } = useForm();
 
@@ -144,43 +143,45 @@ export default function Index() {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Request" />
 
-            <div className="h-full flex-col rounded-xl p-4">
+            <div className="h-full flex-col rounded-xl p-4 bg-gray-50 dark:bg-black">
                 <Heading title="Request - Upload Nota" />
 
-                {/* Summary Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                    <Card className="shadow-sm transition-shadow hover:shadow-md">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Nota Pending</CardTitle>
-                            <Clock className="h-4 w-4 text-gray-500" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">{totalPendingNotas}</div>
-                            <p className="text-xs text-gray-500">Total nota yang menunggu persetujuan</p>
-                        </CardContent>
-                    </Card>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                    {/* Card 1: Total Request Letters */}
+                    <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-5 rounded-lg shadow-lg flex items-center justify-between">
+                        <div>
+                            <div className="text-sm font-medium opacity-90">Total Pengajuan</div>
+                            <div className="text-3xl font-bold mt-1"> {jml_nota}</div>
+                        </div>
+                        <FileText size={40} className="opacity-70" />
+                    </div>
 
-                    <Card className="shadow-sm transition-shadow hover:shadow-md">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Nota Disetujui</CardTitle>
-                            <CheckCircle2 className="h-4 w-4 text-gray-500" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">{totalApprovedNotas}</div>
-                            <p className="text-xs text-gray-500">Total nota yang telah disetujui</p>
-                        </CardContent>
-                    </Card>
+                    {/* Card 2: Total Nota/Kwitansi */}
+                    <div className="bg-gradient-to-r from-green-500 to-green-600 text-white p-5 rounded-lg shadow-lg flex items-center justify-between">
+                        <div>
+                            <div className="text-sm font-medium opacity-90">Nota/Kwitansi ACC</div>
+                            <div className="text-3xl font-bold mt-1">{totalApprovedNotas}</div>
+                        </div>
+                        <Receipt size={40} className="opacity-70" />
+                    </div>
 
-                    <Card className="shadow-sm transition-shadow hover:shadow-md">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Total Dana Disetujui</CardTitle>
-                            <Wallet className="h-4 w-4 text-gray-500" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">{formatCurrency(sumApprovedNotasAmount)}</div>
-                            <p className="text-xs text-gray-500">Jumlah total dana nota yang disetujui</p>
-                        </CardContent>
-                    </Card>
+                    {/* Card 3: Request Pending */}
+                    <div className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-white p-5 rounded-lg shadow-lg flex items-center justify-between">
+                        <div>
+                            <div className="text-sm font-medium opacity-90">Nota/Kwitansi Pending</div>
+                            <div className="text-3xl font-bold mt-1">{totalPendingNotas}</div> {/* Menggunakan totalPendingRequests */}
+                        </div>
+                        <Clock size={40} className="opacity-70" />
+                    </div>
+
+                    {/* Card 4: Total Dana Disetujui (Contoh) */}
+                    <div className="bg-gradient-to-r from-purple-500 to-purple-600 text-white p-5 rounded-lg shadow-lg flex items-center justify-between">
+                        <div>
+                            <div className="text-sm font-medium opacity-90">Total Kwitansi/Nota Dana Disetujui</div>
+                            <div className="text-3xl font-bold mt-1">{formatCurrency(sumApprovedNotasAmount)}</div> {/* Menggunakan totalApprovedDana */}
+                        </div>
+                        <DollarSign size={40} className="opacity-70" />
+                    </div>
                 </div>
 
                 <div className="border rounded-lg p-2">

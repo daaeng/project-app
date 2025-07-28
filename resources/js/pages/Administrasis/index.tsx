@@ -157,7 +157,7 @@ export default function AdminPage({ requests, notas, summary}: PageProps) {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Administrasi" />
 
-            <div className="h-full flex-col rounded-xl p-4 bg-white shadow-md">
+            <div className="h-full flex-col rounded-xl p-4 shadow-md bg-gray-50 dark:bg-black">
                 <div className="flex justify-between items-center mb-4">
                     <Heading title="Administrasi Dokumen" />
                     {/* Tombol "Tambah Dokumen Baru" dihapus */}

@@ -41,7 +41,7 @@ export default function Edit({role, rolePermissions, permissions}) {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Role Edit" />
 
-            <div className="h-full flex-col rounded-xl p-4">
+            <div className="h-full flex-col rounded-xl p-4 bg-gray-50 dark:bg-black">
             
                 <Heading title='Role Edit Users'/>
 

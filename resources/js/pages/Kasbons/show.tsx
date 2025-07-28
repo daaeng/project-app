@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label';
 import Tag from '@/components/ui/tag';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types'; 
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import { Undo2 } from 'lucide-react';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -42,8 +42,7 @@ const formatCurrency = (value: number) => {
     }).format(value);
 };
 
-export default function ShowKasbon() {
-    const { kasbon } = usePage().props as PageProps;
+export default function ShowKasbon({ kasbon } : PageProps) {
 
     // Update breadcrumbs dynamically
     const dynamicBreadcrumbs = [
@@ -55,7 +54,7 @@ export default function ShowKasbon() {
         <AppLayout breadcrumbs={dynamicBreadcrumbs}>
             <Head title={`Detail Kasbon - ${kasbon.incisor_no_invoice}`} />
 
-            <div className="h-full flex-col rounded-xl p-4">
+            <div className="h-full flex-col rounded-xl p-4 bg-gray-50 dark:bg-black">
                 <Heading title={`Detail Kasbon (Kode Penoreh: ${kasbon.incisor_no_invoice})`} />
                 <div className="mb-4">
                     <Link href={route('kasbons.index')}>

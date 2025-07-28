@@ -5,12 +5,13 @@ import { CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head, Link, useForm, usePage, router } from '@inertiajs/react';
+import { Head, Link, useForm, router } from '@inertiajs/react';
 import { CirclePlus, Eye, Megaphone, Pencil, Search, Trash } from 'lucide-react';
 import { can } from '@/lib/can';
 import { Input } from '@/components/ui/input';
 import { useState, useEffect } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // Import Select components
+import { FaSeedling, FaUserFriends } from 'react-icons/fa'; // Import new icons
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -56,6 +57,12 @@ interface PageProps {
         };
     };
     filter?: { search?: string; time_period?: string }; // Added time_period to filter
+    totalKebunA: number; // Added for Kebun A total
+    totalKebunB: number; // Added for Kebun B total
+    mostProductiveIncisor: { // Added for most productive incisor
+        name: string;
+        total_qty_kg: number;
+    };
 }
 
 const formatCurrency = (value: number) => {
@@ -66,8 +73,32 @@ const formatCurrency = (value: number) => {
     }).format(value);
 };
 
-export default function Admin() {
-    const { inciseds, flash, filter } = usePage().props as PageProps;
+// StatCard component (reused and adapted from Dashboard for consistent look)
+interface StatCardProps {
+    icon: React.ElementType;
+    title: string;
+    value: string;
+    subtitle: string;
+    gradient: string;
+}
+
+const StatCard: React.FC<StatCardProps> = ({ icon: Icon, title, value, subtitle, gradient }) => (
+    <div className={`p-4 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 bg-gradient-to-r ${gradient} text-white`}>
+        <div className="flex items-center gap-3">
+            <div className="bg-white bg-opacity-20 p-3 rounded-full">
+                <Icon className="text-blue-500 text-xl" />
+            </div>
+            <div>
+                <h4 className="text-sm font-medium">{title}</h4>
+                <p className="text-xl font-semibold">{value}</p>
+                <p className="text-xs opacity-90">{subtitle}</p>
+            </div>
+        </div>
+    </div>
+);
+
+
+export default function Admin({ inciseds, flash, filter, totalKebunA, totalKebunB, mostProductiveIncisor } : PageProps) {
     const { processing, delete: destroy } = useForm();
 
     const [searchValue, setSearchValue] = useState(filter?.search || '');
@@ -91,7 +122,7 @@ export default function Admin() {
             {
                 preserveState: true,
                 replace: true,
-                only: ['inciseds', 'filter'],
+                only: ['inciseds', 'filter', 'totalKebunA', 'totalKebunB', 'mostProductiveIncisor'], // Ensure new data is refreshed
             }
         );
     };
@@ -103,7 +134,7 @@ export default function Admin() {
             {
                 preserveState: true,
                 replace: true,
-                only: ['inciseds', 'filter'],
+                only: ['inciseds', 'filter', 'totalKebunA', 'totalKebunB', 'mostProductiveIncisor'], // Ensure new data is refreshed
             }
         );
     };
@@ -162,8 +193,34 @@ export default function Admin() {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Incised" />
 
-            <div className="h-full flex-col rounded-xl p-4">
+            <div className="h-full flex-col rounded-xl p-4 bg-gray-50 dark:bg-black">
                 <Heading title="Data Harian Penoreh" />
+
+                {/* New Stat Cards Section */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                    <StatCard
+                        icon={FaSeedling}
+                        title="Total Karet Temadu"
+                        value={`${totalKebunA} kg`}
+                        subtitle="Total Kuantitas Karet"
+                        gradient="from-green-400 to-green-600"
+                    />
+                    <StatCard
+                        icon={FaSeedling}
+                        title="Total Karet Sebayar"
+                        value={`${totalKebunB} kg`}
+                        subtitle="Total Kuantitas Karet"
+                        gradient="from-blue-400 to-blue-600"
+                    />
+                    <StatCard
+                        icon={FaUserFriends}
+                        title="Penoreh Paling Produktif"
+                        value={mostProductiveIncisor.name}
+                        subtitle={`Total ${mostProductiveIncisor.total_qty_kg} kg`}
+                        gradient="from-purple-400 to-purple-600"
+                    />
+                </div>
+                {/* End New Stat Cards Section */}
 
                 <div className="border h-auto p-3 rounded-lg">
                     <div className="w-full mb-2 justify-end h-auto flex gap-2">

@@ -293,7 +293,7 @@ export default function GkaPage({
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="PT. Garuda Karya Amanat" />
-      <div className="h-full flex-col rounded-xl p-4 space-y-4">
+      <div className="h-full flex-col rounded-xl p-4 space-y-4 bg-gray-50 dark:bg-black">
         <Heading title="PT. Garuda Karya Amanat" />
         <div className="mb-3">
           <Link href={route('products.index')}>
@@ -481,7 +481,7 @@ export default function GkaPage({
                           <TableHead>Tanggal</TableHead>
                           {productType === 'all' && <TableHead>Jenis Produk</TableHead>} {/* New column for product type */}
                           <TableHead>Supplier</TableHead>
-                          <TableHead>Barang</TableHead>
+                          <TableHead>Keping</TableHead>
                           <TableHead>Qty </TableHead>
                           <TableHead>Outcome</TableHead>
                           <TableHead className="text-center">Aksi</TableHead>
@@ -494,7 +494,7 @@ export default function GkaPage({
                               <TableCell>{product.date}</TableCell>
                               {productType === 'all' && <TableCell>{product.product_type_display}</TableCell>} {/* Display product type */}
                               <TableCell>{product.nm_supplier}</TableCell>
-                              <TableCell>{product.j_brg}</TableCell>
+                              <TableCell>{product.keping}</TableCell>
                               <TableCell>{product.qty_kg}</TableCell>
                               <TableCell>{formatCurrency(product.amount)}</TableCell>
                               <TableCell className="text-center space-x-2">
@@ -539,7 +539,7 @@ export default function GkaPage({
                           <TableHead>Tanggal</TableHead>
                           {productType === 'all' && <TableHead>Jenis Produk</TableHead>} {/* New column for product type */}
                           <TableHead>Supplier</TableHead>
-                          <TableHead>Barang</TableHead>
+                          <TableHead>Keping</TableHead>
                           <TableHead>Qty </TableHead>
                           <TableHead>Income</TableHead>
                           <TableHead className="text-center">Aksi</TableHead>
@@ -552,7 +552,7 @@ export default function GkaPage({
                               <TableCell>{product.date}</TableCell>
                               {productType === 'all' && <TableCell>{product.product_type_display}</TableCell>} {/* Display product type */}
                               <TableCell>{product.nm_supplier}</TableCell>
-                              <TableCell>{product.j_brg}</TableCell>
+                              <TableCell>{product.keping}</TableCell>
                               <TableCell>{product.qty_out}</TableCell>
                               <TableCell>{formatCurrency(product.amount_out)}</TableCell>
                               <TableCell className="text-center space-x-2">

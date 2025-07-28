@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link,  } from '@inertiajs/react';
-import { ArrowRight, Building2, FolderOpen, Sprout, Trees, } from 'lucide-react';
+import { ArrowRight, Building2, Droplet, FolderOpen, Sprout, Trees, } from 'lucide-react';
 import { Card, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { can } from '@/lib/can';
 
@@ -20,7 +20,7 @@ export default function index() {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Product" />
 
-            <div className="h-full flex-col rounded-xl p-4 space-y-4">
+            <div className="h-full flex-col rounded-xl p-4 space-y-4 bg-gray-50 dark:bg-black">
             
                 <Heading title='Product Information'/>
 
@@ -93,6 +93,17 @@ export default function index() {
                                 <Button className='bg-accent-foreground '>
                                     <FolderOpen />
                                     All Product Data
+                                </Button>
+                            </Link>
+                        </div>
+                    }
+
+                    {can('products.create') && 
+                        <div className='w-full justify-end h-auto flex mb-5 gap-2'>
+                            <Link href={''}>
+                                <Button className='bg-red-500 '>
+                                    <Droplet />
+                                    - Penyusutan
                                 </Button>
                             </Link>
                         </div>

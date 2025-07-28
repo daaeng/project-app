@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, router } from '@inertiajs/react';
-import { FileDown, Megaphone, Package, Search, TreePalm, Undo2, Wheat } from 'lucide-react';
+import { Megaphone, Package, Search, TreePalm, Undo2, Wheat } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -162,7 +162,7 @@ export default function AllofPage({ // Ganti nama komponen agar lebih deskriptif
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="All Product" />
-            <div className="h-full flex-col rounded-xl p-4 space-y-4">
+            <div className="h-full flex-col rounded-xl p-4 space-y-4 bg-gray-50 dark:bg-black">
                 <Heading title="All Product Data Information" />
                 <div className='mb-1'>
                     <Link href={route('products.index')}>
@@ -224,6 +224,7 @@ export default function AllofPage({ // Ganti nama komponen agar lebih deskriptif
                                 <AlertDescription>{flash.message}</AlertDescription>
                             </Alert>
                         )}
+                        
                         <div className="flex flex-col gap-4 py-4 sm:flex-row sm:items-center">
                             <div className="relative flex-1">
                                 <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
@@ -251,15 +252,7 @@ export default function AllofPage({ // Ganti nama komponen agar lebih deskriptif
                                         <SelectItem value="this-year">This Year</SelectItem>
                                     </SelectContent>
                                 </Select>
-                                {/* Tombol Export Excel */}
-                                <Button
-                                    onClick={() => router.get(route('products.export.excel'), { search: searchValue, time_period: timePeriod })} // Include time_period for export
-                                    variant="outline"
-                                    className="flex items-center gap-1"
-                                >
-                                    <FileDown className="h-4 w-4" />
-                                    Export
-                                </Button>
+                                
                             </div>
                         </div>
 
@@ -270,7 +263,7 @@ export default function AllofPage({ // Ganti nama komponen agar lebih deskriptif
                                         <TableHead>Produk</TableHead>
                                         <TableHead>Tanggal</TableHead>
                                         <TableHead>Supplier</TableHead>
-                                        <TableHead>Jenis Barang</TableHead>
+                                        <TableHead>Keping</TableHead>
                                         <TableHead>Qty (IN)</TableHead>
                                         <TableHead>Qty (OUT)</TableHead>
                                         <TableHead>Total Harga (IN)</TableHead>
@@ -285,7 +278,7 @@ export default function AllofPage({ // Ganti nama komponen agar lebih deskriptif
                                                 <TableCell>{product.product}</TableCell>
                                                 <TableCell>{product.date}</TableCell>
                                                 <TableCell>{product.nm_supplier}</TableCell>
-                                                <TableCell>{product.j_brg}</TableCell>
+                                                <TableCell>{product.keping}</TableCell>
                                                 <TableCell>{product.qty_kg}</TableCell>
                                                 <TableCell>{product.qty_out}</TableCell>
                                                 <TableCell>{formatCurrency(product.amount)}</TableCell>
@@ -294,30 +287,6 @@ export default function AllofPage({ // Ganti nama komponen agar lebih deskriptif
                                                     <Tag_Karet status={product.status} />
                                                 </TableCell>
 
-                                                {/* {can('roles.view') && (
-                                                    <Link href={route('products.show', product.id)}>
-                                                    <Button className="bg-transparent hover:bg-gray-700">
-                                                        <Eye color="gray" />
-                                                    </Button>
-                                                    </Link>
-                                                )}
-                                                
-                                                {can('roles.edit') && (
-                                                    <Link href={route('products.edit', product.id)}>
-                                                    <Button className="bg-transparent hover:bg-gray-700">
-                                                        <Send color="blue" />
-                                                    </Button>
-                                                    </Link>
-                                                )}
-
-                                                {can('roles.delete') && (
-                                                    <Button
-                                                    onClick={() => handleDelete(product.id, product.product)}
-                                                    className="bg-transparent hover:bg-gray-700"
-                                                    >
-                                                    <Trash color="red" />
-                                                    </Button>
-                                                )} */}
                                             </TableRow>
                                         ))
                                     ) : (

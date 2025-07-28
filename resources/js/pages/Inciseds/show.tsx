@@ -41,7 +41,7 @@ export default function ShowIncised({ incised }: { incised: Incised }) {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Show Incised" />
 
-            <div className="h-full flex-col rounded-xl p-4">
+            <div className="h-full flex-col rounded-xl p-4 bg-gray-50 dark:bg-black">
                 <Heading title="Detail Data Harian Penoreh" />
 
                 <div className="w-full h-auto">

@@ -16,40 +16,93 @@ class IncisedController extends Controller
         $searchTerm = $request->input('search'); // Get the search term from the request
         $timePeriod = $request->input('time_period', 'all-time'); // Get time_period, default to 'all-time'
 
-        $inciseds = Incised::query()
-            ->with('incisor') // Eager load the 'incisor' relationship
-            ->when($searchTerm, function ($query, $search) {
-                $query->where('product', 'like', "%{$search}%")
-                      ->orWhere('no_invoice', 'like', "%{$search}%")
-                      ->orWhere('lok_kebun', 'like', "%{$search}%")
-                      ->orWhere('j_brg', 'like', "%{$search}%")
-                      // If 'incisor_name' needs to be searchable from the Incisor model,
-                      // you would typically need a join here:
-                      ->orWhereHas('incisor', function ($q) use ($search) {
-                          $q->where('name', 'like', "%{$search}%");
-                      });
-            })
-            ->when($timePeriod, function ($query, $period) {
-                switch ($period) {
-                    case 'today':
-                        $query->whereDate('date', Carbon::today());
-                        break;
-                    case 'this-week':
-                        $query->whereBetween('date', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]);
-                        break;
-                    case 'this-month':
-                        $query->whereMonth('date', Carbon::now()->month)
-                              ->whereYear('date', Carbon::now()->year);
-                        break;
-                    case 'this-year':
-                        $query->whereYear('date', Carbon::now()->year);
-                        break;
-                    case 'all-time':
-                    default:
-                        // No date filter applied for 'all-time'
-                        break;
+        $incisedsQuery = Incised::query()
+            ->with('incisor'); // Eager load the 'incisor' relationship
+
+        // Apply search term filter
+        $incisedsQuery->when($searchTerm, function ($query, $search) {
+            $query->where('product', 'like', "%{$search}%")
+                  ->orWhere('no_invoice', 'like', "%{$search}%")
+                  ->orWhere('lok_kebun', 'like', "%{$search}%")
+                  ->orWhere('j_brg', 'like', "%{$search}%")
+                  // If 'incisor_name' needs to be searchable from the Incisor model,
+                  // you would typically need a join here:
+                  ->orWhereHas('incisor', function ($q) use ($search) {
+                      $q->where('name', 'like', "%{$search}%");
+                  });
+        });
+
+        // Apply time period filter
+        $incisedsQuery->when($timePeriod, function ($query, $period) {
+            switch ($period) {
+                case 'today':
+                    $query->whereDate('date', Carbon::today());
+                    break;
+                case 'this-week':
+                    $query->whereBetween('date', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]);
+                    break;
+                case 'this-month':
+                    $query->whereMonth('date', Carbon::now()->month)
+                          ->whereYear('date', Carbon::now()->year);
+                    break;
+                case 'this-year':
+                    $query->whereYear('date', Carbon::now()->year);
+                    break;
+                case 'all-time':
+                default:
+                    // No date filter applied for 'all-time'
+                    break;
+            }
+        });
+
+        // --- Data for new Stat Cards ---
+        // Total Qty for Kebun A
+        $totalKebunA = Incised::when($timePeriod !== 'all-time', function ($query) use ($timePeriod) {
+                switch ($timePeriod) {
+                    case 'today': $query->whereDate('date', Carbon::today()); break;
+                    case 'this-week': $query->whereBetween('date', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]); break;
+                    case 'this-month': $query->whereMonth('date', Carbon::now()->month)->whereYear('date', Carbon::now()->year); break;
+                    case 'this-year': $query->whereYear('date', Carbon::now()->year); break;
                 }
             })
+            ->where('lok_kebun', 'Temadu')
+            ->sum('qty_kg');
+
+        // Total Qty for Kebun B
+        $totalKebunB = Incised::when($timePeriod !== 'all-time', function ($query) use ($timePeriod) {
+                switch ($timePeriod) {
+                    case 'today': $query->whereDate('date', Carbon::today()); break;
+                    case 'this-week': $query->whereBetween('date', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]); break;
+                    case 'this-month': $query->whereMonth('date', Carbon::now()->month)->whereYear('date', Carbon::now()->year); break;
+                    case 'this-year': $query->whereYear('date', Carbon::now()->year); break;
+                }
+            })
+            ->where('lok_kebun', 'Sebayar')
+            ->sum('qty_kg');
+
+        // Most Productive Incisor
+        $mostProductiveIncisor = Incised::select('incisors.name', \DB::raw('SUM(inciseds.qty_kg) as total_qty_kg'))
+            ->join('incisors', 'inciseds.no_invoice', '=', 'incisors.no_invoice')
+            ->when($timePeriod !== 'all-time', function ($query) use ($timePeriod) {
+                switch ($timePeriod) {
+                    case 'today': $query->whereDate('inciseds.date', Carbon::today()); break;
+                    case 'this-week': $query->whereBetween('inciseds.date', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]); break;
+                    case 'this-month': $query->whereMonth('inciseds.date', Carbon::now()->month)->whereYear('inciseds.date', Carbon::now()->year); break;
+                    case 'this-year': $query->whereYear('inciseds.date', Carbon::now()->year); break;
+                }
+            })
+            ->groupBy('incisors.name')
+            ->orderByDesc('total_qty_kg')
+            ->first();
+
+        // Fallback for mostProductiveIncisor if no data
+        $mostProductiveIncisorData = [
+            'name' => $mostProductiveIncisor ? $mostProductiveIncisor->name : 'N/A',
+            'total_qty_kg' => $mostProductiveIncisor ? (float)$mostProductiveIncisor->total_qty_kg : 0,
+        ];
+
+
+        $inciseds = $incisedsQuery
             ->orderBy('created_at', 'DESC')
             ->paginate($perPage)
             ->through(function ($incised) {
@@ -76,6 +129,9 @@ class IncisedController extends Controller
         return Inertia::render("Inciseds/index", [
             "inciseds" => $inciseds,
             "filter" => $request->only(['search', 'time_period']), // Send back the current search and time_period filters
+            'totalKebunA' => (float)$totalKebunA,
+            'totalKebunB' => (float)$totalKebunB,
+            'mostProductiveIncisor' => $mostProductiveIncisorData,
         ]);
     }
 
@@ -164,7 +220,7 @@ class IncisedController extends Controller
     {
         $incised->load('incisor');
         $data = $incised->toArray();
-        $data['incisor_name'] = $incised->incisor ? $incised->incisor->name : null;
+        $data['incisor_name'] = $incised->incisor ? $incisor->name : null;
         return Inertia::render('Inciseds/show', [
             'incised' => $data,
         ]);

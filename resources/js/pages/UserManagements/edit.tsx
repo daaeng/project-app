@@ -55,7 +55,7 @@ export default function index({user, userRoles, roles} : props) {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Edit Users" />
 
-            <div className="h-full flex-col rounded-xl p-4">
+            <div className="h-full flex-col rounded-xl p-4 bg-gray-50 dark:bg-black">
             
                 <Heading title='Edit Users'/>
 
