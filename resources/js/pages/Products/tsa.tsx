@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/table";
 
 import { Head, Link, router } from '@inertiajs/react';
-import { CirclePlus, Eye, FileDown, Megaphone, Package, Search, Send, Sprout, Trash, Undo2 } from 'lucide-react';
+import { CirclePlus, Eye, Megaphone, Package, Pencil, PencilLine, Search, Send, Sprout, Trash, Undo2 } from 'lucide-react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Product Information', href: '/products' },
@@ -77,6 +77,12 @@ interface PageProps {
             total: number;
         };
     };
+    keping_sbyr: number;
+    keping_sbyr2: number;
+    keping_tmd: number;
+    keping_tmd2: number;
+    keping_out: number;
+    keping_in: number;
     hsl_karet: number;
     saldoin: number;
     saldoout: number;
@@ -102,7 +108,7 @@ const formatCurrency = (value: number) => {
 };
 
 export default function TsaPage({
-    flash, products, products2, hsl_karet, saldoin, saldoout,
+    flash, products, products2, hsl_karet, saldoin, saldoout, keping_in, keping_out, keping_sbyr, keping_sbyr2, keping_tmd, keping_tmd2, 
     tm_slin, tm_slou, tm_sin, tm_sou, ts_slin, ts_slou, ts_sin, ts_sou, filter, hsl_jual
 }: PageProps) {
     const [searchValue, setSearchValue] = useState(filter?.search || '');
@@ -125,7 +131,7 @@ export default function TsaPage({
             {
                 preserveState: true,
                 replace: true,
-                only: ['products', 'products2', 'filter', 'hsl_karet', 'saldoin', 'saldoout', 'tm_slin', 'tm_slou', 'tm_sin', 'tm_sou', 'ts_slin', 'ts_slou', 'ts_sin', 'ts_sou'], // Include all stats
+                only: ['products', 'products2', 'filter', 'hsl_karet', 'saldoin', 'keping_sbyr', 'keping_sbyr2', 'keping_tmd', 'keping_tmd2', 'keping_out', 'keping_in', 'saldoout', 'tm_slin', 'tm_slou', 'tm_sin', 'tm_sou', 'ts_slin', 'ts_slou', 'ts_sin', 'ts_sou'], // Include all stats
             }
         );
     };
@@ -136,7 +142,7 @@ export default function TsaPage({
             {
                 preserveState: true,
                 replace: true,
-                only: ['products', 'products2', 'filter', 'hsl_karet', 'saldoin', 'saldoout', 'tm_slin', 'tm_slou', 'tm_sin', 'tm_sou', 'ts_slin', 'ts_slou', 'ts_sin', 'ts_sou'], // Include all stats
+                only: ['products', 'products2', 'filter', 'hsl_karet', 'saldoin', 'keping_sbyr', 'keping_sbyr2', 'keping_tmd', 'keping_tmd2', 'keping_out', 'keping_in', 'saldoout', 'tm_slin', 'tm_slou', 'tm_sin', 'tm_sou', 'ts_slin', 'ts_slou', 'ts_sin', 'ts_sou'], // Include all stats
             }
         );
     };
@@ -217,10 +223,13 @@ export default function TsaPage({
                                 <div className='grid grid-cols-2 gap-1'>
                                     <div>
                                         <div className="flex gap-2"><p className="text-green-400">OUT</p> {formatCurrency(saldoin)}</div>
+                                        <div className="flex gap-2"><p className="text-green-400">keping</p>{keping_in}</div>
+                                        
                                         <div className="flex gap-2"><p className="text-red-400">IN</p> {formatCurrency(saldoout)}</div>
+                                        <div className="flex gap-2"><p className="text-red-400">keping</p> {keping_out}</div>
 
                                     </div>
-                                    <div>
+                                    <div className='grid'>
                                         <div className="text-2xl font-bold row-span-2 flex justify-end">{hsl_karet} Kg</div>
                                         <div className="text-2xl font-bold row-span-2 flex justify-end">{hsl_jual} Kg</div>
 
@@ -241,8 +250,13 @@ export default function TsaPage({
                                 <div className="grid grid-cols-2">
                                     <div className="flex gap-2"><p className="text-green-400">OUT</p> {formatCurrency(tm_slin)}</div>
                                     <div className="flex gap-2"><p className="text-red-400">IN</p> {formatCurrency(tm_slou)}</div>
+
                                     <div className="text-2xl w-full justify-center flex font-bold">{tm_sin} Kg</div>
                                     <div className="text-2xl w-full justify-center flex font-bold">{tm_sou} Kg</div>
+                                    
+                                    <div className="text-2xl w-full justify-center flex font-bold">{keping_tmd} <p className='text-sm'>Keping</p> </div>
+                                    <div className="text-2xl w-full justify-center flex font-bold">{keping_tmd2} <p className='text-sm'>Keping</p> </div>
+                                    
                                 </div>
                             </CardContent>
                         </Card>
@@ -261,6 +275,9 @@ export default function TsaPage({
                                     <div className="flex gap-2"><p className="text-red-400">IN</p> {formatCurrency(ts_slou)}</div>
                                     <div className="text-2xl w-full justify-center flex font-bold">{ts_sin} Kg</div>
                                     <div className="text-2xl w-full justify-center flex font-bold">{ts_sou} Kg</div>
+                                    
+                                    <div className="text-2xl w-full justify-center flex font-bold">{keping_sbyr} <p className='text-sm'>Keping</p> </div>
+                                    <div className="text-2xl w-full justify-center flex font-bold">{keping_sbyr2} <p className='text-sm'>Keping</p> </div>
                                 </div>
                             </CardContent>
                         </Card>
@@ -303,13 +320,12 @@ export default function TsaPage({
                                         <SelectItem value="this-year">This Year</SelectItem>
                                     </SelectContent>
                                 </Select>
-                                <Button
-                                    onClick={() => router.get(route('products.export.excel'), { search: searchValue, time_period: timePeriod })} // Include time_period for export
-                                    variant="outline"
-                                    className="flex items-center gap-1"
-                                >
-                                    <FileDown className="h-4 w-4" /> Export
-                                </Button>
+                                <Link href={route('products.s_gka')}>
+                                    <Button className='bg-green-600 hover:bg-green-400'>
+                                        <Send />
+                                        Kirim ke GKA
+                                    </Button>
+                                </Link>
                                 {can('products.create') && (
                                     <Link href={route('products.create')}>
                                         <Button className="bg-yellow-600 hover:bg-yellow-500">
@@ -346,7 +362,7 @@ export default function TsaPage({
                                                         <TableCell>{formatCurrency(product.amount)}</TableCell>
                                                         <TableCell className="text-center space-x-1">
                                                             {can('products.view') && <Link href={route('products.show', product.id)}><Button size="icon" variant="ghost"><Eye className="h-4 w-4 text-gray-500" /></Button></Link>}
-                                                            {can('products.edit') && <Link href={route('products.edit', product.id)}><Button size="icon" variant="ghost"><Send className="h-4 w-4 text-blue-500" /></Button></Link>}
+                                                            {can('products.edit') && <Link href={route('products.edit', product.id)}><Button size="icon" variant="ghost"><PencilLine className="h-4 w-4 text-blue-500" /></Button></Link>}
                                                             {can('roles.delete') && <Button size="icon" variant="ghost" onClick={() => handleDelete(product.id, product.product)}><Trash className="h-4 w-4 text-red-500" /></Button>}
                                                         </TableCell>
                                                     </TableRow>
@@ -384,12 +400,12 @@ export default function TsaPage({
                                                     <TableRow key={product.id}>
                                                         <TableCell>{product.date}</TableCell>
                                                         <TableCell>{product.nm_supplier}</TableCell>
-                                                        <TableCell>{product.keping}</TableCell>
-                                                        <TableCell>{product.qty_kg}</TableCell>
-                                                        <TableCell>{formatCurrency(product.amount)}</TableCell>
+                                                        <TableCell>{product.keping_out}</TableCell>
+                                                        <TableCell>{product.qty_out}</TableCell>
+                                                        <TableCell>{formatCurrency(product.amount_out)}</TableCell>
                                                         <TableCell className="text-center space-x-1">
                                                             {can('products.view') && <Link href={route('products.show', product.id)}><Button size="icon" variant="ghost"><Eye className="h-4 w-4 text-gray-500" /></Button></Link>}
-                                                            {/* {can('products.edit') && <Link href={route('products.edit', product.id)}><Button size="icon" variant="ghost"><Pencil className="h-4 w-4 text-blue-500" /></Button></Link>} */}
+                                                            {can('products.edit') && <Link href={route('products.edit_out', product.id)}><Button size="icon" variant="ghost"><Pencil className="h-4 w-4 text-blue-500" /></Button></Link>}
                                                             {/* {can('products.delete') && <Button size="icon" variant="ghost" onClick={() => handleDelete(product.id, product.product)}><Trash className="h-4 w-4 text-red-500" /></Button>} */}
                                                         </TableCell>
                                                     </TableRow>

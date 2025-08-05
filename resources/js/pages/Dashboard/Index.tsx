@@ -202,6 +202,9 @@ export default function Dashboard({ totalAmountOutKaret, hsl_tsa, hsl_beli, tota
         );
     };
 
+    // Check if there's any actual data in qualityDistribution to display
+    const hasQualityData = qualityDistribution.some(item => item.value > 0);
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Dashboard" />
@@ -395,28 +398,34 @@ export default function Dashboard({ totalAmountOutKaret, hsl_tsa, hsl_beli, tota
                         </div>
 
                         <ResponsiveContainer width="100%" height={300}>
-                            <PieChart>
-                                <Pie
-                                    data={qualityDistribution}
-                                    dataKey="value"
-                                    nameKey="name"
-                                    cx="50%"
-                                    cy="50%"
-                                    outerRadius={100}
-                                    innerRadius={50}
-                                    paddingAngle={5}
-                                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                                >
-                                    {qualityDistribution.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={pieColors[index % pieColors.length]} />
-                                    ))}
-                                </Pie>
-                                <Legend verticalAlign="bottom" height={36} />
-                                <Tooltip
-                                    contentStyle={{ borderRadius: 10, boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}
-                                    formatter={(value: number, name: string) => [`${value} kg`, name]}
-                                />
-                            </PieChart>
+                            {hasQualityData ? (
+                                <PieChart>
+                                    <Pie
+                                        data={qualityDistribution}
+                                        dataKey="value"
+                                        nameKey="name"
+                                        cx="50%"
+                                        cy="50%"
+                                        outerRadius={100}
+                                        innerRadius={50}
+                                        paddingAngle={5}
+                                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                                    >
+                                        {qualityDistribution.map((entry, index) => (
+                                            <Cell key={`cell-${index}`} fill={pieColors[index % pieColors.length]} />
+                                        ))}
+                                    </Pie>
+                                    <Legend verticalAlign="bottom" height={36} />
+                                    <Tooltip
+                                        contentStyle={{ borderRadius: 10, boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}
+                                        formatter={(value: number, name: string) => [`${value} kg`, name]}
+                                    />
+                                </PieChart>
+                            ) : (
+                                <div className="flex items-center justify-center h-full text-gray-500">
+                                    <p>Tidak ada data kualitas karet yang tersedia.</p>
+                                </div>
+                            )}
                         </ResponsiveContainer>
                     </div>
 
@@ -562,3 +571,4 @@ export default function Dashboard({ totalAmountOutKaret, hsl_tsa, hsl_beli, tota
         </AppLayout>
     );
 };
+

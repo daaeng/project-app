@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, router } from '@inertiajs/react';
-import { CirclePlus, Eye, FileDown, Megaphone, Pencil, Search, Send, Sprout, Trash, TreePalm, Undo2, Wheat } from 'lucide-react';
+import { CirclePlus, Eye, Megaphone, Pencil, Search, Send, Sprout, Trash, TreePalm, Undo2, Wheat } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -112,6 +112,8 @@ interface PageProps {
       total: number;
     };
   };
+  keping_in: number;
+  keping_out: number;
   saldoin: number;
   saldoout: number;
   tm_slin: number;
@@ -145,7 +147,7 @@ const formatCurrency = (value: number) => {
 
 export default function GkaPage({
   flash, products, products2, products3, products4, products5, products6, 
-  tm_slin, tm_slou, tm_sin, tm_sou, filter, s_ready,
+  tm_slin, tm_slou, tm_sin, tm_sou, filter, s_ready, keping_in, keping_out,
   ppk_slin, ppk_slou, ppk_sin, ppk_sou, p_ready,
   klp_slin, klp_slou, klp_sin, klp_sou, klp_ready,
 }: PageProps) {
@@ -171,7 +173,7 @@ export default function GkaPage({
       {
         preserveState: true,
         replace: true,
-        only: ['products', 'products2', 'products3', 'products4', 'products5', 'products6', 'filter', 'tm_slin', 'tm_slou', 'tm_sin', 'tm_sou', 's_ready', 'ppk_slin', 'ppk_slou', 'ppk_sin', 'ppk_sou', 'p_ready', 'klp_slin', 'klp_slou', 'klp_sin', 'klp_sou', 'klp_ready'],
+        only: ['products', 'products2', 'products3', 'products4', 'products5', 'products6', 'keping_in', 'keping_out', 'filter', 'tm_slin', 'tm_slou', 'tm_sin', 'tm_sou', 's_ready', 'ppk_slin', 'ppk_slou', 'ppk_sin', 'ppk_sou', 'p_ready', 'klp_slin', 'klp_slou', 'klp_sin', 'klp_sou', 'klp_ready'],
       }
     );
   };
@@ -184,7 +186,7 @@ export default function GkaPage({
       {
         preserveState: true,
         replace: true,
-        only: ['products', 'products2', 'products3', 'products4', 'products5', 'products6', 'filter', 'tm_slin', 'tm_slou', 'tm_sin', 'tm_sou', 's_ready', 'ppk_slin', 'ppk_slou', 'ppk_sin', 'ppk_sou', 'p_ready', 'klp_slin', 'klp_slou', 'klp_sin', 'klp_sou', 'klp_ready'],
+        only: ['products', 'products2', 'products3', 'products4', 'products5', 'products6', 'keping_in', 'keping_out', 'filter', 'tm_slin', 'tm_slou', 'tm_sin', 'tm_sou', 's_ready', 'ppk_slin', 'ppk_slou', 'ppk_sin', 'ppk_sou', 'p_ready', 'klp_slin', 'klp_slou', 'klp_sin', 'klp_sou', 'klp_ready'],
       }
     );
   };
@@ -195,7 +197,7 @@ export default function GkaPage({
       {
         preserveState: true,
         replace: true,
-        only: ['products', 'products2', 'products3', 'products4', 'products5', 'products6', 'filter', 'tm_slin', 'tm_slou', 'tm_sin', 'tm_sou', 's_ready', 'ppk_slin', 'ppk_slou', 'ppk_sin', 'ppk_sou', 'p_ready', 'klp_slin', 'klp_slou', 'klp_sin', 'klp_sou', 'klp_ready'],
+        only: ['products', 'products2', 'products3', 'products4', 'products5', 'products6', 'keping_in', 'keping_out', 'filter', 'tm_slin', 'tm_slou', 'tm_sin', 'tm_sou', 's_ready', 'ppk_slin', 'ppk_slou', 'ppk_sin', 'ppk_sou', 'p_ready', 'klp_slin', 'klp_slou', 'klp_sin', 'klp_sou', 'klp_ready'],
       }
     );
   };
@@ -326,8 +328,12 @@ export default function GkaPage({
                   </CardHeader>
                   <CardContent className="lg:-mt-4 text-amber-700">
                     <div className="grid grid-cols-2">
-                        <div className="flex gap-2"><p className="text-red-400">IN</p> {formatCurrency(tm_slin)}</div>
-                        <div className="flex gap-2"><p className="text-green-400">OUT</p> {formatCurrency(tm_slou)}</div>
+                        <div className="flex gap-2"><p className="text-red-400">OUT</p> {formatCurrency(tm_slin)}</div>
+                        <div className="flex gap-2"><p className="text-green-400">IN</p> {formatCurrency(tm_slou)}</div>
+
+                        <div className="flex gap-2"><p className="text-red-400">keping</p>{keping_in}</div>
+                        <div className="flex gap-2"><p className="text-green-400">keping</p>{keping_out}</div>
+                        
                         <div className="text-2xl w-full justify-center flex font-bold">{tm_sin} Kg</div>
                         <div className="text-2xl w-full justify-center flex font-bold">{tm_sou} Kg</div>
                     </div>
@@ -463,9 +469,9 @@ export default function GkaPage({
                     <SelectItem value="this-year">Tahun Ini</SelectItem>
                   </SelectContent>
                 </Select>
-                <Button variant="outline" className="flex items-center gap-1">
+                {/* <Button variant="outline" className="flex items-center gap-1">
                   <FileDown className="h-4 w-4" /> Ekspor
-                </Button>
+                </Button> */}
               </div>
             </div>
 
@@ -494,9 +500,9 @@ export default function GkaPage({
                               <TableCell>{product.date}</TableCell>
                               {productType === 'all' && <TableCell>{product.product_type_display}</TableCell>} {/* Display product type */}
                               <TableCell>{product.nm_supplier}</TableCell>
-                              <TableCell>{product.keping}</TableCell>
-                              <TableCell>{product.qty_kg}</TableCell>
-                              <TableCell>{formatCurrency(product.amount)}</TableCell>
+                              <TableCell>{product.keping_out}</TableCell>
+                              <TableCell>{product.qty_out}</TableCell>
+                              <TableCell>{formatCurrency(product.amount_out)}</TableCell>
                               <TableCell className="text-center space-x-2">
                                 {can('products.view') && (
                                   <Link href={route('products.show', product.id)}>
@@ -552,7 +558,7 @@ export default function GkaPage({
                               <TableCell>{product.date}</TableCell>
                               {productType === 'all' && <TableCell>{product.product_type_display}</TableCell>} {/* Display product type */}
                               <TableCell>{product.nm_supplier}</TableCell>
-                              <TableCell>{product.keping}</TableCell>
+                              <TableCell>{product.keping_out}</TableCell>
                               <TableCell>{product.qty_out}</TableCell>
                               <TableCell>{formatCurrency(product.amount_out)}</TableCell>
                               <TableCell className="text-center space-x-2">
@@ -565,7 +571,7 @@ export default function GkaPage({
                                 )}
                                 
                                 {can('roles.edit') && (
-                                  <Link href={route('products.edit', product.id)}>
+                                  <Link href={route('products.edit_out', product.id)}>
                                     <Button className="bg-transparent hover:bg-gray-700">
                                       <Pencil color="blue" />
                                     </Button>
@@ -690,7 +696,7 @@ export default function GkaPage({
                                 )}
                                 
                                 {can('roles.edit') && (
-                                  <Link href={route('products.edit', product.id)}>
+                                  <Link href={route('products.edit_out', product.id)}>
                                     <Button className="bg-transparent hover:bg-gray-700">
                                       <Pencil color="blue" />
                                     </Button>
@@ -814,7 +820,7 @@ export default function GkaPage({
                                 )}
                                 
                                 {can('roles.edit') && (
-                                  <Link href={route('products.edit', product.id)}>
+                                  <Link href={route('products.edit_out', product.id)}>
                                     <Button className="bg-transparent hover:bg-gray-700">
                                       <Pencil color="blue" />
                                     </Button>

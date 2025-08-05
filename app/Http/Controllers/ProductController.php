@@ -58,6 +58,11 @@ class ProductController extends Controller
     {
             return inertia('Products/c_send');
     }
+    
+    public function s_gka()
+    {
+            return inertia('Products/s_gka');
+    }
 
     public function store(Request $request)
     {
@@ -87,6 +92,10 @@ class ProductController extends Controller
 
     public function edit(Product $product){
         return inertia('Products/Edit', compact('product'));
+    }
+    
+    public function edit_out(Product $product){
+        return inertia('Products/Edit_out', compact('product'));
     }
 
     public function update(Request $request, Product $product)
@@ -179,7 +188,7 @@ class ProductController extends Controller
         // KARET
         $products = $baseQuery->clone()
             ->where('product', 'karet')
-            ->where('qty_kg', '>', 0)
+            ->where('qty_out', '>', 0)
             ->where('status', 'gka')
             ->orderBy('created_at', 'DESC')
             ->paginate($perPage);
@@ -194,7 +203,7 @@ class ProductController extends Controller
         // PUPUK
         $products3 = $baseQuery->clone()
             ->where('product', 'pupuk')
-            ->where('qty_kg', '>', 0)
+            ->where('qty_out', '>', 0)
             ->where('status', 'gka')
             ->orderBy('created_at', 'DESC')
             ->paginate($perPage);
@@ -209,7 +218,7 @@ class ProductController extends Controller
         // KELAPA
         $products5 = $baseQuery->clone()
             ->where('product', 'kelapa')
-            ->where('qty_kg', '>', 0)
+            ->where('qty_out', '>', 0)
             ->where('status', 'gka')
             ->orderBy('created_at', 'DESC')
             ->paginate($perPage);
@@ -252,22 +261,27 @@ class ProductController extends Controller
             });
 
         // Statistik Karet
-        $tm_slin = $statsQuery->clone()->where('status', 'gka')->where('product', 'karet')->SUM('amount');
+        $tm_slin = $statsQuery->clone()->where('status', 'gka')->where('product', 'karet')->SUM('amount_out');
         $tm_slou = $statsQuery->clone()->where('status', 'buyer')->where('product', 'karet')->SUM('amount_out');
-        $tm_sin = $statsQuery->clone()->where('status', 'gka')->where('product', 'karet')->SUM('qty_kg');
+        $tm_sin = $statsQuery->clone()->where('status', 'gka')->where('product', 'karet')->SUM('qty_out');
         $tm_sou = $statsQuery->clone()->where('status', 'buyer')->where('product', 'karet')->SUM('qty_out');
         
         // Statistik PUPUK
-        $ppk_slin = $statsQuery->clone()->where('status', 'gka')->where('product', 'pupuk')->SUM('amount');
+        $ppk_slin = $statsQuery->clone()->where('status', 'gka')->where('product', 'pupuk')->SUM('amount_out');
         $ppk_slou = $statsQuery->clone()->where('status', 'buyer')->where('product', 'pupuk')->SUM('amount_out');
-        $ppk_sin = $statsQuery->clone()->where('status', 'gka')->where('product', 'pupuk')->SUM('qty_kg');
+        $ppk_sin = $statsQuery->clone()->where('status', 'gka')->where('product', 'pupuk')->SUM('qty_out');
         $ppk_sou = $statsQuery->clone()->where('status', 'buyer')->where('product', 'pupuk')->SUM('qty_out');
         
         // Statistik KELAPA
-        $klp_slin = $statsQuery->clone()->where('status', 'gka')->where('product', 'kelapa')->SUM('amount');
+        $klp_slin = $statsQuery->clone()->where('status', 'gka')->where('product', 'kelapa')->SUM('amount_out');
         $klp_slou = $statsQuery->clone()->where('status', 'buyer')->where('product', 'kelapa')->SUM('amount_out');
-        $klp_sin = $statsQuery->clone()->where('status', 'gka')->where('product', 'kelapa')->SUM('qty_kg');
+        $klp_sin = $statsQuery->clone()->where('status', 'gka')->where('product', 'kelapa')->SUM('qty_out');
         $klp_sou = $statsQuery->clone()->where('status', 'buyer')->where('product', 'kelapa')->SUM('qty_out');
+
+        //keping
+        //keping total
+        $keping = $statsQuery->clone()->where('status', 'gka')->where('product', 'karet')->sum('keping_out');
+        $keping2 = $statsQuery->clone()->where('status', 'buyer')->where('product', 'karet')->sum('keping_out');
 
 
         return Inertia::render("Products/gka", [
@@ -289,6 +303,10 @@ class ProductController extends Controller
             "tm_sou" => $tm_sou,
 
             "s_ready" => $tm_sin - $tm_sou,
+
+            //keping
+            "keping_in" => $keping,
+            "keping_out" => $keping2,
             
             // PUPUK
             "ppk_slin" => $ppk_slin,
@@ -358,7 +376,7 @@ class ProductController extends Controller
         // --- Query untuk Tabel Penjualan Karet (products2) ---
         $product2 = $baseQuery->clone()
             ->where('product', 'karet')
-            ->where('qty_kg', '>', 0) 
+            ->where('qty_out', '>', 0) 
             ->where('status', 'gka')
             ->orderBy('created_at', 'DESC')
             ->paginate($perPage, ['*'], 'page2') 
@@ -398,25 +416,37 @@ class ProductController extends Controller
             
         // TEMADU totals based on filtered data
         $tm_slin = $statsQuery->clone()->where('nm_supplier', 'Temadu')->where('status', 'tsa')->where('product', 'karet')->sum('amount');
-        $tm_slou = $statsQuery->clone()->where('nm_supplier', 'Temadu')->where('status', 'gka')->where('product', 'karet')->sum('amount');
+        $tm_slou = $statsQuery->clone()->where('nm_supplier', 'Temadu')->where('status', 'gka')->where('product', 'karet')->sum('amount_out');
         $tm_sin = $statsQuery->clone()->where('nm_supplier', 'Temadu')->where('status', 'tsa')->where('product', 'karet')->sum('qty_kg');
-        $tm_sou = $statsQuery->clone()->where('nm_supplier', 'Temadu')->where('status', 'gka')->where('product', 'karet')->sum('qty_kg');
+        $tm_sou = $statsQuery->clone()->where('nm_supplier', 'Temadu')->where('status', 'gka')->where('product', 'karet')->sum('qty_out');
         
         // Sebayar totals based on filtered data
         $ts_slin = $statsQuery->clone()->where('nm_supplier', 'Sebayar')->where('status', 'tsa')->where('product', 'karet')->sum('amount');
-        $ts_slou = $statsQuery->clone()->where('nm_supplier', 'Sebayar')->where('status', 'gka')->where('product', 'karet')->sum('amount');
+        $ts_slou = $statsQuery->clone()->where('nm_supplier', 'Sebayar')->where('status', 'gka')->where('product', 'karet')->sum('amount_out');
         $ts_sin = $statsQuery->clone()->where('nm_supplier', 'Sebayar')->where('status', 'tsa')->where('product', 'karet')->sum('qty_kg');
-        $ts_sou = $statsQuery->clone()->where('nm_supplier', 'Sebayar')->where('status', 'gka')->where('product', 'karet')->sum('qty_kg');
+        $ts_sou = $statsQuery->clone()->where('nm_supplier', 'Sebayar')->where('status', 'gka')->where('product', 'karet')->sum('qty_out');
         
         // Statistik Karet
         $karet = $statsQuery->clone()->where('nm_supplier', 'Sebayar')->where('status', 'tsa')->where('product', 'karet')->sum('qty_kg');
         $karet2 = $statsQuery->clone()->where('nm_supplier', 'Temadu')->where('status', 'tsa')->where('product', 'karet')->sum('qty_kg');
+
+        //keping total
+        $keping = $statsQuery->clone()->where('status', 'tsa')->where('product', 'karet')->sum('keping');
+        $keping2 = $statsQuery->clone()->where('status', 'gka')->where('product', 'karet')->sum('keping_out');
+        //sebayar
+        $keping_sbyr = $statsQuery->clone()->where('nm_supplier', 'Sebayar')->where('status', 'tsa')->where('product', 'karet')->sum('keping');
+        $keping_sbyr2 = $statsQuery->clone()->where('nm_supplier', 'Sebayar')->where('status', 'gka')->where('product', 'karet')->sum('keping_out');
+        //temadu
+        $keping_tmd = $statsQuery->clone()->where('nm_supplier', 'Temadu')->where('status', 'tsa')->where('product', 'karet')->sum('keping');
+        $keping_tmd2 = $statsQuery->clone()->where('nm_supplier', 'Temadu')->where('status', 'gka')->where('product', 'karet')->sum('keping_out');
         
-        $jual = $statsQuery->clone()->where('nm_supplier', 'Sebayar')->where('status', 'gka')->where('product', 'karet')->sum('qty_kg');
-        $jual2 = $statsQuery->clone()->where('nm_supplier', 'Temadu')->where('status', 'gka')->where('product', 'karet')->sum('qty_kg');
+        //hasil jual
+        $jual = $statsQuery->clone()->where('nm_supplier', 'Sebayar')->where('status', 'gka')->where('product', 'karet')->sum('qty_out');
+        $jual2 = $statsQuery->clone()->where('nm_supplier', 'Temadu')->where('status', 'gka')->where('product', 'karet')->sum('qty_out');
         
+        //hasil karet
         $saldoin = $statsQuery->clone()->where('status', 'tsa')->where('product', 'karet')->sum('amount');
-        $saldoout = $statsQuery->clone()->where('status', 'gka')->where('product', 'karet')->sum('amount');
+        $saldoout = $statsQuery->clone()->where('status', 'gka')->where('product', 'karet')->sum('amount_out');
 
         return Inertia::render("Products/tsa", [
             "products" => $products,
@@ -426,6 +456,13 @@ class ProductController extends Controller
             "hsl_karet" => $karet + $karet2,
             "hsl_jual" => $jual + $jual2,
             
+            "keping_in" => $keping,
+            "keping_out" => $keping2,
+            "keping_sbyr" => $keping_sbyr,
+            "keping_sbyr2" => $keping_sbyr2,
+            "keping_tmd" => $keping_tmd,
+            "keping_tmd2" => $keping_tmd2,
+
             "saldoin" => $saldoin,
             "saldoout" => $saldoout,
             

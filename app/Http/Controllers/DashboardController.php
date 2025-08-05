@@ -53,7 +53,11 @@ class DashboardController extends Controller
         $totalAmountOutKaret = $productQueryFilteredByTime->clone()->where('status', 'buyer')->where('product', 'karet')->sum('amount_out');
         $karet_sebayar = $productQueryFilteredByTime->clone()->where('nm_supplier', 'Sebayar')->where('status', 'tsa')->where('product', 'karet')->sum('qty_kg');
         $karet_temadu = $productQueryFilteredByTime->clone()->where('nm_supplier', 'Temadu')->where('status', 'tsa')->where('product', 'karet')->sum('qty_kg');
-        $stok_gka = $productQueryFilteredByTime->clone()->where('status', 'gka')->where('product', 'karet')->sum('qty_kg');
+        
+        $stok_gka_qty_kg = $productQueryFilteredByTime->clone()->where('status', 'gka')->where('product', 'karet')->sum('qty_kg');
+        $stok_gka_qty_out = $productQueryFilteredByTime->clone()->where('status', 'gka')->where('product', 'karet')->sum('qty_out');
+        $stok_gka = $stok_gka_qty_kg > 0 ? $stok_gka_qty_kg : $stok_gka_qty_out;
+
 
         $hsl_sebayar = $productQueryFilteredByTime->clone()->where('nm_supplier', 'Sebayar')->where('product', 'karet')->sum('amount');
         $hsl_temadu = $productQueryFilteredByTime->clone()->where('nm_supplier', 'Temadu')->where('product', 'karet')->sum('amount');
@@ -123,7 +127,7 @@ class DashboardController extends Controller
                 $chartDateQuery->whereMonth('date', Carbon::now()->month)
                                ->whereYear('date', $currentYear);
                 $startMonth = Carbon::now()->month;
-                $endMonth = Carbon::now()->month;
+                $endMonth = Carbon()->now()->month;
             } elseif ($timePeriod === 'this-year') {
                 $chartDateQuery->whereYear('date', $currentYear);
             }
@@ -169,15 +173,25 @@ class DashboardController extends Controller
             }
         }
 
-        $qualityDistribution = Product::query()
-            ->selectRaw('kualitas, SUM(qty_kg) as total_qty')
+        $qualityDistributionData = Product::query()
+            ->selectRaw('kualitas_out as kualitas, SUM(qty_out) as total_qty')
             ->where('product', 'karet')
             ->where('status', 'gka') 
-            ->groupBy('kualitas')
-            ->get()
-            ->map(function ($item) {
-                return ['name' => $item->kualitas, 'value' => (float)$item->total_qty];
-            })->toArray();
+            ->whereNotNull('kualitas_out') 
+            ->whereNotNull('qty_out') 
+            ->groupBy('kualitas_out')
+            ->get();
+
+        $qualityDistribution = [];
+        foreach ($qualityDistributionData as $item) {
+            
+            $qualityName = $item->kualitas; 
+
+            $qualityDistribution[] = [
+                'name' => $qualityName, 
+                'value' => (float)$item->total_qty
+            ];
+        }
 
         if (empty($qualityDistribution)) {
             $qualityDistribution = [

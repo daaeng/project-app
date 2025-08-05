@@ -69,7 +69,7 @@ export default function edit({product} : props) {
 
             <div className="h-full flex-col rounded-xl p-4 bg-gray-50 dark:bg-black">
             
-                <Heading title='Edit Data Product'/>
+                <Heading title='Edit Data Pengeluaran Product'/>
 
                 <Link href={route('products.index')}>
                     <Button className='bg-auto w-25 hover:bg-accent hover:text-accent-foreground'>
@@ -172,23 +172,23 @@ export default function edit({product} : props) {
 
                                     <div className='gap-2 md:col-span-1 sm:col-span-3'>
                                         <Label htmlFor='Quantity'> Quantity (Kg) </Label>
-                                        <Input placeholder='Quantity' value={data.qty_kg} onChange={(e) => setData('qty_kg', e.target.value)} />
+                                        <Input placeholder='Quantity' value={data.qty_out} onChange={(e) => setData('qty_out', e.target.value)} />
                                     </div>
                                     <div className='gap-2 md:col-span-1 sm:col-span-3'>
                                         <Label htmlFor='Price'> Price /Qty </Label>
-                                        <Input placeholder='Price' value={data.price_qty} onChange={(e) => setData('price_qty', e.target.value)} />
+                                        <Input placeholder='Price' value={data.price_out} onChange={(e) => setData('price_out', e.target.value)} />
                                     </div>
                                     <div className='gap-2 md:col-span-1 sm:col-span-3'>
                                         <Label htmlFor='Amount'> Amount </Label>
-                                        <Input placeholder='Amount' value={data.amount} onChange={(e) => setData('amount', e.target.value)} />
+                                        <Input placeholder='Amount' value={data.amount_out} onChange={(e) => setData('amount_out', e.target.value)} />
                                     </div>
                                     <div className='gap-2 md:col-span-1 sm:col-span-3'>
                                         <Label htmlFor='Keping'> Keping / Buah</Label>
-                                        <Input placeholder='Keping' value={data.keping} onChange={(e) => setData('keping', e.target.value)} />
+                                        <Input placeholder='Keping' value={data.keping_out} onChange={(e) => setData('keping_out', e.target.value)} />
                                     </div>
                                     <div className='gap-2 md:col-span-1 sm:col-span-3'>
                                         <Label htmlFor='Kualitas'> Kualitas </Label>
-                                        <Input placeholder='Kualitas' value={data.kualitas} onChange={(e) => setData('kualitas', e.target.value)} />
+                                        <Input placeholder='Kualitas' value={data.kualitas_out} onChange={(e) => setData('kualitas_out', e.target.value)} />
                                     </div>
 
                                     {/* <div className='gap-2 sm:col-span-3 mt-5'>

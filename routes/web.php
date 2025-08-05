@@ -33,8 +33,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     route::get('/products/create', [ProductController::class, 'create'])->name('products.create');
     route::get('/products/c_send', [ProductController::class, 'c_send'])->name('products.c_send');
+    route::get('/products/s_gka', [ProductController::class, 's_gka'])->name('products.s_gka');
 
     route::get('/products/{product}/edit', [ProductController::class, 'edit'])->name('products.edit');
+    route::get('/products/{product}/edit_out', [ProductController::class, 'edit_out'])->name('products.edit_out');
     route::get('/products/{product}/show', [ProductController::class, 'show'])->name('products.show');
     route::put('/products/{product}', [ProductController::class, 'update'])->name('products.update');
     route::delete('/products/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
@@ -89,6 +91,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     route::get('/administrasis', [AdministrasiController::class, 'index'])->name('administrasis.index');
     route::get('/administrasis/create', [AdministrasiController::class, 'create'])->name('administrasis.create'); // Tambahkan ini
     route::post('/administrasis', [AdministrasiController::class, 'store'])->name('administrasis.store'); // Tambahkan ini
+
+    // Tambahkan ini di routes/web.php Anda
+    Route::post('/administrasis/update-harga', [AdministrasiController::class, 'updateHarga'])->name('administrasis.updateHarga');
+    Route::post('/administrasis/store-pengeluaran', [AdministrasiController::class, 'storePengeluaran'])->name('administrasis.storePengeluaran');
+    Route::put('/administrasis/update-pengeluaran/{id}', [AdministrasiController::class, 'updatePengeluaran'])->name('administrasis.updatePengeluaran');
 
 
     // ~~~~~~~~~~~~~ Role ~~~~~~~~~~~~~

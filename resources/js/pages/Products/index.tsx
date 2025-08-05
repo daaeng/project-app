@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link,  } from '@inertiajs/react';
-import { ArrowRight, Building2, Droplet, FolderOpen, Sprout, Trees, } from 'lucide-react';
+import { ArrowRight, Building2, FolderOpen, Sprout, Trees, } from 'lucide-react';
 import { Card, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { can } from '@/lib/can';
 
@@ -98,7 +98,7 @@ export default function index() {
                         </div>
                     }
 
-                    {can('products.create') && 
+                    {/* {can('products.create') && 
                         <div className='w-full justify-end h-auto flex mb-5 gap-2'>
                             <Link href={''}>
                                 <Button className='bg-red-500 '>
@@ -107,7 +107,7 @@ export default function index() {
                                 </Button>
                             </Link>
                         </div>
-                    }
+                    } */}
                 </div>
 
             </div>
