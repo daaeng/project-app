@@ -41,7 +41,7 @@ class AdministrasiController extends Controller
         } elseif ($timePeriod === 'this-month') {
             $dateRangeStart = Carbon::now()->startOfMonth();
             $dateRangeEnd = Carbon::now()->endOfMonth();
-        } elseif ($timePeriod === 'last-month') { // Opsi baru: Bulan Lalu
+        } elseif ($timePeriod === 'last-month') {
             $dateRangeStart = Carbon::now()->subMonth()->startOfMonth();
             $dateRangeEnd = Carbon::now()->subMonth()->endOfMonth();
         } elseif ($timePeriod === 'this-year') {
@@ -55,19 +55,13 @@ class AdministrasiController extends Controller
             $pengeluaranQueryFilteredByTime->whereBetween('tanggal_pengeluaran', [$dateRangeStart, $dateRangeEnd]);
         }
 
-
         // Ambil data paginasi untuk requests
         $requests = Requested::orderBy('created_at', 'DESC')->paginate($perPage);
 
         // Ambil data paginasi untuk notas
         $notas = Nota::orderBy('created_at', 'DESC')->paginate($perPage);
 
-        // Ambil semua data pengeluaran dengan paginasi (ini tetap tidak difilter waktu untuk tabel detail)
-        // Menggunakan 'pengeluaranPage' sebagai nama parameter query string untuk paginasi pengeluaran
-        $pengeluarans = Pengeluaran::orderBy('tanggal_pengeluaran', 'DESC')->paginate($perPage, ['*'], 'pengeluaranPage');
-
-
-        // --- Hitung Data Summary yang sudah ada ---
+        // --- Hitung Data Summary ---
         $totalRequests = Requested::count();
         $totalNotas = Nota::count();
         $pendingRequests = Requested::where('status', 'belum ACC')->count();
@@ -75,36 +69,46 @@ class AdministrasiController extends Controller
         $totalPendingRequests = $pendingRequests + $pendingNotas;
         $totalApprovedDana = Nota::where('status', 'diterima')->sum('dana');
 
-        // --- Ambil Data Baru untuk Kartu (SEKARANG DIFILTER WAKTU) ---
-        // Harga Saham Karet terbaru (ini biasanya diambil yang paling baru, tidak difilter waktu)
+        // Harga Saham Karet terbaru (tidak difilter waktu)
         $hargaSahamKaret = HargaInformasi::where('jenis', 'harga_saham_karet')
                                         ->orderBy('tanggal_berlaku', 'DESC')
                                         ->first();
         $hargaSahamKaretValue = $hargaSahamKaret ? (float)$hargaSahamKaret->nilai : 0;
 
-        // Harga Dollar terbaru (ini biasanya diambil yang paling baru, tidak difilter waktu)
+        // Harga Dollar terbaru (tidak difilter waktu)
         $hargaDollar = HargaInformasi::where('jenis', 'harga_dollar')
                                     ->orderBy('tanggal_berlaku', 'DESC')
                                     ->first();
         $hargaDollarValue = $hargaDollar ? (float)$hargaDollar->nilai : 0;
 
-        // Total Pengeluaran (DIFILTER WAKTU)
+        // Total Pengeluaran (DIFILTER WAKTU, untuk kartu summary)
         $totalPengeluaran = $pengeluaranQueryFilteredByTime->sum('jumlah');
 
-        // Total Penjualan Karet (DIFILTER WAKTU)
-        // Pastikan 'product' adalah 'karet' dan 'status' adalah 'buyer' untuk penjualan
+        // Total Penjualan Karet (DIFILTER WAKTU, untuk perhitungan laba/rugi)
         $totalPenjualanKaret = $productQueryFilteredByTime->clone()
                                       ->where('product', 'karet')
-                                      ->where('status', 'buyer') // Pastikan hanya penjualan yang masuk perhitungan
+                                      ->where('status', 'buyer')
                                       ->sum('amount_out');
 
         // Perhitungan Laba/Rugi (DIFILTER WAKTU)
         $labaRugi = $totalPenjualanKaret - $totalPengeluaran;
 
+        // Stok karet pengiriman (DIFILTER WAKTU)
+        $s_karet = $productQueryFilteredByTime->clone()->where('status', 'buyer')->where('product', 'karet')->SUM('qty_out');
+        // Harga Jual Karet (DIFILTER WAKTU)
+        $h_karet = $productQueryFilteredByTime->clone()
+                                                  ->where('product', 'karet')
+                                                  ->where('status', 'buyer')
+                                                  ->whereNotNull('price_out') // Hanya ambil yang price_out-nya tidak NULL
+                                                  ->average('price_out');
+        // Pembelian karet (DIFILTER WAKTU) - diasumsikan 'gka' adalah status pembelian
+        $tb_karet = $productQueryFilteredByTime->clone()->where('status', 'gka')->where('product', 'karet')->SUM('amount_out');
+        // Penjualan karet (DIFILTER WAKTU) - diasumsikan 'buyer' adalah status penjualan
+        $tj_karet = $productQueryFilteredByTime->clone()->where('status', 'buyer')->where('product', 'karet')->SUM('amount_out');
+
         return Inertia::render("Administrasis/index", [
             "requests" => $requests,
             "notas" => $notas,
-            "pengeluarans" => $pengeluarans,
             "summary" => [
                 "totalRequests" => $totalRequests,
                 "totalNotas" => $totalNotas,
@@ -114,13 +118,35 @@ class AdministrasiController extends Controller
                 "hargaDollar" => $hargaDollarValue,
                 "totalPengeluaran" => $totalPengeluaran,
                 "labaRugi" => $labaRugi,
-                "totalPenjualanKaret" => $totalPenjualanKaret, // Pastikan ini dikirim
+                "totalPenjualanKaret" => $totalPenjualanKaret,
+                "s_karet" => $s_karet,
+                "h_karet" => $h_karet,
+                "tb_karet" => $tb_karet,
+                "tj_karet" => $tj_karet,
             ],
-            // Kirim filter waktu yang lebih detail ke frontend
             "filter" => $request->only(['time_period', 'month', 'year']),
             "currentMonth" => (int)$selectedMonth,
             "currentYear" => (int)$selectedYear,
         ]);
+    }
+
+    // Metode baru untuk mengambil data pengeluaran dengan filter (dipanggil via AJAX)
+    public function getPengeluarans(Request $request)
+    {
+        $perPage = 10;
+        $month = $request->input('month', Carbon::now()->month);
+        $year = $request->input('year', Carbon::now()->year);
+        $page = $request->input('page', 1);
+
+        $query = Pengeluaran::query();
+
+        // Terapkan filter bulan dan tahun
+        $query->whereYear('tanggal_pengeluaran', $year)
+              ->whereMonth('tanggal_pengeluaran', $month);
+
+        $pengeluarans = $query->orderBy('tanggal_pengeluaran', 'DESC')->paginate($perPage, ['*'], 'page', $page);
+
+        return response()->json($pengeluarans);
     }
 
     // Metode untuk menyimpan/memperbarui harga saham/dollar
@@ -132,16 +158,13 @@ class AdministrasiController extends Controller
             'tanggal_berlaku' => 'required|date',
         ]);
 
-        // Cari data harga yang berlaku pada tanggal tersebut
         $harga = HargaInformasi::where('jenis', $request->jenis)
                                ->where('tanggal_berlaku', $request->tanggal_berlaku)
                                ->first();
 
         if ($harga) {
-            // Jika sudah ada, update nilainya
             $harga->update(['nilai' => $request->nilai]);
         } else {
-            // Jika belum ada, buat entri baru
             HargaInformasi::create([
                 'jenis' => $request->jenis,
                 'nilai' => $request->nilai,

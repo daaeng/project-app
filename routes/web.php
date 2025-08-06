@@ -19,34 +19,23 @@ Route::get('/', function () {
 })->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    // Route::resource('dashboard', DashboardController::class);
-
-    // Route::get('dashboard', function () {
-    //     return Inertia::render("Dashboard/Index");
-    // })->name('dashboard');
-
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     
     // ~~~~~~~~~~~~~ PRODUCT ~~~~~~~~~~~~~
     route::get('/products', [ProductController::class, 'index'])->name('products.index');
     route::post('/products', [ProductController::class, 'store'])->name('products.store');
-
     route::get('/products/create', [ProductController::class, 'create'])->name('products.create');
     route::get('/products/c_send', [ProductController::class, 'c_send'])->name('products.c_send');
     route::get('/products/s_gka', [ProductController::class, 's_gka'])->name('products.s_gka');
-
     route::get('/products/{product}/edit', [ProductController::class, 'edit'])->name('products.edit');
     route::get('/products/{product}/edit_out', [ProductController::class, 'edit_out'])->name('products.edit_out');
     route::get('/products/{product}/show', [ProductController::class, 'show'])->name('products.show');
     route::put('/products/{product}', [ProductController::class, 'update'])->name('products.update');
     route::delete('/products/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
-
     route::get('/products/gka', [ProductController::class, 'gka'])->name('products.gka');
     route::get('/products/tsa', [ProductController::class, 'tsa'])->name('products.tsa');
     route::get('/products/agro', [ProductController::class, 'agro'])->name('products.agro');
-    
     route::get('/products/allof', [ProductController::class, 'allof'])->name('products.allof');
-
     Route::get('/products/export/excel', [ProductController::class, 'exportExcel'])->name('products.export.excel');
     
     // ~~~~~~~~~~~~~ UserManagement ~~~~~~~~~~~~~
@@ -66,14 +55,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     route::put('/requests/{requested}', [RequestController::class, 'update'])->name('requests.update');
     route::get('/requests/{requested}/show', [RequestController::class, 'show'])->name('requests.show');
     route::delete('/requests/{requested}', [RequestController::class, 'destroy'])->name('requests.destroy');
-    
     route::get('/requests/{requested}/editAct', [RequestController::class, 'editAct'])->name('requests.editAct');
     route::put('/requests/{requested}', [RequestController::class, 'updateAct'])->name('requests.updateAct');
     route::get('/requests/{requested}/showAct', [RequestController::class, 'showAct'])->name('requests.showAct');
     
     // ~~~~~~~~~~~~~ Invoice ~~~~~~~~~~~~~
-    // Route::resource('notas', NotaController::class);
-
     route::get('/notas', [NotaController::class, 'index'])->name('notas.index');
     route::post('/notas', [NotaController::class, 'c_nota'])->name('notas.c_nota');
     route::get('/notas/up_nota', [NotaController::class, 'up_nota'])->name('notas.up_nota');
@@ -81,44 +67,26 @@ Route::middleware(['auth', 'verified'])->group(function () {
     route::put('/notas/{nota}', [NotaController::class, 'update'])->name('notas.update');
     route::get('/notas/{nota}/show', [NotaController::class, 'show'])->name('notas.show');
     route::delete('/notas/{nota}', [NotaController::class, 'destroy'])->name('notas.destroy');
-    
     route::get('/notas/{nota}/editAct', [NotaController::class, 'editAct'])->name('notas.editAct');
     route::put('/notas/{nota}', [NotaController::class, 'updateAct'])->name('notas.updateAct');
     route::get('/notas/{nota}/showAct', [NotaController::class, 'showAct'])->name('notas.showAct');
-    // Route::get('/notas', [NotaController::class, 'getNotas']);
 
     // ~~~~~~~~~~~~~ ADMINISTRASI ~~~~~~~~~~~~~
     route::get('/administrasis', [AdministrasiController::class, 'index'])->name('administrasis.index');
-    route::get('/administrasis/create', [AdministrasiController::class, 'create'])->name('administrasis.create'); // Tambahkan ini
-    route::post('/administrasis', [AdministrasiController::class, 'store'])->name('administrasis.store'); // Tambahkan ini
-
-    // Tambahkan ini di routes/web.php Anda
+    // Rute untuk mengambil data pengeluaran (BARU)
+    Route::get('/administrasis/pengeluarans', [AdministrasiController::class, 'getPengeluarans'])->name('administrasis.getPengeluarans');
+    // Rute untuk update harga, store dan update pengeluaran (Sudah ada, pastikan benar)
     Route::post('/administrasis/update-harga', [AdministrasiController::class, 'updateHarga'])->name('administrasis.updateHarga');
     Route::post('/administrasis/store-pengeluaran', [AdministrasiController::class, 'storePengeluaran'])->name('administrasis.storePengeluaran');
     Route::put('/administrasis/update-pengeluaran/{id}', [AdministrasiController::class, 'updatePengeluaran'])->name('administrasis.updatePengeluaran');
+    Route::delete('/administrasis/destroy-pengeluaran/{id}', [AdministrasiController::class, 'destroyPengeluaran'])->name('administrasis.destroyPengeluaran');
 
 
     // ~~~~~~~~~~~~~ Role ~~~~~~~~~~~~~
-    //routes
     Route::resource("roles", RoleController::class)
-                    ->only(["create", "store"])
-                    ->middleware("permission:roles.create");
-
-    Route::resource("roles", RoleController::class)
-                    ->only(["edit", "update"])
-                    ->middleware("permission:roles.edit");
+                    ->only(["create", "store", "edit", "update", "destroy", "index", "show"])
+                    ->middleware("permission:roles.create|roles.edit|roles.delete|roles.view");
     
-    Route::resource("roles", RoleController::class)
-                    ->only(["destroy"])
-                    ->middleware("permission:roles.delete");
-    
-    Route::resource("roles", RoleController::class)
-                    ->only(["index", "show"])
-                    ->middleware("permission:roles.view|roles.create|roles.edit|roles.delete");
-    
-
-    Route::resource('roles', RoleController::class);
-
     // ~~~~~~~~~~~~~ Incisor ~~~~~~~~~~~~~
     route::get('/incisors', [IncisorController::class, 'index'])->name('incisors.index');
     route::post('/incisors', [IncisorController::class, 'store'])->name('incisors.store');
@@ -138,10 +106,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     route::delete('/inciseds/{incised}', [IncisedController::class, 'destroy'])->name('inciseds.destroy');
     
     // ~~~~~~~~~~~~~ KASBON ~~~~~~~~~~~~~
-
     Route::post('/kasbons/get-incisor-data', [KasbonController::class, 'getIncisorData'])->name('kasbons.getIncisorData');
     Route::resource('kasbons', KasbonController::class);
-
 
 });
 

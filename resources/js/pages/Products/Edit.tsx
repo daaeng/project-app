@@ -117,7 +117,7 @@ export default function edit({product} : props) {
                             </div>
                             <div className='gap-2'>
                                 <Label htmlFor='Invoice'> No. Invoice </Label>
-                                <Input placeholder='Invoice' value={data.no_invoice} onChange={(e) => setData('no_invoice', e.target.value)} readOnly/>
+                                <Input placeholder='Invoice' value={data.no_invoice} onChange={(e) => setData('no_invoice', e.target.value)} />
                             </div>
                             <div className='gap-2'>
                                 <Label htmlFor='Name Supplier'> Supplier </Label>
