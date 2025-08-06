@@ -65,7 +65,9 @@ interface PageProps {
     hsl_pupuk: number;
     saldoinppk: number;
     saldooutppk: number;
-    filter?: { search?: string; time_period?: string }; // Added time_period to filter
+    filter?: { search?: string; time_period?: string; month?: string; year?: string }; // Added month and year
+    currentMonth: number; // New prop
+    currentYear: number;   // New prop
 }
 
 const formatCurrency = (value: number) => {
@@ -78,16 +80,42 @@ const formatCurrency = (value: number) => {
 
 export default function AllofPage({ // Ganti nama komponen agar lebih deskriptif
     hsl_karet, saldoin, saldoout, hsl_kelapa, saldoinklp, saldooutklp,
-    hsl_pupuk, saldoinppk, saldooutppk, products, flash, filter,
+    hsl_pupuk, saldoinppk, saldooutppk, products, flash, filter, currentMonth, currentYear
 }: PageProps) {
     const [searchValue, setSearchValue] = useState(filter?.search || '');
-    const [timePeriod, setTimePeriod] = useState(filter?.time_period || 'all-time'); // State for time period filter
+    
+    // Improved useState initialization for timePeriod
+    const [timePeriod, setTimePeriod] = useState(() => {
+        const urlParams = new URLSearchParams(window.location.search);
+        
+        // Prioritize 'time_period' parameter from URL if present
+        if (urlParams.has('time_period')) {
+            return urlParams.get('time_period') || 'this-month'; // Fallback if parameter in URL is empty
+        }
+
+        // If no 'time_period' parameter in URL,
+        // and the filter prop from the backend is 'all-time' (possibly due to Inertia state persistence),
+        // then force 'this-month' for the initial display.
+        if (filter?.time_period === 'all-time') {
+            return 'this-month';
+        }
+        
+        // If no parameter in URL and filter prop is not 'all-time',
+        // use the value from the filter prop (which should be 'this-month' from PHP default)
+        // or fallback to 'this-month' if filter.time_period is undefined/null.
+        return filter?.time_period || 'this-month';
+    });
+
+    const [selectedMonth, setSelectedMonth] = useState<string>(String(currentMonth));
+    const [selectedYear, setSelectedYear] = useState<string>(String(currentYear));
 
     // Sinkronisasi state dengan prop dari server
     useEffect(() => {
         setSearchValue(filter?.search || '');
-        setTimePeriod(filter?.time_period || 'all-time'); // Sync time period from props
-    }, [filter?.search, filter?.time_period]);
+        setTimePeriod(filter?.time_period || 'this-month'); // Sync time period from props
+        setSelectedMonth(String(filter?.month || currentMonth)); // Sync month from props
+        setSelectedYear(String(filter?.year || currentYear));   // Sync year from props
+    }, [filter?.search, filter?.time_period, filter?.month, filter?.year, currentMonth, currentYear]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearchValue(e.target.value);
@@ -95,13 +123,54 @@ export default function AllofPage({ // Ganti nama komponen agar lebih deskriptif
 
     const handleTimePeriodChange = (value: string) => {
         setTimePeriod(value);
+        const params: { search: string; time_period: string; month?: string; year?: string } = {
+            search: searchValue,
+            time_period: value
+        };
+
+        if (value === 'specific-month') {
+            const current = new Date();
+            params.month = String(current.getMonth() + 1);
+            params.year = String(current.getFullYear());
+            setSelectedMonth(params.month);
+            setSelectedYear(params.year);
+        } else {
+            // Clear month and year if not 'specific-month'
+            setSelectedMonth(String(new Date().getMonth() + 1));
+            setSelectedYear(String(new Date().getFullYear()));
+        }
+
         // Trigger search when time period changes
         router.get(route('products.allof'),
-            { search: searchValue, time_period: value }, // Include time_period in the request
+            params, // Include time_period, month, and year in the request
             {
                 preserveState: true,
                 replace: true,
-                only: ['products', 'filter', 'hsl_karet', 'saldoin', 'saldoout', 'hsl_kelapa', 'saldoinklp', 'saldooutklp', 'hsl_pupuk', 'saldoinppk', 'saldooutppk'], // Hanya minta data yang berubah, termasuk statistik
+                only: ['products', 'filter', 'hsl_karet', 'saldoin', 'saldoout', 'hsl_kelapa', 'saldoinklp', 'saldooutklp', 'hsl_pupuk', 'saldoinppk', 'saldooutppk', 'currentMonth', 'currentYear'], // Hanya minta data yang berubah, termasuk statistik
+            }
+        );
+    };
+
+    const handleMonthChange = (value: string) => {
+        setSelectedMonth(value);
+        router.get(route('products.allof'),
+            { search: searchValue, time_period: timePeriod, month: value, year: selectedYear },
+            {
+                preserveState: true,
+                replace: true,
+                only: ['products', 'filter', 'hsl_karet', 'saldoin', 'saldoout', 'hsl_kelapa', 'saldoinklp', 'saldooutklp', 'hsl_pupuk', 'saldoinppk', 'saldooutppk', 'currentMonth', 'currentYear'],
+            }
+        );
+    };
+
+    const handleYearChange = (value: string) => {
+        setSelectedYear(value);
+        router.get(route('products.allof'),
+            { search: searchValue, time_period: timePeriod, month: selectedMonth, year: value },
+            {
+                preserveState: true,
+                replace: true,
+                only: ['products', 'filter', 'hsl_karet', 'saldoin', 'saldoout', 'hsl_kelapa', 'saldoinklp', 'saldooutklp', 'hsl_pupuk', 'saldoinppk', 'saldooutppk', 'currentMonth', 'currentYear'],
             }
         );
     };
@@ -109,11 +178,11 @@ export default function AllofPage({ // Ganti nama komponen agar lebih deskriptif
     const performSearch = () => {
         // Menggunakan router.get untuk navigasi
         router.get(route('products.allof'),
-            { search: searchValue, time_period: timePeriod }, // Data yang dikirim sebagai query string
+            { search: searchValue, time_period: timePeriod, month: selectedMonth, year: selectedYear }, // Data yang dikirim sebagai query string
             {
                 preserveState: true,
                 replace: true,
-                only: ['products', 'filter', 'hsl_karet', 'saldoin', 'saldoout', 'hsl_kelapa', 'saldoinklp', 'saldooutklp', 'hsl_pupuk', 'saldoinppk', 'saldooutppk'], // Hanya minta data yang berubah, termasuk statistik
+                only: ['products', 'filter', 'hsl_karet', 'saldoin', 'saldoout', 'hsl_kelapa', 'saldoinklp', 'saldooutklp', 'hsl_pupuk', 'saldoinppk', 'saldooutppk', 'currentMonth', 'currentYear'], // Hanya minta data yang berubah, termasuk statistik
             }
         );
     };
@@ -128,9 +197,37 @@ export default function AllofPage({ // Ganti nama komponen agar lebih deskriptif
     const renderPagination = (pagination: PageProps['products']) => {
         return (
             <div className="flex justify-center items-center mt-6 space-x-1">
-                {pagination.links.map((link: PaginationLink, index: number) => (
-                    // Jika URL null (misalnya untuk "...") kita render sebagai teks biasa
-                    link.url === null ? (
+                {pagination.links.map((link: PaginationLink, index: number) => {
+                    // Periksa apakah link.url ada dan valid sebelum membuat objek URL
+                    let url: URL | null = null;
+                    try {
+                        if (link.url) {
+                            url = new URL(link.url);
+                        }
+                    } catch (e) {
+                        console.error("Invalid URL encountered:", link.url, e);
+                        // Jika URL tidak valid, kita bisa memilih untuk tidak merender link ini atau merender sebagai teks biasa
+                        return (
+                            <div
+                                key={index}
+                                className="px-4 py-2 text-sm text-gray-400"
+                                dangerouslySetInnerHTML={{ __html: link.label }}
+                            />
+                        );
+                    }
+
+                    const currentParams = url ? new URLSearchParams(url.search) : new URLSearchParams();
+                    
+                    // Set the correct page parameter name
+                    currentParams.set('page', currentParams.get('page') || link.label.replace(/&laquo;/g, '').replace(/&raquo;/g, ''));
+
+                    // Append existing filters
+                    if (searchValue) currentParams.set('search', searchValue);
+                    if (timePeriod !== 'all-time') currentParams.set('time_period', timePeriod);
+                    if (timePeriod === 'specific-month' && selectedMonth) currentParams.set('month', selectedMonth);
+                    if (timePeriod === 'specific-month' && selectedYear) currentParams.set('year', selectedYear);
+
+                    return link.url === null || !url ? ( // Tambahkan !url check di sini
                         <div
                             key={index}
                             className="px-4 py-2 text-sm text-gray-400"
@@ -140,7 +237,7 @@ export default function AllofPage({ // Ganti nama komponen agar lebih deskriptif
                         // Gunakan komponen <Link> dari Inertia
                         <Link
                             key={`link-${index}`}
-                            href={link.url + (searchValue ? `&search=${searchValue}` : '') + (timePeriod !== 'all-time' ? `&time_period=${timePeriod}` : '')} // Append search and time_period to pagination links
+                            href={`${url.origin}${url.pathname}?${currentParams.toString()}`}
                             className={`px-4 py-2 text-sm rounded-md transition ${
                                 link.active
                                     ? 'bg-blue-600 text-white shadow-md'
@@ -154,10 +251,23 @@ export default function AllofPage({ // Ganti nama komponen agar lebih deskriptif
                             <span dangerouslySetInnerHTML={{ __html: link.label }} />
                         </Link>
                     )
-                ))}
+                })}
             </div>
         );
     };
+
+    // Generate options for months (1-12)
+    const months = Array.from({ length: 12 }, (_, i) => ({
+        value: String(i + 1),
+        label: new Date(0, i).toLocaleString('id-ID', { month: 'long' }),
+    }));
+
+    // Generate options for years (e.g., current year - 5 to current year + 1)
+    const currentYearNum = new Date().getFullYear();
+    const years = Array.from({ length: 7 }, (_, i) => ({
+        value: String(currentYearNum - 5 + i),
+        label: String(currentYearNum - 5 + i),
+    }));
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -249,10 +359,40 @@ export default function AllofPage({ // Ganti nama komponen agar lebih deskriptif
                                         <SelectItem value="today">Today</SelectItem>
                                         <SelectItem value="this-week">This Week</SelectItem>
                                         <SelectItem value="this-month">This Month</SelectItem>
+                                        <SelectItem value="last-month">Last Month</SelectItem> {/* Added "Last Month" */}
                                         <SelectItem value="this-year">This Year</SelectItem>
+                                        <SelectItem value="specific-month">Pilih Bulan & Tahun</SelectItem>
                                     </SelectContent>
                                 </Select>
-                                
+
+                                {timePeriod === 'specific-month' && (
+                                    <>
+                                        <Select value={selectedMonth} onValueChange={handleMonthChange}>
+                                            <SelectTrigger className="w-[140px]">
+                                                <SelectValue placeholder="Pilih Bulan" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {months.map((month) => (
+                                                    <SelectItem key={month.value} value={month.value}>
+                                                        {month.label}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        <Select value={selectedYear} onValueChange={handleYearChange}>
+                                            <SelectTrigger className="w-[100px]">
+                                                <SelectValue placeholder="Pilih Tahun" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {years.map((year) => (
+                                                    <SelectItem key={year.value} value={year.value}>
+                                                        {year.label}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </>
+                                )}
                             </div>
                         </div>
 
@@ -275,15 +415,15 @@ export default function AllofPage({ // Ganti nama komponen agar lebih deskriptif
                                     {products.data.length > 0 ? (
                                         products.data.map((product) => (
                                             <TableRow key={product.id}>
-                                                <TableCell>{product.product}</TableCell>
-                                                <TableCell>{product.date}</TableCell>
-                                                <TableCell>{product.nm_supplier}</TableCell>
-                                                <TableCell>{product.keping}</TableCell>
-                                                <TableCell>{product.qty_kg}</TableCell>
-                                                <TableCell>{product.qty_out}</TableCell>
-                                                <TableCell>{formatCurrency(product.amount)}</TableCell>
-                                                <TableCell>{formatCurrency(product.amount_out)}</TableCell>
-                                                <TableCell className="text-center">
+                                                <TableCell key={`${product.id}-product`}>{product.product}</TableCell>
+                                                <TableCell key={`${product.id}-date`}>{product.date}</TableCell>
+                                                <TableCell key={`${product.id}-supplier`}>{product.nm_supplier}</TableCell>
+                                                <TableCell key={`${product.id}-keping`}>{product.keping}</TableCell>
+                                                <TableCell key={`${product.id}-qty-in`}>{product.qty_kg}</TableCell>
+                                                <TableCell key={`${product.id}-qty-out`}>{product.qty_out}</TableCell>
+                                                <TableCell key={`${product.id}-amount-in`}>{formatCurrency(product.amount)}</TableCell>
+                                                <TableCell key={`${product.id}-amount-out`}>{formatCurrency(product.amount_out)}</TableCell>
+                                                <TableCell key={`${product.id}-status`} className="text-center">
                                                     <Tag_Karet status={product.status} />
                                                 </TableCell>
 

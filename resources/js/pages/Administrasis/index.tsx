@@ -323,7 +323,7 @@ export default function AdminPage({ requests, notas, summary, filter, currentMon
             onSuccess: () => {
                 setIsHargaModalOpen(false);
                 hargaForm.reset();
-                router.reload({ only: ['summary'] });
+                router.reload({ only: ['summary', 'filter', 'currentMonth', 'currentYear'] }); // Diperbarui
             },
             onError: (errors) => {
                 console.error(errors);
@@ -357,7 +357,7 @@ export default function AdminPage({ requests, notas, summary, filter, currentMon
                     setIsPengeluaranEditModalOpen(false);
                     pengeluaranForm.reset();
                     fetchPengeluarans(); // Refresh data in modal after edit
-                    router.reload({ only: ['summary'] }); // Refresh summary card
+                    router.reload({ only: ['summary', 'filter', 'currentMonth', 'currentYear'] }); // Diperbarui
                 },
                 onError: (errors) => {
                     console.error(errors);
@@ -369,7 +369,7 @@ export default function AdminPage({ requests, notas, summary, filter, currentMon
                     setIsPengeluaranAddModalOpen(false);
                     pengeluaranForm.reset();
                     fetchPengeluarans(); // Refresh data in modal after add
-                    router.reload({ only: ['summary'] }); // Refresh summary card
+                    router.reload({ only: ['summary', 'filter', 'currentMonth', 'currentYear'] }); // Diperbarui
                 },
                 onError: (errors) => {
                     console.error(errors);
@@ -390,7 +390,7 @@ export default function AdminPage({ requests, notas, summary, filter, currentMon
                     setIsDeleteConfirmModalOpen(false);
                     setPengeluaranToDelete(null);
                     fetchPengeluarans(); // Refresh data in modal after delete
-                    router.reload({ only: ['summary'] }); // Refresh summary card
+                    router.reload({ only: ['summary', 'filter', 'currentMonth', 'currentYear'] }); // Diperbarui
                 },
                 onError: (errors) => {
                     console.error(errors);
@@ -412,6 +412,15 @@ export default function AdminPage({ requests, notas, summary, filter, currentMon
             params.year = String(current.getFullYear());
             setSelectedMonth(params.month);
             setSelectedYear(params.year);
+        } else {
+            // Clear month and year if not 'specific-month'
+            // Set to current month/year for other filters
+            const current = new Date();
+            setSelectedMonth(String(current.getMonth() + 1));
+            setSelectedYear(String(current.getFullYear()));
+            // If switching from specific-month to another, ensure month/year params are cleared
+            if (params.month) delete params.month;
+            if (params.year) delete params.year;
         }
 
         router.get(route('administrasis.index'),
@@ -419,7 +428,33 @@ export default function AdminPage({ requests, notas, summary, filter, currentMon
             {
                 preserveState: true,
                 replace: true,
-                only: ['summary', 'requests', 'notas'],
+                only: ['summary', 'requests', 'notas', 'filter', 'currentMonth', 'currentYear'], // Diperbarui
+            }
+        );
+    };
+
+    // Handler untuk perubahan filter bulan di modal pengeluaran
+    const handleMonthChange = (value: string) => { // Fungsi ini sudah ada
+        setSelectedMonth(value);
+        router.get(route('administrasis.index'),
+            { time_period: timePeriod, month: value, year: selectedYear },
+            {
+                preserveState: true,
+                replace: true,
+                only: ['summary', 'requests', 'notas', 'filter', 'currentMonth', 'currentYear'], // Diperbarui
+            }
+        );
+    };
+
+    // Handler untuk perubahan filter tahun di modal pengeluaran
+    const handleYearChange = (value: string) => { // Fungsi ini sudah ada
+        setSelectedYear(value);
+        router.get(route('administrasis.index'),
+            { time_period: timePeriod, month: selectedMonth, year: value },
+            {
+                preserveState: true,
+                replace: true,
+                only: ['summary', 'requests', 'notas', 'filter', 'currentMonth', 'currentYear'], // Diperbarui
             }
         );
     };
@@ -569,7 +604,7 @@ export default function AdminPage({ requests, notas, summary, filter, currentMon
                             className="absolute top-2 right-2 text-white hover:bg-white hover:bg-opacity-20"
                             onClick={() => openHargaModal('harga_dollar', summary.hargaDollar)}
                         >
-                            <Edit size={20} />
+                            <DollarSign size={20} />
                         </Button>
                         <DollarSign size={40} className="opacity-70" />
                     </div>

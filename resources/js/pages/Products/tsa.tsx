@@ -95,7 +95,9 @@ interface PageProps {
     ts_sin: number;
     ts_sou: number;
     hsl_jual: number;
-    filter?: { search?: string; time_period?: string }; // Added time_period to filter
+    filter?: { search?: string; time_period?: string; month?: string; year?: string }; // Added month and year
+    currentMonth: number; // New prop
+    currentYear: number;   // New prop
     auth?: any;
 }
 
@@ -109,15 +111,44 @@ const formatCurrency = (value: number) => {
 
 export default function TsaPage({
     flash, products, products2, hsl_karet, saldoin, saldoout, keping_in, keping_out, keping_sbyr, keping_sbyr2, keping_tmd, keping_tmd2, 
-    tm_slin, tm_slou, tm_sin, tm_sou, ts_slin, ts_slou, ts_sin, ts_sou, filter, hsl_jual
+    tm_slin, tm_slou, tm_sin, tm_sou, ts_slin, ts_slou, ts_sin, ts_sou, filter, hsl_jual, currentMonth, currentYear
 }: PageProps) {
+    // Pastikan searchValue selalu string, bahkan jika filter.search null/undefined
     const [searchValue, setSearchValue] = useState(filter?.search || '');
-    const [timePeriod, setTimePeriod] = useState(filter?.time_period || 'all-time'); // State for time period filter
+    
+    // Improved useState initialization for timePeriod
+    const [timePeriod, setTimePeriod] = useState(() => {
+        const urlParams = new URLSearchParams(window.location.search);
+        
+        // Prioritize 'time_period' parameter from URL if present
+        if (urlParams.has('time_period')) {
+            return urlParams.get('time_period') || 'this-month'; // Fallback if parameter in URL is empty
+        }
+
+        // If no 'time_period' parameter in URL,
+        // and the filter prop from the backend is 'all-time' (possibly due to Inertia state persistence),
+        // then force 'this-month' for the initial display.
+        if (filter?.time_period === 'all-time') {
+            return 'this-month';
+        }
+        
+        // If no parameter in URL and filter prop is not 'all-time',
+        // use the value from the filter prop (which should be 'this-month' from PHP default)
+        // or fallback to 'this-month' if filter.time_period is undefined/null.
+        return filter?.time_period || 'this-month';
+    });
+
+    const [selectedMonth, setSelectedMonth] = useState<string>(String(currentMonth));
+    const [selectedYear, setSelectedYear] = useState<string>(String(currentYear));
 
     useEffect(() => {
         setSearchValue(filter?.search || '');
-        setTimePeriod(filter?.time_period || 'all-time'); // Sync time period from props
-    }, [filter?.search, filter?.time_period]);
+        // This will handle subsequent updates if filter.time_period changes from the server.
+        // It's important to maintain synchronization after the initial render.
+        setTimePeriod(filter?.time_period || 'this-month'); 
+        setSelectedMonth(String(filter?.month || currentMonth)); // Sync month from props
+        setSelectedYear(String(filter?.year || currentYear));   // Sync year from props
+    }, [filter?.search, filter?.time_period, filter?.month, filter?.year, currentMonth, currentYear]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearchValue(e.target.value);
@@ -125,24 +156,64 @@ export default function TsaPage({
 
     const handleTimePeriodChange = (value: string) => {
         setTimePeriod(value);
-        // Trigger search when time period changes
+        const params: { search: string; time_period: string; month?: string; year?: string } = {
+            search: searchValue,
+            time_period: value
+        };
+
+        if (value === 'specific-month') {
+            const current = new Date();
+            params.month = String(current.getMonth() + 1);
+            params.year = String(current.getFullYear());
+            setSelectedMonth(params.month);
+            setSelectedYear(params.year);
+        } else {
+            // Clear month and year if not 'specific-month'
+            setSelectedMonth(String(new Date().getMonth() + 1));
+            setSelectedYear(String(new Date().getFullYear()));
+        }
+
         router.get(route('products.tsa'),
-            { search: searchValue, time_period: value }, // Include time_period in the request
+            params,
             {
                 preserveState: true,
                 replace: true,
-                only: ['products', 'products2', 'filter', 'hsl_karet', 'saldoin', 'keping_sbyr', 'keping_sbyr2', 'keping_tmd', 'keping_tmd2', 'keping_out', 'keping_in', 'saldoout', 'tm_slin', 'tm_slou', 'tm_sin', 'tm_sou', 'ts_slin', 'ts_slou', 'ts_sin', 'ts_sou'], // Include all stats
+                only: ['products', 'products2', 'filter', 'hsl_karet', 'saldoin', 'keping_sbyr', 'keping_sbyr2', 'keping_tmd', 'keping_tmd2', 'keping_out', 'keping_in', 'saldoout', 'tm_slin', 'tm_slou', 'tm_sin', 'tm_sou', 'ts_slin', 'ts_slou', 'ts_sin', 'ts_sou', 'hsl_jual'], // Include all stats
+            }
+        );
+    };
+
+    const handleMonthChange = (value: string) => {
+        setSelectedMonth(value);
+        router.get(route('products.tsa'),
+            { search: searchValue, time_period: timePeriod, month: value, year: selectedYear },
+            {
+                preserveState: true,
+                replace: true,
+                only: ['products', 'products2', 'filter', 'hsl_karet', 'saldoin', 'keping_sbyr', 'keping_sbyr2', 'keping_tmd', 'keping_tmd2', 'keping_out', 'keping_in', 'saldoout', 'tm_slin', 'tm_slou', 'tm_sin', 'tm_sou', 'ts_slin', 'ts_slou', 'ts_sin', 'ts_sou', 'hsl_jual'],
+            }
+        );
+    };
+
+    const handleYearChange = (value: string) => {
+        setSelectedYear(value);
+        router.get(route('products.tsa'),
+            { search: searchValue, time_period: timePeriod, month: selectedMonth, year: value },
+            {
+                preserveState: true,
+                replace: true,
+                only: ['products', 'products2', 'filter', 'hsl_karet', 'saldoin', 'keping_sbyr', 'keping_sbyr2', 'keping_tmd', 'keping_tmd2', 'keping_out', 'keping_in', 'saldoout', 'tm_slin', 'tm_slou', 'tm_sin', 'tm_sou', 'ts_slin', 'ts_slou', 'ts_sin', 'ts_sou', 'hsl_jual'],
             }
         );
     };
 
     const performSearch = () => {
         router.get(route('products.tsa'),
-            { search: searchValue, time_period: timePeriod }, // Include time_period in the search
+            { search: searchValue, time_period: timePeriod, month: selectedMonth, year: selectedYear }, // Include month and year in the search
             {
                 preserveState: true,
                 replace: true,
-                only: ['products', 'products2', 'filter', 'hsl_karet', 'saldoin', 'keping_sbyr', 'keping_sbyr2', 'keping_tmd', 'keping_tmd2', 'keping_out', 'keping_in', 'saldoout', 'tm_slin', 'tm_slou', 'tm_sin', 'tm_sou', 'ts_slin', 'ts_slou', 'ts_sin', 'ts_sou'], // Include all stats
+                only: ['products', 'products2', 'filter', 'hsl_karet', 'saldoin', 'keping_sbyr', 'keping_sbyr2', 'keping_tmd', 'keping_tmd2', 'keping_out', 'keping_in', 'saldoout', 'tm_slin', 'tm_slou', 'tm_sin', 'tm_sou', 'ts_slin', 'ts_slou', 'ts_sin', 'ts_sou', 'hsl_jual'], // Include all stats
             }
         );
     };
@@ -159,17 +230,46 @@ export default function TsaPage({
                 preserveState: true,
                 preserveScroll: true,
                 onSuccess: () => {
-                    router.get(route('products.tsa'), { search: searchValue, time_period: timePeriod }, { preserveState: true }); // Preserve time_period after delete
+                    router.get(route('products.tsa'), { search: searchValue, time_period: timePeriod, month: selectedMonth, year: selectedYear }, { preserveState: true }); // Preserve time_period, month, year after delete
                 },
             });
         }
     };
 
-    const renderPagination = (pagination: PageProps['products']) => {
+    const renderPagination = (pagination: PageProps['products'], pageParamName: string = 'page') => {
         return (
             <div className="flex justify-center items-center mt-6 space-x-1">
-                {pagination.links.map((link: PaginationLink, index: number) => (
-                    link.url === null ? (
+                {pagination.links.map((link: PaginationLink, index: number) => {
+                    // Periksa apakah link.url ada dan valid sebelum membuat objek URL
+                    let url: URL | null = null;
+                    try {
+                        if (link.url) {
+                            url = new URL(link.url);
+                        }
+                    } catch (e) {
+                        console.error("Invalid URL encountered:", link.url, e);
+                        // Jika URL tidak valid, kita bisa memilih untuk tidak merender link ini atau merender sebagai teks biasa
+                        return (
+                            <div
+                                key={index}
+                                className="px-4 py-2 text-sm text-gray-400"
+                                dangerouslySetInnerHTML={{ __html: link.label }}
+                            />
+                        );
+                    }
+
+                    const currentParams = url ? new URLSearchParams(url.search) : new URLSearchParams();
+                    
+                    // Set the correct page parameter name
+                    currentParams.set(pageParamName, currentParams.get('page') || currentParams.get('page2') || link.label.replace(/&laquo;/g, '').replace(/&raquo;/g, ''));
+
+                    // Append existing filters
+                    if (searchValue) currentParams.set('search', searchValue);
+                    if (timePeriod !== 'all-time') currentParams.set('time_period', timePeriod);
+                    if (timePeriod === 'specific-month' && selectedMonth) currentParams.set('month', selectedMonth);
+                    if (timePeriod === 'specific-month' && selectedYear) currentParams.set('year', selectedYear);
+
+                    return link.url === null || !url ? ( // Tambahkan !url check di sini
                         <div
                             key={index}
                             className="px-4 py-2 text-sm text-gray-400"
@@ -178,7 +278,7 @@ export default function TsaPage({
                     ) : (
                         <Link
                             key={`link-${index}`}
-                            href={link.url + (searchValue ? `&search=${searchValue}` : '') + (timePeriod !== 'all-time' ? `&time_period=${timePeriod}` : '')} // Append search and time_period to pagination links
+                            href={`${url.origin}${url.pathname}?${currentParams.toString()}`}
                             className={`px-4 py-2 text-sm rounded-md transition ${
                                 link.active
                                     ? 'bg-blue-600 text-white shadow-md'
@@ -189,11 +289,25 @@ export default function TsaPage({
                         >
                             <span dangerouslySetInnerHTML={{ __html: link.label }} />
                         </Link>
-                    )
-                ))}
+                    );
+                })}
             </div>
         );
     };
+
+    // Generate options for months (1-12)
+    const months = Array.from({ length: 12 }, (_, i) => ({
+        value: String(i + 1),
+        label: new Date(0, i).toLocaleString('id-ID', { month: 'long' }),
+    }));
+
+    // Generate options for years (e.g., current year - 5 to current year + 1)
+    const currentYearNum = new Date().getFullYear();
+    const years = Array.from({ length: 7 }, (_, i) => ({
+        value: String(currentYearNum - 5 + i),
+        label: String(currentYearNum - 5 + i),
+    }));
+
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -317,9 +431,41 @@ export default function TsaPage({
                                         <SelectItem value="today">Today</SelectItem>
                                         <SelectItem value="this-week">This Week</SelectItem>
                                         <SelectItem value="this-month">This Month</SelectItem>
+                                        <SelectItem value="last-month">Last Month</SelectItem>
                                         <SelectItem value="this-year">This Year</SelectItem>
+                                        <SelectItem value="specific-month">Pilih Bulan & Tahun</SelectItem>
                                     </SelectContent>
                                 </Select>
+
+                                {timePeriod === 'specific-month' && (
+                                    <>
+                                        <Select value={selectedMonth} onValueChange={handleMonthChange}>
+                                            <SelectTrigger className="w-[140px]">
+                                                <SelectValue placeholder="Pilih Bulan" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {months.map((month) => (
+                                                    <SelectItem key={month.value} value={month.value}>
+                                                        {month.label}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        <Select value={selectedYear} onValueChange={handleYearChange}>
+                                            <SelectTrigger className="w-[100px]">
+                                                <SelectValue placeholder="Pilih Tahun" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {years.map((year) => (
+                                                    <SelectItem key={year.value} value={year.value}>
+                                                        {year.label}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </>
+                                )}
+
                                 <Link href={route('products.s_gka')}>
                                     <Button className='bg-green-600 hover:bg-green-400'>
                                         <Send />
@@ -355,12 +501,12 @@ export default function TsaPage({
                                             {products.data.length > 0 ? (
                                                 products.data.map((product) => (
                                                     <TableRow key={product.id}>
-                                                        <TableCell>{product.date}</TableCell>
-                                                        <TableCell>{product.nm_supplier}</TableCell>
-                                                        <TableCell>{product.keping}</TableCell>
-                                                        <TableCell>{product.qty_kg}</TableCell>
-                                                        <TableCell>{formatCurrency(product.amount)}</TableCell>
-                                                        <TableCell className="text-center space-x-1">
+                                                        <TableCell key={`${product.id}-date`}>{product.date}</TableCell>
+                                                        <TableCell key={`${product.id}-supplier`}>{product.nm_supplier}</TableCell>
+                                                        <TableCell key={`${product.id}-keping`}>{product.keping}</TableCell>
+                                                        <TableCell key={`${product.id}-qty-in`}>{product.qty_kg}</TableCell>
+                                                        <TableCell key={`${product.id}-amount`}>{formatCurrency(product.amount)}</TableCell>
+                                                        <TableCell key={`${product.id}-actions`} className="text-center space-x-1">
                                                             {can('products.view') && <Link href={route('products.show', product.id)}><Button size="icon" variant="ghost"><Eye className="h-4 w-4 text-gray-500" /></Button></Link>}
                                                             {can('products.edit') && <Link href={route('products.edit', product.id)}><Button size="icon" variant="ghost"><PencilLine className="h-4 w-4 text-blue-500" /></Button></Link>}
                                                             {can('roles.delete') && <Button size="icon" variant="ghost" onClick={() => handleDelete(product.id, product.product)}><Trash className="h-4 w-4 text-red-500" /></Button>}
@@ -377,7 +523,7 @@ export default function TsaPage({
                                         </TableBody>
                                     </Table>
                                 </div>
-                                {products.data.length > 0 && renderPagination(products)}
+                                {products.data.length > 0 && renderPagination(products, 'page')}
                             </div>
 
                             <div className="border p-4 rounded-lg">
@@ -398,12 +544,12 @@ export default function TsaPage({
                                             {products2.data.length > 0 ? (
                                                 products2.data.map((product) => (
                                                     <TableRow key={product.id}>
-                                                        <TableCell>{product.date}</TableCell>
-                                                        <TableCell>{product.nm_supplier}</TableCell>
-                                                        <TableCell>{product.keping_out}</TableCell>
-                                                        <TableCell>{product.qty_out}</TableCell>
-                                                        <TableCell>{formatCurrency(product.amount_out)}</TableCell>
-                                                        <TableCell className="text-center space-x-1">
+                                                        <TableCell key={`${product.id}-date-out`}>{product.date}</TableCell>
+                                                        <TableCell key={`${product.id}-supplier-out`}>{product.nm_supplier}</TableCell>
+                                                        <TableCell key={`${product.id}-keping-out`}>{product.keping_out}</TableCell>
+                                                        <TableCell key={`${product.id}-qty-out`}>{product.qty_out}</TableCell>
+                                                        <TableCell key={`${product.id}-amount-out`}>{formatCurrency(product.amount_out)}</TableCell>
+                                                        <TableCell key={`${product.id}-actions-out`} className="text-center space-x-1">
                                                             {can('products.view') && <Link href={route('products.show', product.id)}><Button size="icon" variant="ghost"><Eye className="h-4 w-4 text-gray-500" /></Button></Link>}
                                                             {can('products.edit') && <Link href={route('products.edit_out', product.id)}><Button size="icon" variant="ghost"><Pencil className="h-4 w-4 text-blue-500" /></Button></Link>}
                                                             {/* {can('products.delete') && <Button size="icon" variant="ghost" onClick={() => handleDelete(product.id, product.product)}><Trash className="h-4 w-4 text-red-500" /></Button>} */}
@@ -420,7 +566,7 @@ export default function TsaPage({
                                         </TableBody>
                                     </Table>
                                 </div>
-                                {products2.data.length > 0 && renderPagination(products2)}
+                                {products2.data.length > 0 && renderPagination(products2, 'page2')}
                             </div>
                         </div>
                     </CardContent>

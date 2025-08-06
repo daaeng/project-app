@@ -152,7 +152,10 @@ class ProductController extends Controller
     {
         $perPage = 10; 
         $searchTerm = $request->input('search');
-        $timePeriod = $request->input('time_period', 'all-time');
+        // Default timePeriod menjadi 'this-month'
+        $timePeriod = $request->input('time_period', 'this-month'); 
+        $selectedMonth = $request->input('month', Carbon::now()->month);
+        $selectedYear = $request->input('year', Carbon::now()->year);
         $productType = $request->input('product_type', 'all'); // Get product_type, default to 'all'
 
         $baseQuery = Product::query()
@@ -162,28 +165,34 @@ class ProductController extends Controller
                       ->orWhere('no_invoice', 'like', "%{$search}%")
                       ->orWhere('j_brg', 'like', "%{$search}%");
                 });
-            })
-            ->when($timePeriod, function ($query, $period) {
-                switch ($period) {
+            });
+            // Filter waktu diterapkan di sini
+            if ($timePeriod === 'specific-month') {
+                $baseQuery->whereMonth('date', $selectedMonth)
+                          ->whereYear('date', $selectedYear);
+            } elseif ($timePeriod !== 'all-time') {
+                switch ($timePeriod) {
                     case 'today':
-                        $query->whereDate('date', Carbon::today());
+                        $baseQuery->whereDate('date', Carbon::today());
                         break;
                     case 'this-week':
-                        $query->whereBetween('date', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]);
+                        $baseQuery->whereBetween('date', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]);
                         break;
                     case 'this-month':
-                        $query->whereMonth('date', Carbon::now()->month)
-                              ->whereYear('date', Carbon::now()->year);
+                        $baseQuery->whereMonth('date', Carbon::now()->month)
+                                  ->whereYear('date', Carbon::now()->year);
+                        break;
+                    case 'last-month': // Added last-month filter
+                        $lastMonth = Carbon::now()->subMonth();
+                        $baseQuery->whereMonth('date', $lastMonth->month)
+                                  ->whereYear('date', $lastMonth->year);
                         break;
                     case 'this-year':
-                        $query->whereYear('date', Carbon::now()->year);
-                        break;
-                    case 'all-time':
-                    default:
-                        // No date filter applied for 'all-time'
+                        $baseQuery->whereYear('date', Carbon::now()->year);
                         break;
                 }
-            });
+            }
+
 
         // KARET
         $products = $baseQuery->clone()
@@ -237,28 +246,33 @@ class ProductController extends Controller
                       ->orWhere('no_invoice', 'like', "%{$search}%")
                       ->orWhere('j_brg', 'like', "%{$search}%");
                 });
-            })
-            ->when($timePeriod, function ($query, $period) {
-                switch ($period) {
+            });
+            // Filter waktu diterapkan di sini
+            if ($timePeriod === 'specific-month') {
+                $statsQuery->whereMonth('date', $selectedMonth)
+                           ->whereYear('date', $selectedYear);
+            } elseif ($timePeriod !== 'all-time') {
+                switch ($timePeriod) {
                     case 'today':
-                        $query->whereDate('date', Carbon::today());
+                        $statsQuery->whereDate('date', Carbon::today());
                         break;
                     case 'this-week':
-                        $query->whereBetween('date', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]);
+                        $statsQuery->whereBetween('date', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]);
                         break;
                     case 'this-month':
-                        $query->whereMonth('date', Carbon::now()->month)
-                              ->whereYear('date', Carbon::now()->year);
+                        $statsQuery->whereMonth('date', Carbon::now()->month)
+                                   ->whereYear('date', Carbon::now()->year);
+                        break;
+                    case 'last-month': // Added last-month filter
+                        $lastMonth = Carbon::now()->subMonth();
+                        $statsQuery->whereMonth('date', $lastMonth->month)
+                                   ->whereYear('date', $lastMonth->year);
                         break;
                     case 'this-year':
-                        $query->whereYear('date', Carbon::now()->year);
-                        break;
-                    case 'all-time':
-                    default:
-                        // No date filter applied for 'all-time'
+                        $statsQuery->whereYear('date', Carbon::now()->year);
                         break;
                 }
-            });
+            }
 
         // Statistik Karet
         $tm_slin = $statsQuery->clone()->where('status', 'gka')->where('product', 'karet')->SUM('amount_out');
@@ -293,7 +307,9 @@ class ProductController extends Controller
             
             "products5" => $products5,
             "products6" => $product6,
-            "filter" => $request->only(['search', 'time_period', 'product_type']), // Send back all filters
+            "filter" => $request->only(['search', 'time_period', 'product_type', 'month', 'year']), // Send back all filters
+            "currentMonth" => (int)$selectedMonth, // Kirim bulan saat ini
+            "currentYear" => (int)$selectedYear,   // Kirim tahun saat ini
             
             // KARET
             "tm_slin" => $tm_slin,
@@ -332,7 +348,10 @@ class ProductController extends Controller
     {
         $perPage = 10; 
         $searchTerm = $request->input('search');
-        $timePeriod = $request->input('time_period', 'all-time'); // Get time_period, default to 'all-time'
+        // Default timePeriod menjadi 'this-month'
+        $timePeriod = $request->input('time_period', 'this-month'); 
+        $selectedMonth = $request->input('month', Carbon::now()->month);
+        $selectedYear = $request->input('year', Carbon::now()->year);
 
 
         $baseQuery = Product::query()
@@ -342,28 +361,33 @@ class ProductController extends Controller
                       ->orWhere('no_invoice', 'like', "%{$search}%")
                       ->orWhere('j_brg', 'like', "%{$search}%");
                 });
-            })
-            ->when($timePeriod, function ($query, $period) {
-                switch ($period) {
+            });
+            // Filter waktu diterapkan di sini
+            if ($timePeriod === 'specific-month') {
+                $baseQuery->whereMonth('date', $selectedMonth)
+                          ->whereYear('date', $selectedYear);
+            } elseif ($timePeriod !== 'all-time') {
+                switch ($timePeriod) {
                     case 'today':
-                        $query->whereDate('date', Carbon::today());
+                        $baseQuery->whereDate('date', Carbon::today());
                         break;
                     case 'this-week':
-                        $query->whereBetween('date', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]);
+                        $baseQuery->whereBetween('date', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]);
                         break;
                     case 'this-month':
-                        $query->whereMonth('date', Carbon::now()->month)
-                              ->whereYear('date', Carbon::now()->year);
+                        $baseQuery->whereMonth('date', Carbon::now()->month)
+                                  ->whereYear('date', Carbon::now()->year);
+                        break;
+                    case 'last-month': // Added last-month filter
+                        $lastMonth = Carbon::now()->subMonth();
+                        $baseQuery->whereMonth('date', $lastMonth->month)
+                                  ->whereYear('date', $lastMonth->year);
                         break;
                     case 'this-year':
-                        $query->whereYear('date', Carbon::now()->year);
-                        break;
-                    case 'all-time':
-                    default:
-                        // No date filter applied for 'all-time'
+                        $baseQuery->whereYear('date', Carbon::now()->year);
                         break;
                 }
-            });
+            }
 
         $products = $baseQuery->clone() 
             ->where('product', 'karet')
@@ -390,28 +414,33 @@ class ProductController extends Controller
                       ->orWhere('no_invoice', 'like', "%{$search}%")
                       ->orWhere('j_brg', 'like', "%{$search}%");
                 });
-            })
-            ->when($timePeriod, function ($query, $period) {
-                switch ($period) {
+            });
+            // Filter waktu diterapkan di sini
+            if ($timePeriod === 'specific-month') {
+                $statsQuery->whereMonth('date', $selectedMonth)
+                           ->whereYear('date', $selectedYear);
+            } elseif ($timePeriod !== 'all-time') {
+                switch ($timePeriod) {
                     case 'today':
-                        $query->whereDate('date', Carbon::today());
+                        $statsQuery->whereDate('date', Carbon::today());
                         break;
                     case 'this-week':
-                        $query->whereBetween('date', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]);
+                        $statsQuery->whereBetween('date', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]);
                         break;
                     case 'this-month':
-                        $query->whereMonth('date', Carbon::now()->month)
-                              ->whereYear('date', Carbon::now()->year);
+                        $statsQuery->whereMonth('date', Carbon::now()->month)
+                                   ->whereYear('date', Carbon::now()->year);
+                        break;
+                    case 'last-month': // Added last-month filter
+                        $lastMonth = Carbon::now()->subMonth();
+                        $statsQuery->whereMonth('date', $lastMonth->month)
+                                   ->whereYear('date', $lastMonth->year);
                         break;
                     case 'this-year':
-                        $query->whereYear('date', Carbon::now()->year);
-                        break;
-                    case 'all-time':
-                    default:
-                        // No date filter applied for 'all-time'
+                        $statsQuery->whereYear('date', Carbon::now()->year);
                         break;
                 }
-            });
+            }
 
             
         // TEMADU totals based on filtered data
@@ -430,6 +459,7 @@ class ProductController extends Controller
         $karet = $statsQuery->clone()->where('nm_supplier', 'Sebayar')->where('status', 'tsa')->where('product', 'karet')->sum('qty_kg');
         $karet2 = $statsQuery->clone()->where('nm_supplier', 'Temadu')->where('status', 'tsa')->where('product', 'karet')->sum('qty_kg');
 
+        //keping
         //keping total
         $keping = $statsQuery->clone()->where('status', 'tsa')->where('product', 'karet')->sum('keping');
         $keping2 = $statsQuery->clone()->where('status', 'gka')->where('product', 'karet')->sum('keping_out');
@@ -451,7 +481,9 @@ class ProductController extends Controller
         return Inertia::render("Products/tsa", [
             "products" => $products,
             "products2" => $product2,
-            "filter" => $request->only(['search', 'time_period']), // Kirim kembali filter ke frontend
+            "filter" => $request->only(['search', 'time_period', 'month', 'year']), // Kirim kembali filter ke frontend
+            "currentMonth" => (int)$selectedMonth, // Kirim bulan saat ini
+            "currentYear" => (int)$selectedYear,   // Kirim tahun saat ini
 
             "hsl_karet" => $karet + $karet2,
             "hsl_jual" => $jual + $jual2,
@@ -482,7 +514,10 @@ class ProductController extends Controller
     {
         $perPage = 5; 
         $searchTerm = $request->input('search');
-        $timePeriod = $request->input('time_period', 'all-time'); // Get time_period, default to 'all-time'
+        // Default timePeriod menjadi 'this-month'
+        $timePeriod = $request->input('time_period', 'this-month'); 
+        $selectedMonth = $request->input('month', Carbon::now()->month);
+        $selectedYear = $request->input('year', Carbon::now()->year);
 
 
         $baseQuery = Product::query()
@@ -492,28 +527,33 @@ class ProductController extends Controller
                       ->orWhere('no_invoice', 'like', "%{$search}%")
                       ->orWhere('j_brg', 'like', "%{$search}%");
                 });
-            })
-            ->when($timePeriod, function ($query, $period) {
-                switch ($period) {
+            });
+            // Filter waktu diterapkan di sini
+            if ($timePeriod === 'specific-month') {
+                $baseQuery->whereMonth('date', $selectedMonth)
+                          ->whereYear('date', $selectedYear);
+            } elseif ($timePeriod !== 'all-time') {
+                switch ($timePeriod) {
                     case 'today':
-                        $query->whereDate('date', Carbon::today());
+                        $baseQuery->whereDate('date', Carbon::today());
                         break;
                     case 'this-week':
-                        $query->whereBetween('date', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]);
+                        $baseQuery->whereBetween('date', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]);
                         break;
                     case 'this-month':
-                        $query->whereMonth('date', Carbon::now()->month)
-                              ->whereYear('date', Carbon::now()->year);
+                        $baseQuery->whereMonth('date', Carbon::now()->month)
+                                  ->whereYear('date', Carbon::now()->year);
+                        break;
+                    case 'last-month': // Added last-month filter
+                        $lastMonth = Carbon::now()->subMonth();
+                        $baseQuery->whereMonth('date', $lastMonth->month)
+                                  ->whereYear('date', $lastMonth->year);
                         break;
                     case 'this-year':
-                        $query->whereYear('date', Carbon::now()->year);
-                        break;
-                    case 'all-time':
-                    default:
-                        // No date filter applied for 'all-time'
+                        $baseQuery->whereYear('date', Carbon::now()->year);
                         break;
                 }
-            });
+            }
 
         $products = $baseQuery->clone() 
             ->where('product', 'Pupuk')
@@ -540,28 +580,33 @@ class ProductController extends Controller
                       ->orWhere('no_invoice', 'like', "%{$search}%")
                       ->orWhere('j_brg', 'like', "%{$search}%");
                 });
-            })
-            ->when($timePeriod, function ($query, $period) {
-                switch ($period) {
+            });
+            // Filter waktu diterapkan di sini
+            if ($timePeriod === 'specific-month') {
+                $statsQuery->whereMonth('date', $selectedMonth)
+                           ->whereYear('date', $selectedYear);
+            } elseif ($timePeriod !== 'all-time') {
+                switch ($timePeriod) {
                     case 'today':
-                        $query->whereDate('date', Carbon::today());
+                        $statsQuery->whereDate('date', Carbon::today());
                         break;
                     case 'this-week':
-                        $query->whereBetween('date', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]);
+                        $statsQuery->whereBetween('date', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]);
                         break;
                     case 'this-month':
-                        $query->whereMonth('date', Carbon::now()->month)
-                              ->whereYear('date', Carbon::now()->year);
+                        $statsQuery->whereMonth('date', Carbon::now()->month)
+                                   ->whereYear('date', Carbon::now()->year);
+                        break;
+                    case 'last-month': // Added last-month filter
+                        $lastMonth = Carbon::now()->subMonth();
+                        $statsQuery->whereMonth('date', $lastMonth->month)
+                                   ->whereYear('date', $lastMonth->year);
                         break;
                     case 'this-year':
-                        $query->whereYear('date', Carbon::now()->year);
-                        break;
-                    case 'all-time':
-                    default:
-                        // No date filter applied for 'all-time'
+                        $statsQuery->whereYear('date', Carbon::now()->year);
                         break;
                 }
-            });
+            }
 
         // Statistik Pupuk
         $ppk_in = $statsQuery->clone()->where('status', 'agro')->where('product', 'pupuk')->sum('qty_kg');
@@ -584,7 +629,9 @@ class ProductController extends Controller
         return Inertia::render("Products/agro", [
             "products" => $products,
             "products2" => $product2,
-            "filter" => $request->only(['search', 'time_period']), // Kirim kembali filter ke frontend
+            "filter" => $request->only(['search', 'time_period', 'month', 'year']), // Kirim kembali filter ke frontend
+            "currentMonth" => (int)$selectedMonth, // Kirim bulan saat ini
+            "currentYear" => (int)$selectedYear,   // Kirim tahun saat ini
 
             "hsl_karet" => $ppk_in - $ppk_out,
             "saldoin" => $saldoin,
@@ -601,7 +648,10 @@ class ProductController extends Controller
     {
         $perPage = 10; // Jumlah item per halaman
         $searchTerm = $request->input('search');
-        $timePeriod = $request->input('time_period', 'all-time'); // Get time_period, default to 'all-time'
+        // Default timePeriod menjadi 'this-month'
+        $timePeriod = $request->input('time_period', 'this-month'); 
+        $selectedMonth = $request->input('month', Carbon::now()->month);
+        $selectedYear = $request->input('year', Carbon::now()->year);
 
         $query = Product::query()
             ->when($searchTerm, function ($q, $search) {
@@ -613,28 +663,33 @@ class ProductController extends Controller
                              ->orWhere('status', 'like', "%{$search}%")
                              ->orWhere('date', 'like', "%{$search}%");
                 });
-            })
-            ->when($timePeriod, function ($q, $period) {
-                switch ($period) {
+            });
+            // Filter waktu diterapkan di sini
+            if ($timePeriod === 'specific-month') {
+                $query->whereMonth('date', $selectedMonth)
+                      ->whereYear('date', $selectedYear);
+            } elseif ($timePeriod !== 'all-time') {
+                switch ($timePeriod) {
                     case 'today':
-                        $q->whereDate('date', Carbon::today());
+                        $query->whereDate('date', Carbon::today());
                         break;
                     case 'this-week':
-                        $q->whereBetween('date', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]);
+                        $query->whereBetween('date', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]);
                         break;
                     case 'this-month':
-                        $q->whereMonth('date', Carbon::now()->month)
-                          ->whereYear('date', Carbon::now()->year);
+                        $query->whereMonth('date', Carbon::now()->month)
+                              ->whereYear('date', Carbon::now()->year);
+                        break;
+                    case 'last-month': // Added last-month filter
+                        $lastMonth = Carbon::now()->subMonth();
+                        $query->whereMonth('date', $lastMonth->month)
+                              ->whereYear('date', $lastMonth->year);
                         break;
                     case 'this-year':
-                        $q->whereYear('date', Carbon::now()->year);
-                        break;
-                    case 'all-time':
-                    default:
-                        // No date filter applied for 'all-time'
+                        $query->whereYear('date', Carbon::now()->year);
                         break;
                 }
-            });
+            }
 
         // Clone the query before applying pagination to calculate statistics on the filtered set
         $filteredQueryForStats = clone $query;
@@ -661,7 +716,9 @@ class ProductController extends Controller
 
         return Inertia::render("Products/allof", [
             "products" => $products,
-            "filter" => $request->only(['search', 'time_period']), // Send both search and time_period
+            "filter" => $request->only(['search', 'time_period', 'month', 'year']), // Send both search and time_period
+            "currentMonth" => (int)$selectedMonth, // Kirim bulan saat ini
+            "currentYear" => (int)$selectedYear,   // Kirim tahun saat ini
             
             "hsl_karet" => $karet_in - $karet_out,
             "saldoin" => $saldoin,
@@ -682,6 +739,8 @@ class ProductController extends Controller
         $query = Product::query();
         $searchTerm = $request->input('search');
         $timePeriod = $request->input('time_period', 'all-time'); // Get time_period, default to 'all-time'
+        $selectedMonth = $request->input('month');
+        $selectedYear = $request->input('year');
 
         // Apply search filter if a search term is provided
         if ($request->has('search') && !empty($request->input('search'))) {
@@ -697,27 +756,31 @@ class ProductController extends Controller
         }
 
         // Apply time period filter to export query
-        $query->when($timePeriod, function ($q, $period) {
-            switch ($period) {
-                case 'today':
-                    $q->whereDate('date', Carbon::today());
-                    break;
-                case 'this-week':
-                    $q->whereBetween('date', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]);
-                    break;
-                case 'this-month':
-                    $q->whereMonth('date', Carbon::now()->month)
-                      ->whereYear('date', Carbon::now()->year);
-                    break;
-                case 'this-year':
-                    $q->whereYear('date', Carbon::now()->year);
-                    break;
-                case 'all-time':
-                default:
-                    // No date filter applied for 'all-time'
-                    break;
+        if ($timePeriod === 'specific-month') {
+            $query->whereMonth('date', $selectedMonth)
+                  ->whereYear('date', $selectedYear);
+        } elseif ($timePeriod !== 'all-time') {
+                switch ($timePeriod) {
+                    case 'today':
+                        $query->whereDate('date', Carbon::today());
+                        break;
+                    case 'this-week':
+                        $query->whereBetween('date', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]);
+                        break;
+                    case 'this-month':
+                        $query->whereMonth('date', Carbon::now()->month)
+                              ->whereYear('date', Carbon::now()->year);
+                        break;
+                    case 'last-month': // Added last-month filter
+                        $lastMonth = Carbon::now()->subMonth();
+                        $query->whereMonth('date', $lastMonth->month)
+                              ->whereYear('date', $lastMonth->year);
+                        break;
+                    case 'this-year':
+                        $query->whereYear('date', Carbon::now()->year);
+                        break;
+                }
             }
-        });
 
         $productsToExport = $query->orderBy('created_at', 'DESC')->get(); // Get all results without pagination
 
