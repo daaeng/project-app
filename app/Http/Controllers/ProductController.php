@@ -697,8 +697,8 @@ class ProductController extends Controller
         $products = $query->orderBy('created_at', 'DESC')->paginate($perPage)->appends($request->input());
 
         // Statistik Karet
-        $karet_in = $filteredQueryForStats->clone()->where('product', 'karet')->sum('qty_kg');
-        $karet_out = $filteredQueryForStats->clone()->where('product', 'karet')->sum('qty_out');
+        $karet_in = $filteredQueryForStats->clone()->where('status', 'tsa')->where('product', 'karet')->sum('qty_kg');
+        $karet_out = $filteredQueryForStats->clone()->where('status', 'gka')->where('product', 'karet')->sum('qty_out');
         $saldoin = $filteredQueryForStats->clone()->where('product', 'karet')->sum('amount');
         $saldoout = $filteredQueryForStats->clone()->where('product', 'karet')->sum('amount_out');
 
@@ -734,58 +734,58 @@ class ProductController extends Controller
         ]);
     }
 
-    public function exportExcel(Request $request)
-    {
-        $query = Product::query();
-        $searchTerm = $request->input('search');
-        $timePeriod = $request->input('time_period', 'all-time'); // Get time_period, default to 'all-time'
-        $selectedMonth = $request->input('month');
-        $selectedYear = $request->input('year');
+    // public function exportExcel(Request $request)
+    // {
+    //     $query = Product::query();
+    //     $searchTerm = $request->input('search');
+    //     $timePeriod = $request->input('time_period', 'all-time'); // Get time_period, default to 'all-time'
+    //     $selectedMonth = $request->input('month');
+    //     $selectedYear = $request->input('year');
 
-        // Apply search filter if a search term is provided
-        if ($request->has('search') && !empty($request->input('search'))) {
-            $search = $request->input('search');
-            $query->where(function ($q) use ($search) {
-                $q->where('product', 'like', "%{$search}%")
-                  ->orWhere('no_invoice', 'like', "%{$search}%")
-                  ->orWhere('nm_supplier', 'like', "%{$search}%")
-                  ->orWhere('j_brg', 'like', "%{$search}%")
-                  ->orWhere('status', 'like', "%{$search}%")
-                  ->orWhere('date', 'like', "%{$search}%");
-            });
-        }
+    //     // Apply search filter if a search term is provided
+    //     if ($request->has('search') && !empty($request->input('search'))) {
+    //         $search = $request->input('search');
+    //         $query->where(function ($q) use ($search) {
+    //             $q->where('product', 'like', "%{$search}%")
+    //               ->orWhere('no_invoice', 'like', "%{$search}%")
+    //               ->orWhere('nm_supplier', 'like', "%{$search}%")
+    //               ->orWhere('j_brg', 'like', "%{$search}%")
+    //               ->orWhere('status', 'like', "%{$search}%")
+    //               ->orWhere('date', 'like', "%{$search}%");
+    //         });
+    //     }
 
-        // Apply time period filter to export query
-        if ($timePeriod === 'specific-month') {
-            $query->whereMonth('date', $selectedMonth)
-                  ->whereYear('date', $selectedYear);
-        } elseif ($timePeriod !== 'all-time') {
-                switch ($timePeriod) {
-                    case 'today':
-                        $query->whereDate('date', Carbon::today());
-                        break;
-                    case 'this-week':
-                        $query->whereBetween('date', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]);
-                        break;
-                    case 'this-month':
-                        $query->whereMonth('date', Carbon::now()->month)
-                              ->whereYear('date', Carbon::now()->year);
-                        break;
-                    case 'last-month': // Added last-month filter
-                        $lastMonth = Carbon::now()->subMonth();
-                        $query->whereMonth('date', $lastMonth->month)
-                              ->whereYear('date', $lastMonth->year);
-                        break;
-                    case 'this-year':
-                        $query->whereYear('date', Carbon::now()->year);
-                        break;
-                }
-            }
+    //     // Apply time period filter to export query
+    //     if ($timePeriod === 'specific-month') {
+    //         $query->whereMonth('date', $selectedMonth)
+    //               ->whereYear('date', $selectedYear);
+    //     } elseif ($timePeriod !== 'all-time') {
+    //             switch ($timePeriod) {
+    //                 case 'today':
+    //                     $query->whereDate('date', Carbon::today());
+    //                     break;
+    //                 case 'this-week':
+    //                     $query->whereBetween('date', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]);
+    //                     break;
+    //                 case 'this-month':
+    //                     $query->whereMonth('date', Carbon::now()->month)
+    //                           ->whereYear('date', Carbon::now()->year);
+    //                     break;
+    //                 case 'last-month': // Added last-month filter
+    //                     $lastMonth = Carbon::now()->subMonth();
+    //                     $query->whereMonth('date', $lastMonth->month)
+    //                           ->whereYear('date', $lastMonth->year);
+    //                     break;
+    //                 case 'this-year':
+    //                     $query->whereYear('date', Carbon::now()->year);
+    //                     break;
+    //             }
+    //         }
 
-        $productsToExport = $query->orderBy('created_at', 'DESC')->get(); // Get all results without pagination
+    //     $productsToExport = $query->orderBy('created_at', 'DESC')->get(); // Get all results without pagination
 
-        return Excel::download(new ProductsAllExport($productsToExport), 'all_products_data.xlsx');
-    }
+    //     return Excel::download(new ProductsAllExport($productsToExport), 'all_products_data.xlsx');
+    // }
 
     public function destroy(Product $product){
         $product->delete();

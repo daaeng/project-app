@@ -148,192 +148,162 @@ export default function Index({ requests, flash, filter, totalPending, totalAppr
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Request" />
 
-            <div className="h-full flex-col rounded-xl p-4 bg-gray-50 dark:bg-black">
-                <Heading title="Request Latter" />
+            {can('requests.view') && (
+                <>
+                    <div className="h-full flex-col rounded-xl p-4 bg-gray-50 dark:bg-black">
+                        <Heading title="Request Latter" />
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                    {/* Card 1: Total Request Letters */}
-                    <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-5 rounded-lg shadow-lg flex items-center justify-between">
-                        <div>
-                            <div className="text-sm font-medium opacity-90">Total Nota/Kwitansi</div>
-                            <div className="text-3xl font-bold mt-1"> {jml_rl}</div>
-                        </div>
-                        <FileText size={40} className="opacity-70" />
-                    </div>
-
-                    {/* Card 2: Total Nota/Kwitansi */}
-                    <div className="bg-gradient-to-r from-green-500 to-green-600 text-white p-5 rounded-lg shadow-lg flex items-center justify-between">
-                        <div>
-                            <div className="text-sm font-medium opacity-90">Pengajuan ACC</div>
-                            <div className="text-3xl font-bold mt-1">{totalApproved}</div>
-                        </div>
-                        <Receipt size={40} className="opacity-70" />
-                    </div>
-
-                    {/* Card 3: Request Pending */}
-                    <div className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-white p-5 rounded-lg shadow-lg flex items-center justify-between">
-                        <div>
-                            <div className="text-sm font-medium opacity-90">Pengajuan Pending</div>
-                            <div className="text-3xl font-bold mt-1">{totalPending}</div> {/* Menggunakan totalPendingRequests */}
-                        </div>
-                        <Clock size={40} className="opacity-70" />
-                    </div>
-
-                    {/* Card 4: Total Dana Disetujui (Contoh) */}
-                    <div className="bg-gradient-to-r from-purple-500 to-purple-600 text-white p-5 rounded-lg shadow-lg flex items-center justify-between">
-                        <div>
-                            <div className="text-sm font-medium opacity-90">Total Pengajuan Dana Disetujui</div>
-                            <div className="text-3xl font-bold mt-1">{formatCurrency(sumApproved)}</div> {/* Menggunakan totalApprovedDana */}
-                        </div>
-                        <DollarSign size={40} className="opacity-70" />
-                    </div>
-                </div>
-
-                {/* <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                    <Card className="shadow-sm transition-shadow hover:shadow-md">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Nota Pending</CardTitle>
-                            <Clock className="h-4 w-4 text-gray-500" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">{totalPending}</div>
-                            <p className="text-xs text-gray-500">Total nota yang menunggu persetujuan</p>
-                        </CardContent>
-                    </Card>
-
-                    <Card className="shadow-sm transition-shadow hover:shadow-md">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Nota Disetujui</CardTitle>
-                            <CheckCircle2 className="h-4 w-4 text-gray-500" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">{totalApproved}</div>
-                            <p className="text-xs text-gray-500">Total nota yang telah disetujui</p>
-                        </CardContent>
-                    </Card>
-
-                    <Card className="shadow-sm transition-shadow hover:shadow-md">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Total Dana Disetujui</CardTitle>
-                            <Wallet className="h-4 w-4 text-gray-500" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">{formatCurrency(sumApproved)}</div>
-                            <p className="text-xs text-gray-500">Jumlah total dana nota yang disetujui</p>
-                        </CardContent>
-                    </Card>
-                </div> */}
-
-                <div className="rounded-lg border p-2">
-                    <div className="grid grid-cols-2 items-center"> {/* Added items-center for alignment */}
-                        <div className="font-bold">Submission Report</div>
-
-                        {can('requests.create') && (
-                            <div className="w-full justify-end h-auto flex mb-5 gap-2">
-                                <Link href={route('requests.create')}>
-                                    <Button className="bg-yellow-600 w-25 hover:bg-yellow-500">
-                                        <CirclePlus className="w-4 h-4 mr-2" /> {/* Added class for icon spacing */}
-                                        Form
-                                    </Button>
-                                </Link>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                            {/* Card 1: Total Request Letters */}
+                            <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-5 rounded-lg shadow-lg flex items-center justify-between">
+                                <div>
+                                    <div className="text-sm font-medium opacity-90">Total Nota/Kwitansi</div>
+                                    <div className="text-3xl font-bold mt-1"> {jml_rl}</div>
+                                </div>
+                                <FileText size={40} className="opacity-70" />
                             </div>
-                        )}
-                    </div>
 
-                    <div>
-                        {flash.message && (
-                            <Alert className="mb-4"> {/* Added margin-bottom */}
-                                <Megaphone className="h-4 w-4" /> {/* Corrected class from h4-w4 */}
-                                <AlertTitle className="text-blue-600">Notification</AlertTitle>
-                                <AlertDescription>{flash.message}</AlertDescription>
-                            </Alert>
-                        )}
-                    </div>
-
-                    <div className='flex flex-col gap-4 py-4 sm:flex-row sm:items-center'> {/* Changed layout for search and button */}
-                        <div className='relative flex-1'> {/* Make search input flexible */}
-                            <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
-                            <Input
-                                placeholder="Search by Name, Devisi, Jenis Pengajuan..."
-                                value={searchValue} // Bind value to state
-                                onChange={handleInputChange} // Handle input changes
-                                onKeyPress={handleKeyPress} // Handle Enter key press
-                                className="pl-10"
-                            />
-                        </div>
-                        <Button onClick={performSearch}> {/* Added search button */}
-                            <Search className="h-4 w-4 mr-2" /> Search
-                        </Button>
-                    </div>
-
-                    <div className="border rounded-lg">
-                        {requests.data.length > 0 ? ( // Conditional rendering based on data existence
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Nama</TableHead>
-                                        <TableHead>Tanggal</TableHead>
-                                        <TableHead>Devisi</TableHead>
-                                        <TableHead>Jenis Pengajuan</TableHead>
-                                        <TableHead>Mengetahui</TableHead>
-                                        <TableHead>Dana</TableHead>
-                                        <TableHead>Status</TableHead>
-                                        <TableHead className="text-center">Action</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-
-                                <TableBody>
-                                    {requests.data.map((request) => (
-                                        <TableRow key={request.id}>
-                                            <TableCell>{request.name}</TableCell>
-                                            <TableCell>{request.date}</TableCell>
-                                            <TableCell>{request.devisi}</TableCell>
-                                            <TableCell>{request.j_pengajuan}</TableCell>
-                                            <TableCell>{request.mengetahui}</TableCell>
-                                            <TableCell>{request.dana}</TableCell>
-                                            <TableCell>
-                                                <Tag status={request.status} />
-                                            </TableCell>
-                                            <TableCell className="text-center space-x-2">
-                                                {can('requests.view') && (
-                                                    <Link href={route('requests.show', request.id)}>
-                                                        <Button className="bg-transparent hover:bg-gray-700">
-                                                            <Eye color="gray" />
-                                                        </Button>
-                                                    </Link>
-                                                )}
-
-                                                {can('requests.edit') && (
-                                                    <Link href={route('requests.edit', request.id)}>
-                                                        <Button className="bg-transparent hover:bg-gray-700">
-                                                            <Pencil color="blue" />
-                                                        </Button>
-                                                    </Link>
-                                                )}
-
-                                                {can('requests.delete') && (
-                                                    <Button
-                                                        disabled={processing}
-                                                        onClick={() => handleDelete(request.id, request.name)}
-                                                        className="bg-transparent hover:bg-gray-700"
-                                                    >
-                                                        <Trash color="red" />
-                                                    </Button>
-                                                )}
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        ) : (
-                            <div className="p-4 text-center text-gray-500">
-                                No results found.
+                            {/* Card 2: Total Nota/Kwitansi */}
+                            <div className="bg-gradient-to-r from-green-500 to-green-600 text-white p-5 rounded-lg shadow-lg flex items-center justify-between">
+                                <div>
+                                    <div className="text-sm font-medium opacity-90">Pengajuan ACC</div>
+                                    <div className="text-3xl font-bold mt-1">{totalApproved}</div>
+                                </div>
+                                <Receipt size={40} className="opacity-70" />
                             </div>
-                        )}
+
+                            {/* Card 3: Request Pending */}
+                            <div className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-white p-5 rounded-lg shadow-lg flex items-center justify-between">
+                                <div>
+                                    <div className="text-sm font-medium opacity-90">Pengajuan Pending</div>
+                                    <div className="text-3xl font-bold mt-1">{totalPending}</div> {/* Menggunakan totalPendingRequests */}
+                                </div>
+                                <Clock size={40} className="opacity-70" />
+                            </div>
+
+                            {/* Card 4: Total Dana Disetujui (Contoh) */}
+                            <div className="bg-gradient-to-r from-purple-500 to-purple-600 text-white p-5 rounded-lg shadow-lg flex items-center justify-between">
+                                <div>
+                                    <div className="text-sm font-medium opacity-90">Total Pengajuan Dana Disetujui</div>
+                                    <div className="text-3xl font-bold mt-1">{formatCurrency(sumApproved)}</div> {/* Menggunakan totalApprovedDana */}
+                                </div>
+                                <DollarSign size={40} className="opacity-70" />
+                            </div>
+                        </div>
+
+                        <div className="rounded-lg border p-2">
+                            <div className="grid grid-cols-2 items-center"> {/* Added items-center for alignment */}
+                                <div className="font-bold">Submission Report</div>
+
+                                {can('requests.create') && (
+                                    <div className="w-full justify-end h-auto flex mb-5 gap-2">
+                                        <Link href={route('requests.create')}>
+                                            <Button className="bg-yellow-600 w-25 hover:bg-yellow-500">
+                                                <CirclePlus className="w-4 h-4 mr-2" /> {/* Added class for icon spacing */}
+                                                Form
+                                            </Button>
+                                        </Link>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div>
+                                {flash.message && (
+                                    <Alert className="mb-4"> {/* Added margin-bottom */}
+                                        <Megaphone className="h-4 w-4" /> {/* Corrected class from h4-w4 */}
+                                        <AlertTitle className="text-blue-600">Notification</AlertTitle>
+                                        <AlertDescription>{flash.message}</AlertDescription>
+                                    </Alert>
+                                )}
+                            </div>
+
+                            <div className='flex flex-col gap-4 py-4 sm:flex-row sm:items-center'> {/* Changed layout for search and button */}
+                                <div className='relative flex-1'> {/* Make search input flexible */}
+                                    <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+                                    <Input
+                                        placeholder="Search by Name, Devisi, Jenis Pengajuan..."
+                                        value={searchValue} // Bind value to state
+                                        onChange={handleInputChange} // Handle input changes
+                                        onKeyPress={handleKeyPress} // Handle Enter key press
+                                        className="pl-10"
+                                    />
+                                </div>
+                                <Button onClick={performSearch}> {/* Added search button */}
+                                    <Search className="h-4 w-4 mr-2" /> Search
+                                </Button>
+                            </div>
+
+                            <div className="border rounded-lg">
+                                {requests.data.length > 0 ? ( // Conditional rendering based on data existence
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead>Nama</TableHead>
+                                                <TableHead>Tanggal</TableHead>
+                                                <TableHead>Devisi</TableHead>
+                                                <TableHead>Jenis Pengajuan</TableHead>
+                                                <TableHead>Mengetahui</TableHead>
+                                                <TableHead>Dana</TableHead>
+                                                <TableHead>Status</TableHead>
+                                                <TableHead className="text-center">Action</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+
+                                        <TableBody>
+                                            {requests.data.map((request) => (
+                                                <TableRow key={request.id}>
+                                                    <TableCell>{request.name}</TableCell>
+                                                    <TableCell>{request.date}</TableCell>
+                                                    <TableCell>{request.devisi}</TableCell>
+                                                    <TableCell>{request.j_pengajuan}</TableCell>
+                                                    <TableCell>{request.mengetahui}</TableCell>
+                                                    <TableCell>{request.dana}</TableCell>
+                                                    <TableCell>
+                                                        <Tag status={request.status} />
+                                                    </TableCell>
+                                                    <TableCell className="text-center space-x-2">
+                                                        {can('requests.view') && (
+                                                            <Link href={route('requests.show', request.id)}>
+                                                                <Button className="bg-transparent hover:bg-gray-700">
+                                                                    <Eye color="gray" />
+                                                                </Button>
+                                                            </Link>
+                                                        )}
+
+                                                        {can('requests.edit') && (
+                                                            <Link href={route('requests.edit', request.id)}>
+                                                                <Button className="bg-transparent hover:bg-gray-700">
+                                                                    <Pencil color="blue" />
+                                                                </Button>
+                                                            </Link>
+                                                        )}
+
+                                                        {can('requests.delete') && (
+                                                            <Button
+                                                                disabled={processing}
+                                                                onClick={() => handleDelete(request.id, request.name)}
+                                                                className="bg-transparent hover:bg-gray-700"
+                                                            >
+                                                                <Trash color="red" />
+                                                            </Button>
+                                                        )}
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                ) : (
+                                    <div className="p-4 text-center text-gray-500">
+                                        No results found.
+                                    </div>
+                                )}
+                            </div>
+                            {requests.data.length > 0 && renderPagination(requests)} {/* Tambahkan navigasi paginasi */}
+                        </div>
                     </div>
-                    {requests.data.length > 0 && renderPagination(requests)} {/* Tambahkan navigasi paginasi */}
-                </div>
-            </div>
+                </>
+            )}
+
         </AppLayout>
     );
 }

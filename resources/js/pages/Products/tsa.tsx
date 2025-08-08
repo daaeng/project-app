@@ -1,13 +1,9 @@
 import { useState, useEffect } from 'react';
-
-// Diasumsikan komponen-komponen ini ada di direktori yang sesuai
-// dan diekspor sebagai default atau named export.
-// Path diubah dari alias '@/' menjadi path relatif.
 import Heading from '../../components/heading';
 import AppLayout from '../../layouts/app-layout';
 import { can } from '../../lib/can';
 import { type BreadcrumbItem } from '@/types';
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+// import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -22,7 +18,7 @@ import {
 } from "@/components/ui/table";
 
 import { Head, Link, router } from '@inertiajs/react';
-import { CirclePlus, Eye, Megaphone, Package, Pencil, PencilLine, Search, Send, Sprout, Trash, Undo2 } from 'lucide-react';
+import { Building2, CirclePlus, Eye, Landmark, Package, Pencil, Search, Sprout, Trash, Trees, TrendingUp, Undo2 } from 'lucide-react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Product Information', href: '/products' },
@@ -322,6 +318,74 @@ export default function TsaPage({
                     </Link>
                 </div>
 
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {/* Kartu Uang Masuk (saldoin) */}
+                    <Card className="shadow-2xl border-2 border-green-500 bg-gradient-to-br from-green-400 to-green-600 text-white transition-all duration-500 rounded-2xl hover:shadow-green-500/50 hover:scale-105">
+                        <CardHeader className="p-6 flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-xl font-bold flex items-center">
+                                <Sprout className="mr-3 text-white drop-shadow-md" size={32} /> Setor ke PT. GKA
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-6 pt-0">
+                            <p className="text-5xl font-extrabold mt-2 tracking-tighter">
+                                {hsl_jual} Kg
+                            </p>
+                            <div className="flex justify-between text-sm mt-3 text-green-100">
+                                <div className="flex items-center font-medium">
+                                    <TrendingUp size={18} className="mr-1" />
+                                    <span>Stock Gudang</span>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Kartu Total KG (hsl_karet) */}
+                    <Card className="shadow-2xl border-2 border-blue-500 bg-gradient-to-br from-blue-400 to-blue-600 text-white transition-all duration-500 rounded-2xl hover:shadow-blue-500/50 hover:scale-105">
+                        <CardHeader className="p-6 flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-xl font-bold flex items-center">
+                                <Package className="mr-3 text-white drop-shadow-md" size={32} /> Total KG
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-6 pt-0">
+                            <p className="text-5xl font-extrabold mt-2 tracking-tighter">
+                                {hsl_karet} kg ~ {keping_in} Keping
+                            </p>
+                            <div className="flex justify-between text-sm mt-3 text-blue-100">
+                                <div className="flex items-center font-medium">
+                                    <Trees size={18} className="mr-1" />
+                                    <span>Temadu : {tm_sin} Kg ~ {keping_tmd} Kpg</span>
+                                </div>
+                                <div className="flex items-center font-medium">
+                                    <Trees size={18} className="mr-1" />
+                                    <span>Sebayar : {ts_sin} Kg ~ {keping_sbyr} Kpg</span>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Kartu Total Keping */}
+                    <Card className="shadow-2xl border-2 border-yellow-500 bg-gradient-to-br from-yellow-400 to-yellow-600 text-white transition-all duration-500 rounded-2xl hover:shadow-yellow-500/50 hover:scale-105">
+                        <CardHeader className="p-6 flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-xl font-bold flex items-center">
+                                <Landmark className="mr-3 text-white drop-shadow-md" size={32} /> Total Pengeluaran
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-6 pt-0">
+                            <p className="text-5xl font-extrabold mt-2 tracking-tighter">
+                                {formatCurrency(saldoin)}
+                            </p>
+                            <div className="flex justify-between text-sm mt-3 text-yellow-100">
+                                <div className="flex items-center font-medium">
+                                    <span>Temadu: {formatCurrency(tm_slin)}</span>
+                                </div>
+                                <div className="flex items-center font-medium">
+                                    <span>Sebayar: {formatCurrency(ts_slin)}</span>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+
                 <div className='w-full justify-center h-auto flex mb-5 gap-2'>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <Card className="shadow-sm transition-shadow hover:shadow-md bg-blue-50">
@@ -387,6 +451,7 @@ export default function TsaPage({
                                 <div className="grid grid-cols-2">
                                     <div className="flex gap-2"><p className="text-green-400">OUT</p> {formatCurrency(ts_slin)}</div>
                                     <div className="flex gap-2"><p className="text-red-400">IN</p> {formatCurrency(ts_slou)}</div>
+
                                     <div className="text-2xl w-full justify-center flex font-bold">{ts_sin} Kg</div>
                                     <div className="text-2xl w-full justify-center flex font-bold">{ts_sou} Kg</div>
                                     
@@ -398,179 +463,271 @@ export default function TsaPage({
                     </div>
                 </div>
 
-                <Card>
-                    <CardContent className="pt-6">
-                        {flash?.message && (
-                            <Alert className="mb-4">
-                                <Megaphone className="h-4 w-4" />
-                                <AlertTitle className="text-green-600">Notification</AlertTitle>
-                                <AlertDescription>{flash.message}</AlertDescription>
-                            </Alert>
-                        )}
+                
+                <div className="flex space-x-3 justify-end">
+                    <Link href={route('products.create')}>
+                        <Button className="flex items-center bg-green-600 hover:bg-green-700 text-white font-semibold rounded-full shadow-lg transition-all duration-300 transform hover:scale-105 px-6 py-3">
+                            <CirclePlus size={18} className="mr-2" />
+                            Tambah Produk
+                        </Button>
+                    </Link>
+                    {can('products.create') && (
+                        <Link href={route('products.gka')}>
+                            <Button className="flex items-center bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-full shadow-lg transition-all duration-300 transform hover:scale-105 px-6 py-3">
+                                <Building2 size={18} className="mr-2" />
+                                Kirim ke GKA
+                            </Button>
+                        </Link>
+                    )}
+                </div>
+                
+                <div className="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-4 p-4 rounded-xl bg-white border border-gray-200 shadow-sm">
+                    <Select value={timePeriod} onValueChange={handleTimePeriodChange}>
+                        <SelectTrigger className="w-full sm:w-[180px]">
+                            <SelectValue placeholder="Select time period" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all-time">All Time</SelectItem>
+                            <SelectItem value="today">Today</SelectItem>
+                            <SelectItem value="this-week">This Week</SelectItem>
+                            <SelectItem value="this-month">This Month</SelectItem>
+                            <SelectItem value="last-month">Last Month</SelectItem>
+                            <SelectItem value="this-year">This Year</SelectItem>
+                            <SelectItem value="specific-month">Pilih Bulan & Tahun</SelectItem>
+                        </SelectContent>
+                    </Select>
 
-                        <div className="flex flex-col gap-4 mb-6 sm:flex-row sm:items-center">
-                            <div className="relative flex-1">
-                                <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
-                                <Input
-                                    placeholder="Search by supplier, invoice, item..."
-                                    value={searchValue}
-                                    onChange={handleInputChange}
-                                    onKeyPress={handleKeyPress}
-                                    className="pl-10"
-                                />
-                            </div>
-                            <Button onClick={performSearch}><Search className="h-4 w-4 mr-2" />Search</Button> {/* Added search button for consistency */}
-                            <div className="flex items-center gap-2">
-                                {/* Select filter by time period */}
-                                <Select value={timePeriod} onValueChange={handleTimePeriodChange}>
-                                    <SelectTrigger className="w-full sm:w-[180px]">
-                                        <SelectValue placeholder="Select time period" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="all-time">All Time</SelectItem>
-                                        <SelectItem value="today">Today</SelectItem>
-                                        <SelectItem value="this-week">This Week</SelectItem>
-                                        <SelectItem value="this-month">This Month</SelectItem>
-                                        <SelectItem value="last-month">Last Month</SelectItem>
-                                        <SelectItem value="this-year">This Year</SelectItem>
-                                        <SelectItem value="specific-month">Pilih Bulan & Tahun</SelectItem>
-                                    </SelectContent>
-                                </Select>
+                    {timePeriod === 'specific-month' && (
+                        <>
+                            <Select value={selectedMonth} onValueChange={handleMonthChange}>
+                                <SelectTrigger className="w-full md:w-[140px] bg-white text-gray-700 border-gray-300 hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 transition-all duration-300">
+                                    <SelectValue placeholder="Bulan" />
+                                </SelectTrigger>
+                                <SelectContent className="bg-white text-gray-700 border-gray-300 shadow-lg">
+                                    {months.map((month) => (
+                                        <SelectItem key={month.value} value={month.value}>
+                                            {month.label}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <Select value={selectedYear} onValueChange={handleYearChange}>
+                                <SelectTrigger className="w-full md:w-[120px] bg-white text-gray-700 border-gray-300 hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 transition-all duration-300">
+                                    <SelectValue placeholder="Tahun" />
+                                </SelectTrigger>
+                                <SelectContent className="bg-white text-gray-700 border-gray-300 shadow-lg">
+                                    {years.map((year) => (
+                                        <SelectItem key={year.value} value={year.value}>
+                                            {year.label}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </>
+                    )}
 
-                                {timePeriod === 'specific-month' && (
-                                    <>
-                                        <Select value={selectedMonth} onValueChange={handleMonthChange}>
-                                            <SelectTrigger className="w-[140px]">
-                                                <SelectValue placeholder="Pilih Bulan" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {months.map((month) => (
-                                                    <SelectItem key={month.value} value={month.value}>
-                                                        {month.label}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                        <Select value={selectedYear} onValueChange={handleYearChange}>
-                                            <SelectTrigger className="w-[100px]">
-                                                <SelectValue placeholder="Pilih Tahun" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {years.map((year) => (
-                                                    <SelectItem key={year.value} value={year.value}>
-                                                        {year.label}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </>
-                                )}
+                    <div className="relative w-full md:flex-grow">
+                        <Input
+                            type="text"
+                            placeholder="Cari..."
+                            value={searchValue}
+                            onChange={handleInputChange}
+                            onKeyPress={handleKeyPress}
+                            className="w-full pl-10 pr-4 py-2 bg-white text-gray-800 rounded-full border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300"
+                        />
+                        <Search
+                            size={18}
+                            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 pointer-events-none"
+                        />
+                    </div>
+                </div>
 
-                                <Link href={route('products.s_gka')}>
-                                    <Button className='bg-green-600 hover:bg-green-400'>
-                                        <Send />
-                                        Kirim ke GKA
-                                    </Button>
-                                </Link>
-                                {can('products.create') && (
-                                    <Link href={route('products.create')}>
-                                        <Button className="bg-yellow-600 hover:bg-yellow-500">
-                                            <CirclePlus className="w-4 h-4 mr-2" /> Product
-                                        </Button>
-                                    </Link>
-                                )}
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="border p-4 rounded-lg">
-                                <div className="font-bold text-xl mb-4">Data Pembelian Karet</div>
-                                <div className="rounded-md border">
-                                    <Table>
-                                        <TableHeader>
-                                            <TableRow>
-                                                <TableHead>Tanggal</TableHead>
-                                                <TableHead>Supplier</TableHead>
-                                                <TableHead>Keping</TableHead>
-                                                <TableHead>Qty (IN)</TableHead>
-                                                <TableHead>Outcome</TableHead>
-                                                <TableHead className="text-center">Action</TableHead>
+                {/* Bagian Tabel Data */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Tabel Data Pembelian */}
+                    <div className="p-6 bg-white rounded-xl border border-gray-200 shadow-md">
+                        <h2 className="text-2xl font-bold mb-4 text-gray-900">
+                            Data Pembelian
+                            <span className="text-blue-500 ml-2">Temadu Sebayar Agro</span>
+                        </h2>
+                        <div className="overflow-x-auto">
+                            <Table>
+                                <TableHeader className="bg-gray-50 text-gray-600 rounded-lg">
+                                    <TableRow>
+                                        <TableHead className="p-4 font-semibold">Tanggal</TableHead>
+                                        <TableHead className="p-4 font-semibold">Supplier</TableHead>
+                                        <TableHead className="p-4 font-semibold text-right">
+                                            Qty (kg)
+                                        </TableHead>
+                                        <TableHead className="p-4 font-semibold text-right">
+                                            Keping
+                                        </TableHead>
+                                        <TableHead className="p-4 font-semibold text-right">
+                                            Total
+                                        </TableHead>
+                                        <TableHead className="p-4 font-semibold text-center">
+                                            Aksi
+                                        </TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody className="text-gray-700">
+                                    {products.data.length > 0 ? (
+                                        products.data.map((product) => (
+                                            <TableRow
+                                                key={product.id}
+                                                className="border-b border-gray-200 hover:bg-gray-50 transition-colors duration-200"
+                                            >
+                                                <TableCell className="p-4">{product.date}</TableCell>
+                                                <TableCell className="p-4">
+                                                    {product.nm_supplier}
+                                                </TableCell>
+                                                <TableCell className="p-4 text-right">
+                                                    {product.qty_kg}
+                                                </TableCell>
+                                                <TableCell className="p-4 text-right">
+                                                    {product.keping}
+                                                </TableCell>
+                                                <TableCell className="p-4 text-right">
+                                                    {formatCurrency(product.amount)}
+                                                </TableCell>
+                                                <TableCell className="p-4 flex justify-center space-x-2">
+                                                    <Link href={route('products.show', product.id)}>
+                                                        <Button
+                                                            variant="ghost"
+                                                            className="text-gray-500 hover:bg-gray-200"
+                                                        >
+                                                            <Eye size={18} />
+                                                        </Button>
+                                                    </Link>
+                                                    {can('products.edit') && (
+                                                        <Link href={route('products.edit', product.id)}>
+                                                            <Button
+                                                                variant="ghost"
+                                                                className="text-blue-500 hover:bg-blue-100"
+                                                            >
+                                                                <Pencil size={18} />
+                                                            </Button>
+                                                        </Link>
+                                                    )}
+                                                    {can('products.delete') && (
+                                                        <Button
+                                                            variant="ghost"
+                                                            onClick={() =>
+                                                                handleDelete(product.id, product.product)
+                                                            }
+                                                            className="text-red-500 hover:bg-red-100"
+                                                        >
+                                                            <Trash size={18} />
+                                                        </Button>
+                                                    )}
+                                                </TableCell>
                                             </TableRow>
-                                        </TableHeader>
-                                        <TableBody>
-                                            {products.data.length > 0 ? (
-                                                products.data.map((product) => (
-                                                    <TableRow key={product.id}>
-                                                        <TableCell key={`${product.id}-date`}>{product.date}</TableCell>
-                                                        <TableCell key={`${product.id}-supplier`}>{product.nm_supplier}</TableCell>
-                                                        <TableCell key={`${product.id}-keping`}>{product.keping}</TableCell>
-                                                        <TableCell key={`${product.id}-qty-in`}>{product.qty_kg}</TableCell>
-                                                        <TableCell key={`${product.id}-amount`}>{formatCurrency(product.amount)}</TableCell>
-                                                        <TableCell key={`${product.id}-actions`} className="text-center space-x-1">
-                                                            {can('products.view') && <Link href={route('products.show', product.id)}><Button size="icon" variant="ghost"><Eye className="h-4 w-4 text-gray-500" /></Button></Link>}
-                                                            {can('products.edit') && <Link href={route('products.edit', product.id)}><Button size="icon" variant="ghost"><PencilLine className="h-4 w-4 text-blue-500" /></Button></Link>}
-                                                            {can('roles.delete') && <Button size="icon" variant="ghost" onClick={() => handleDelete(product.id, product.product)}><Trash className="h-4 w-4 text-red-500" /></Button>}
-                                                        </TableCell>
-                                                    </TableRow>
-                                                ))
-                                            ) : (
-                                                <TableRow>
-                                                    <TableCell colSpan={6} className="h-24 text-center">
-                                                        No results found.
-                                                    </TableCell>
-                                                </TableRow>
-                                            )}
-                                        </TableBody>
-                                    </Table>
-                                </div>
-                                {products.data.length > 0 && renderPagination(products, 'page')}
-                            </div>
-
-                            <div className="border p-4 rounded-lg">
-                                <div className="font-bold text-xl mb-4">Data Penjualan Karet</div>
-                                <div className="rounded-md border">
-                                    <Table>
-                                        <TableHeader>
-                                            <TableRow>
-                                                <TableHead>Tanggal</TableHead>
-                                                <TableHead>Supplier</TableHead>
-                                                <TableHead>Keping</TableHead>
-                                                <TableHead>Qty (OUT)</TableHead>
-                                                <TableHead>Income</TableHead>
-                                                <TableHead className="text-center">Action</TableHead>
-                                            </TableRow>
-                                        </TableHeader>
-                                        <TableBody>
-                                            {products2.data.length > 0 ? (
-                                                products2.data.map((product) => (
-                                                    <TableRow key={product.id}>
-                                                        <TableCell key={`${product.id}-date-out`}>{product.date}</TableCell>
-                                                        <TableCell key={`${product.id}-supplier-out`}>{product.nm_supplier}</TableCell>
-                                                        <TableCell key={`${product.id}-keping-out`}>{product.keping_out}</TableCell>
-                                                        <TableCell key={`${product.id}-qty-out`}>{product.qty_out}</TableCell>
-                                                        <TableCell key={`${product.id}-amount-out`}>{formatCurrency(product.amount_out)}</TableCell>
-                                                        <TableCell key={`${product.id}-actions-out`} className="text-center space-x-1">
-                                                            {can('products.view') && <Link href={route('products.show', product.id)}><Button size="icon" variant="ghost"><Eye className="h-4 w-4 text-gray-500" /></Button></Link>}
-                                                            {can('products.edit') && <Link href={route('products.edit_out', product.id)}><Button size="icon" variant="ghost"><Pencil className="h-4 w-4 text-blue-500" /></Button></Link>}
-                                                            {/* {can('products.delete') && <Button size="icon" variant="ghost" onClick={() => handleDelete(product.id, product.product)}><Trash className="h-4 w-4 text-red-500" /></Button>} */}
-                                                        </TableCell>
-                                                    </TableRow>
-                                                ))
-                                            ) : (
-                                                <TableRow>
-                                                    <TableCell colSpan={6} className="h-24 text-center">
-                                                        No results found.
-                                                    </TableCell>
-                                                </TableRow>
-                                            )}
-                                        </TableBody>
-                                    </Table>
-                                </div>
-                                {products2.data.length > 0 && renderPagination(products2, 'page2')}
-                            </div>
+                                        ))
+                                    ) : (
+                                        <TableRow>
+                                            <TableCell colSpan={6} className="h-24 text-center">
+                                                Tidak ada hasil ditemukan.
+                                            </TableCell>
+                                        </TableRow>
+                                    )}
+                                </TableBody>
+                            </Table>
                         </div>
-                    </CardContent>
-                </Card>
+                        {products.data.length > 0 && renderPagination(products, 'page')}
+                    </div>
+
+                    {/* Tabel Data Penjualan */}
+                    <div className="p-6 bg-white rounded-xl border border-gray-200 shadow-md">
+                        <h2 className="text-2xl font-bold mb-4 text-gray-900">
+                            Data Penjualan
+                            <span className="text-blue-500 ml-2">Temadu Sebayar Agro</span>
+                        </h2>
+                        <div className="overflow-x-auto">
+                            <Table>
+                                <TableHeader className="bg-gray-50 text-gray-600 rounded-lg">
+                                    <TableRow>
+                                        <TableHead className="p-4 font-semibold">Tanggal</TableHead>
+                                        <TableHead className="p-4 font-semibold">Supplier</TableHead>
+                                        <TableHead className="p-4 font-semibold text-right">
+                                            Qty (kg)
+                                        </TableHead>
+                                        <TableHead className="p-4 font-semibold text-right">
+                                            Keping
+                                        </TableHead>
+                                        <TableHead className="p-4 font-semibold text-right">
+                                            Total
+                                        </TableHead>
+                                        <TableHead className="p-4 font-semibold text-center">
+                                            Aksi
+                                        </TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody className="text-gray-700">
+                                    {products2.data.length > 0 ? (
+                                        products2.data.map((product) => (
+                                            <TableRow
+                                                key={product.id}
+                                                className="border-b border-gray-200 hover:bg-gray-50 transition-colors duration-200"
+                                            >
+                                                <TableCell className="p-4">{product.date}</TableCell>
+                                                <TableCell className="p-4">
+                                                    {product.nm_supplier}
+                                                </TableCell>
+                                                <TableCell className="p-4 text-right">
+                                                    {product.qty_out}
+                                                </TableCell>
+                                                <TableCell className="p-4 text-right">
+                                                    {product.keping_out}
+                                                </TableCell>
+                                                <TableCell className="p-4 text-right">
+                                                    {formatCurrency(product.amount_out)}
+                                                </TableCell>
+                                                <TableCell className="p-4 flex justify-center space-x-2">
+                                                    <Link href={route('products.show', product.id)}>
+                                                        <Button
+                                                            variant="ghost"
+                                                            className="text-gray-500 hover:bg-gray-200"
+                                                        >
+                                                            <Eye size={18} />
+                                                        </Button>
+                                                    </Link>
+                                                    {can('products.edit') && (
+                                                        <Link href={route('products.edit_out', product.id)}>
+                                                            <Button
+                                                                variant="ghost"
+                                                                className="text-blue-500 hover:bg-blue-100"
+                                                            >
+                                                                <Pencil size={18} />
+                                                            </Button>
+                                                        </Link>
+                                                    )}
+                                                    {can('products.delete') && (
+                                                        <Button
+                                                            variant="ghost"
+                                                            onClick={() =>
+                                                                handleDelete(product.id, product.product)
+                                                            }
+                                                            className="text-red-500 hover:bg-red-100"
+                                                        >
+                                                            <Trash size={18} />
+                                                        </Button>
+                                                    )}
+                                                </TableCell>
+                                            </TableRow>
+                                        ))
+                                    ) : (
+                                        <TableRow>
+                                            <TableCell colSpan={6} className="h-24 text-center">
+                                                Tidak ada hasil ditemukan.
+                                            </TableCell>
+                                        </TableRow>
+                                    )}
+                                </TableBody>
+                            </Table>
+                        </div>
+                        {products2.data.length > 0 && renderPagination(products2, 'page2')}
+                    </div>
+                </div>
             </div>
         </AppLayout>
     );

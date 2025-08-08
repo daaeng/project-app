@@ -278,13 +278,7 @@ export default function TsaPage({
                                         <SelectItem value="this-year">This Year</SelectItem>
                                     </SelectContent>
                                 </Select>
-                                <Button
-                                    onClick={() => router.get(route('products.export.excel'), { search: searchValue, time_period: timePeriod })} // Include time_period for export
-                                    variant="outline"
-                                    className="flex items-center gap-1"
-                                >
-                                    <FileDown className="h-4 w-4" /> Export
-                                </Button>
+                                
                                 {can('products.create') && (
                                     <Link href={route('products.create')}>
                                         <Button className="bg-yellow-600 hover:bg-yellow-500">

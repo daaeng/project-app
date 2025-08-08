@@ -73,7 +73,7 @@ interface PageProps {
     totalPendingNota : number;
     totalRevenueAmount: number;
     totalRevenueKg: number;
-    filter?: { search?: string; time_period?: string };
+    filter?: { search?: string; time_period?: string; month?: string; year?: string };
     products: {
         data: Product[];
         links: PaginationLink[];
@@ -86,7 +86,6 @@ interface PageProps {
     };
     monthlyData: { name: string; temadu: number; sebayar: number; penjualan: number }[];
     monthlyRevenueData: { name: string; value: number }[];
-    // Updated topIncisorRevenue interface to include 'qty_karet'
     topIncisorRevenue: { name: string; value: number; qty_karet: number }[];
     qualityDistribution: { name: string; value: number }[];
 }
@@ -123,27 +122,46 @@ export default function Dashboard({ totalAmountOutKaret, hsl_tsa, hsl_beli, tota
     const displayValue = formatCurrency(totalAmountOutKaret || 0);
     const nota = formatCurrency(totalPendingNota || 0);
     const beli_karet = formatCurrency(hsl_beli || 0);
-    // const formattedTotalRevenueAmount = formatCurrency(totalRevenueAmount || 0);
-    // const formattedTotalRevenueKg = `${totalRevenueKg || 0} kg`;
-
 
     const [searchValue, setSearchValue] = useState(filter?.search || '');
-    const [timePeriod, setTimePeriod] = useState(filter?.time_period || 'all-time');
+    const [selectedMonth, setSelectedMonth] = useState(filter?.month || '');
+    const [selectedYear, setSelectedYear] = useState(filter?.year || '');
+    
+    const [timePeriod, setTimePeriod] = useState(filter?.time_period || 'this-month');
 
     useEffect(() => {
         setSearchValue(filter?.search || '');
-        setTimePeriod(filter?.time_period || 'all-time');
-    }, [filter?.search, filter?.time_period]);
+        setTimePeriod(filter?.time_period || 'this-month');
+        setSelectedMonth(filter?.month || '');
+        setSelectedYear(filter?.year || '');
+    }, [filter?.search, filter?.time_period, filter?.month, filter?.year]);
+
+
+    const handleFilterChange = (newFilters: { [key: string]: string | number | null }) => {
+        const filters = {
+            search: searchValue,
+            time_period: timePeriod,
+            month: selectedMonth,
+            year: selectedYear,
+            ...newFilters,
+        };
+        
+        router.get(route('dashboard'), filters as any, {
+            preserveState: true,
+            replace: true,
+            only: ['products', 'filter', 'monthlyData', 'monthlyRevenueData', 'qualityDistribution', 'topIncisorRevenue', 'totalRevenueAmount', 'totalRevenueKg', 'totalAmountOutKaret', 'hsl_tsa', 'hsl_beli', 'totalPendingRequests', 'stok_gka', 'jml_penoreh', 'jml_pegawai', 'totalPendingNota'],
+        });
+    };
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearchValue(e.target.value);
     };
 
     const renderPagination = (pagination: PageProps['products']) => {
+        const filterString = `&search=${searchValue || ''}&time_period=${timePeriod || ''}&month=${selectedMonth || ''}&year=${selectedYear || ''}`;
         return (
             <div className="flex justify-center items-center mt-6 space-x-1">
                 {pagination.links.map((link: PaginationLink, index: number) => (
-
                     link.url === null ? (
                         <div
                             key={index}
@@ -151,20 +169,17 @@ export default function Dashboard({ totalAmountOutKaret, hsl_tsa, hsl_beli, tota
                             dangerouslySetInnerHTML={{ __html: link.label }}
                         />
                     ) : (
-
                         <Link
                             key={`link-${index}`}
-                            href={link.url + (searchValue ? `&search=${searchValue}` : '') + (timePeriod !== 'all-time' ? `&time_period=${timePeriod}` : '')}
+                            href={link.url + filterString}
                             className={`px-4 py-2 text-sm rounded-md transition ${
                                 link.active
                                     ? 'bg-blue-600 text-white shadow-md'
                                     : 'bg-white text-gray-700 hover:bg-gray-100'
                             }`}
-
                             preserveState
                             preserveScroll
                         >
-
                             <span dangerouslySetInnerHTML={{ __html: link.label }} />
                         </Link>
                     )
@@ -181,25 +196,55 @@ export default function Dashboard({ totalAmountOutKaret, hsl_tsa, hsl_beli, tota
 
     const handleTimePeriodChange = (value: string) => {
         setTimePeriod(value);
-        router.get(route('dashboard'),
-            { search: searchValue, time_period: value },
-            {
-                preserveState: true,
-                replace: true,
-                only: ['products', 'filter', 'monthlyData', 'monthlyRevenueData', 'qualityDistribution', 'topIncisorRevenue', 'totalRevenueAmount', 'totalRevenueKg'],
-            }
-        );
+        if (value === 'custom') {
+             // Do nothing here, let the month/year selects handle the filtering
+             // Or set default month/year if needed
+        } else {
+            // Reset month and year filters
+            handleFilterChange({ time_period: value, month: null, year: null });
+        }
+    };
+    
+    const handleMonthChange = (value: string) => {
+        setSelectedMonth(value);
+        handleFilterChange({ time_period: 'custom', month: value, year: selectedYear });
     };
 
+    const handleYearChange = (value: string) => {
+        setSelectedYear(value);
+        handleFilterChange({ time_period: 'custom', month: selectedMonth, year: value });
+    };
+    
     const performSearch = () => {
-        router.get(route('dashboard'),
-            { search: searchValue, time_period: timePeriod },
-            {
-                preserveState: true,
-                replace: true,
-                only: ['products', 'filter', 'monthlyData', 'monthlyRevenueData', 'qualityDistribution', 'topIncisorRevenue', 'totalRevenueAmount', 'totalRevenueKg'],
-            }
-        );
+        handleFilterChange({});
+    };
+
+    // Fungsi untuk menghasilkan opsi bulan
+    const getMonthOptions = () => {
+        return [
+            { value: '01', label: 'Januari' },
+            { value: '02', label: 'Februari' },
+            { value: '03', label: 'Maret' },
+            { value: '04', label: 'April' },
+            { value: '05', label: 'Mei' },
+            { value: '06', label: 'Juni' },
+            { value: '07', label: 'Juli' },
+            { value: '08', label: 'Agustus' },
+            { value: '09', label: 'September' },
+            { value: '10', label: 'Oktober' },
+            { value: '11', label: 'November' },
+            { value: '12', label: 'Desember' },
+        ];
+    };
+
+    // Fungsi untuk menghasilkan opsi tahun
+    const getYearOptions = () => {
+        const currentYear = new Date().getFullYear();
+        const years = [];
+        for (let i = currentYear; i >= 2020; i--) { // Anda bisa menyesuaikan tahun mulai
+            years.push({ value: i.toString(), label: i.toString() });
+        }
+        return years;
     };
 
     // Check if there's any actual data in qualityDistribution to display
@@ -219,12 +264,69 @@ export default function Dashboard({ totalAmountOutKaret, hsl_tsa, hsl_beli, tota
                     </p>
                 </div>
 
+                {/* Filter dropdowns untuk semua chart */}
+                <div className="mb-6 flex flex-wrap gap-2 justify-end items-center">
+                    <div className="flex items-center gap-2 p-1">
+                        <span className="text-black dark:text-white text-sm">Filter Waktu:</span>
+                        <div className='bg-accent dark:bg-white text-black rounded-xl'>
+                            <Select value={timePeriod} onValueChange={handleTimePeriodChange}>
+                                <SelectTrigger className="w-[180px]">
+                                    <SelectValue placeholder="Pilih periode waktu" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all-time">Semua Waktu</SelectItem>
+                                    <SelectItem value="all-years">Semua Tahun</SelectItem>
+                                    <SelectItem value="this-year">Tahun Ini</SelectItem>
+                                    <SelectItem value="this-month">Bulan Ini</SelectItem>
+                                    <SelectItem value="last-month">Bulan Lalu</SelectItem>
+                                    <SelectItem value="this-week">Minggu Ini</SelectItem>
+                                    <SelectItem value="today">Hari Ini</SelectItem>
+                                    <SelectItem value="custom">Pilih Bulan & Tahun</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
+
+                    {timePeriod === 'custom' && (
+                        <>
+                            <div className='bg-accent dark:bg-white text-black rounded-xl'>
+                                <Select value={selectedMonth} onValueChange={handleMonthChange}>
+                                    <SelectTrigger className="w-[140px]">
+                                        <SelectValue placeholder="Bulan" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {getMonthOptions().map(month => (
+                                            <SelectItem key={month.value} value={month.value}>
+                                                {month.label}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className='bg-accent dark:bg-white text-black rounded-xl'>
+                                <Select value={selectedYear} onValueChange={handleYearChange}>
+                                    <SelectTrigger className="w-[120px]">
+                                        <SelectValue placeholder="Tahun" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {getYearOptions().map(year => (
+                                            <SelectItem key={year.value} value={year.value}>
+                                                {year.label}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </>
+                    )}
+                </div>
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
 
                     <StatCard
                         icon={FaMoneyBill}
                         title="Total Penjualan Karet"
-                        value={displayValue}
+                        value={formatCurrency(totalRevenueAmount || 0)}
                         subtitle="oleh PT GKA"
                         gradient="from-green-400 to-green-600"
                     />
@@ -264,7 +366,7 @@ export default function Dashboard({ totalAmountOutKaret, hsl_tsa, hsl_beli, tota
                     <StatCard
                         icon={FaFileInvoice}
                         title="Pengeluaran TSA"
-                        value={beli_karet} 
+                        value={formatCurrency(hsl_beli || 0)}
                         subtitle="Pembelian Karet" // Ini masih hardcoded
                         gradient="from-pink-400 to-pink-600"
                     />
@@ -272,7 +374,7 @@ export default function Dashboard({ totalAmountOutKaret, hsl_tsa, hsl_beli, tota
                     <StatCard
                         icon={FaMoneyBill}
                         title="Kwitansi/Nota Pending"
-                        value={nota}
+                        value={formatCurrency(totalPendingNota || 0)}
                         subtitle="Menunggu Persetujuan"
                         gradient="from-orange-400 to-orange-600"
                     />
@@ -285,28 +387,6 @@ export default function Dashboard({ totalAmountOutKaret, hsl_tsa, hsl_beli, tota
                         gradient="from-indigo-400 to-indigo-600"
                     />
 
-                </div>
-
-                {/* Dropdown filter for all charts */}
-                <div className="mb-6 flex justify-end">
-                    <div className="flex items-center gap-2 p-1 ">
-                        <span className="text-black dark:text-white text-sm">Filter Waktu:</span>
-                        <div className='bg-accent dark:bg-white text-black rounded-xl'>
-                            <Select value={timePeriod} onValueChange={handleTimePeriodChange}>
-                                <SelectTrigger className="w-[180px]">
-                                    <SelectValue placeholder="Pilih periode waktu" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="all-time">Semua Waktu</SelectItem> {/* Total Kumulatif */}
-                                    <SelectItem value="all-years">Semua Tahun</SelectItem> {/* Agregasi per Tahun */}
-                                    <SelectItem value="this-year">Tahun Ini</SelectItem> {/* Agregasi per Bulan (Tahun Ini) */}
-                                    <SelectItem value="this-month">Bulan Ini</SelectItem>
-                                    <SelectItem value="this-week">Minggu Ini</SelectItem>
-                                    <SelectItem value="today">Hari Ini</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    </div>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
@@ -328,10 +408,7 @@ export default function Dashboard({ totalAmountOutKaret, hsl_tsa, hsl_beli, tota
                             >
                                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                                 <XAxis dataKey="name" />
-                                {/* YAxis pertama untuk Produksi (kg) - ditambahkan tick={{ fontSize: 10 }} */}
                                 <YAxis yAxisId="left" orientation="left" stroke="#3B82F6" tick={{ fontSize: 10 }} />
-                                
-                                {/* YAxis kedua untuk Penjualan (Rupiah) - ditambahkan tick={{ fontSize: 10 }} */}
                                 <YAxis yAxisId="right" orientation="right" stroke="#22C55E" tickFormatter={(value) => formatCurrency(value)} tick={{ fontSize: 10 }} />
                                 <Tooltip
                                     contentStyle={{ borderRadius: 8 }}
@@ -347,8 +424,6 @@ export default function Dashboard({ totalAmountOutKaret, hsl_tsa, hsl_beli, tota
                                 <Bar yAxisId="left" dataKey="sebayar" fill="#FFC107" name="Sebayar" radius={[8, 8, 0, 0]} />
                                 <Bar yAxisId="left" dataKey="temadu" fill="#3B82F6" name="Temadu" radius={[8, 8, 0, 0]} />
                                 <Bar yAxisId="right" dataKey="penjualan" fill="#22C55E"  radius={[8, 8, 0, 0]} />
-
-                                {/* <Line yAxisId="right" type="monotone" dataKey="penjualan" stroke="#16A34A" strokeWidth={2} strokeDasharray="5 5" dot={{ r: 3 }} /> */}
                             
                             </BarChart>
                         </ResponsiveContainer>
@@ -372,7 +447,7 @@ export default function Dashboard({ totalAmountOutKaret, hsl_tsa, hsl_beli, tota
                                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                                 <XAxis dataKey="name" />
                                 <YAxis tickFormatter={(value) => formatCurrency(value)} tick={{ fontSize: 5 }}/>
-                                <Tooltip contentStyle={{ borderRadius: 8 }} formatter={(value: number) => formatCurrency(value)} />
+                                <Tooltip contentStyle={{ borderRadius: 10, boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }} formatter={(value: number) => formatCurrency(value)} />
                                 <Legend />
                                 <Line
                                 type="monotone"
@@ -445,9 +520,7 @@ export default function Dashboard({ totalAmountOutKaret, hsl_tsa, hsl_beli, tota
                             >
                                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                                 <XAxis dataKey="name" />
-                                {/* YAxis pertama untuk Pendapatan (kiri) */}
                                 <YAxis yAxisId="left" orientation="left" stroke="#6366F1" tickFormatter={(value) => formatCurrency(value)} tick={{ fontSize: 8 }}/>
-                                {/* YAxis kedua untuk Kuantitas Karet (kanan) */}
                                 <YAxis yAxisId="right" orientation="right" stroke="#10B981" tickFormatter={(value) => `${value} kg`} tick={{ fontSize: 8 }}/>
                                 <Tooltip
                                 contentStyle={{ borderRadius: 10, boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}
@@ -459,18 +532,18 @@ export default function Dashboard({ totalAmountOutKaret, hsl_tsa, hsl_beli, tota
                                 />
                                 <Legend />
                                 <Bar
-                                    yAxisId="left" // Bar ini menggunakan Y-axis kiri
+                                    yAxisId="left" 
                                     dataKey="value"
                                     fill="#6366F1"
-                                    name="Pendapatan" // Nama untuk legend dan tooltip
+                                    name="Pendapatan" 
                                     radius={[10, 10, 0, 0]}
                                     animationDuration={800}
                                 />
                                 <Bar
-                                    yAxisId="right" // Bar ini menggunakan Y-axis kanan
-                                    dataKey="qty_karet" // Data key baru untuk jumlah karet
-                                    fill="#10B981" // Warna berbeda untuk jumlah karet
-                                    name="Jumlah Karet" // Nama untuk legend dan tooltip
+                                    yAxisId="right" 
+                                    dataKey="qty_karet" 
+                                    fill="#10B981" 
+                                    name="Jumlah Karet" 
                                     radius={[10, 10, 0, 0]}
                                     animationDuration={800}
                                 />
@@ -489,35 +562,62 @@ export default function Dashboard({ totalAmountOutKaret, hsl_tsa, hsl_beli, tota
                         </h4>
                     </div>
 
-                    <input
-                        type="text"
-                        placeholder="🔍 Cari nama produk..."
-                        value={searchValue}
-                        onChange={handleInputChange}
-                        onKeyPress={handleKeyPress}
-                        className="border border-gray-300 rounded-lg px-4 py-2 mb-4 w-full text-sm text-black focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all"
-                    />
+                    <div className="flex flex-col gap-4 py-4 sm:flex-row sm:items-center justify-between">
+                        <input
+                            type="text"
+                            placeholder="🔍 Cari nama produk..."
+                            value={searchValue}
+                            onChange={handleInputChange}
+                            onKeyPress={handleKeyPress}
+                            className="border border-gray-300 rounded-lg px-4 py-2 w-full text-sm text-black focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all sm:w-1/3"
+                        />
+                         <div className="flex items-center gap-2">
+                             <Select value={timePeriod} onValueChange={handleTimePeriodChange}>
+                                <SelectTrigger className="w-[180px]">
+                                    <SelectValue placeholder="Pilih periode waktu" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all-time">Semua Waktu</SelectItem>
+                                    <SelectItem value="today">Hari Ini</SelectItem>
+                                    <SelectItem value="this-week">Minggu Ini</SelectItem>
+                                    <SelectItem value="this-month">Bulan Ini</SelectItem>
+                                    <SelectItem value="this-year">Tahun Ini</SelectItem>
+                                    <SelectItem value="custom">Pilih Bulan & Tahun</SelectItem>
+                                </SelectContent>
+                            </Select>
+
+                             {timePeriod === 'custom' && (
+                                <>
+                                    <Select value={selectedMonth} onValueChange={handleMonthChange}>
+                                        <SelectTrigger className="w-[140px]">
+                                            <SelectValue placeholder="Bulan" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {getMonthOptions().map(month => (
+                                                <SelectItem key={month.value} value={month.value}>
+                                                    {month.label}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    <Select value={selectedYear} onValueChange={handleYearChange}>
+                                        <SelectTrigger className="w-[120px]">
+                                            <SelectValue placeholder="Tahun" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {getYearOptions().map(year => (
+                                                <SelectItem key={year.value} value={year.value}>
+                                                    {year.label}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </>
+                            )}
+                        </div>
+                    </div>
 
                     <div className="overflow-x-auto text-black">
-
-                        {/* <div className="flex flex-col gap-4 py-4 sm:flex-row sm:items-center">
-
-                            <div className="flex items-center gap-2">
-                                <Select value={timePeriod} onValueChange={handleTimePeriodChange}>
-                                    <SelectTrigger className="w-[180px]">
-                                        <SelectValue placeholder="Select time period" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="all-time">All Time</SelectItem>
-                                        <SelectItem value="today">Today</SelectItem>
-                                        <SelectItem value="this-week">This Week</SelectItem>
-                                        <SelectItem value="this-month">This Month</SelectItem>
-                                        <SelectItem value="this-year">This Year</SelectItem>
-                                    </SelectContent>
-                                </Select>
-
-                            </div>
-                        </div> */}
 
                         <div className="rounded-md border">
                             <Table>
@@ -565,10 +665,7 @@ export default function Dashboard({ totalAmountOutKaret, hsl_tsa, hsl_beli, tota
                         {products.data.length > 0 && renderPagination(products)}
                     </div>
                 </div>
-
-
             </div>
         </AppLayout>
     );
-};
-
+}

@@ -505,677 +505,684 @@ export default function AdminPage({ requests, notas, summary, filter, currentMon
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Administrasi" />
 
-            <div className="h-full flex-col rounded-xl p-4 shadow-md bg-gray-50 dark:bg-black">
-                <div className="flex justify-between items-center mb-4">
-                    <Heading title="Administrasi Dokumen" />
-                </div>
-
-                {/* Dropdown filter for summary cards */}
-                <div className="mb-6 flex justify-end items-center gap-4">
-                    <div className="flex items-center gap-2 p-1 ">
-                        <span className="text-black dark:text-white text-sm">Filter Waktu:</span>
-                        <div className='bg-accent dark:bg-white text-black rounded-xl'>
-                            <Select value={timePeriod} onValueChange={handleTimePeriodChange}>
-                                <SelectTrigger className="w-[180px]">
-                                    <SelectValue placeholder="Pilih periode waktu" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="all-time">Semua Waktu</SelectItem>
-                                    <SelectItem value="all-years">Semua Tahun</SelectItem>
-                                    <SelectItem value="this-year">Tahun Ini</SelectItem>
-                                    <SelectItem value="this-month">Bulan Ini</SelectItem>
-                                    <SelectItem value="last-month">Bulan Lalu</SelectItem>
-                                    <SelectItem value="this-week">Minggu Ini</SelectItem>
-                                    <SelectItem value="today">Hari Ini</SelectItem>
-                                    <SelectItem value="specific-month">Pilih Bulan & Tahun</SelectItem>
-                                </SelectContent>
-                            </Select>
+            {can('administrasis.view') && (
+                <>
+                    <div className="h-full flex-col rounded-xl p-4 shadow-md bg-gray-50 dark:bg-black">
+                        <div className="flex justify-between items-center mb-4">
+                            <Heading title="Administrasi Dokumen" />
                         </div>
-                    </div>
-
-                    {timePeriod === 'specific-month' && (
-                        <>
-                            <div className="flex items-center gap-2 p-1">
-                                <span className="text-black dark:text-white text-sm">Bulan:</span>
-                                <div className='bg-accent dark:bg-white text-black rounded-xl'>
-                                    <Select value={selectedMonth} onValueChange={handleMonthChange}>
-                                        <SelectTrigger className="w-[140px]">
-                                            <SelectValue placeholder="Pilih Bulan" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {months.map((month) => (
-                                                <SelectItem key={month.value} value={month.value}>
-                                                    {month.label}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                            </div>
-                            <div className="flex items-center gap-2 p-1">
-                                <span className="text-black dark:text-white text-sm">Tahun:</span>
-                                <div className='bg-accent dark:bg-white text-black rounded-xl'>
-                                    <Select value={selectedYear} onValueChange={handleYearChange}>
-                                        <SelectTrigger className="w-[100px]">
-                                            <SelectValue placeholder="Pilih Tahun" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {years.map((year) => (
-                                                <SelectItem key={year.value} value={year.value}>
-                                                    {year.label}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                            </div>
-                        </>
-                    )}
-                </div>
-
-                {/* Cards Section */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                    {/* Card 1: Harga Saham Karet */}
-                    <div className="bg-gradient-to-r from-amber-500 to-amber-600 text-white p-5 rounded-lg shadow-lg flex items-center justify-between relative">
-                        <div>
-                            <div className="text-sm font-medium opacity-90">Harga Saham Karet</div>
-                            <div className="text-3xl font-bold mt-1">{summary.hargaSahamKaret}</div>
-                        </div>
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            className="absolute top-2 right-2 text-white hover:bg-white hover:bg-opacity-20"
-                            onClick={() => openHargaModal('harga_saham_karet', summary.hargaSahamKaret)}
-                        >
-                            <Edit size={20} />
-                        </Button>
-                        <FileText size={40} className="opacity-70" />
-                    </div>
-
-                    {/* Card 2: Harga Dollar */}
-                    <div className="bg-gradient-to-r from-cyan-500 to-cyan-600 text-white p-5 rounded-lg shadow-lg flex items-center justify-between relative">
-                        <div>
-                            <div className="text-sm font-medium opacity-90">Harga Dollar</div>
-                            <div className="text-3xl font-bold mt-1">{formatCurrency(summary.hargaDollar)}</div>
-                        </div>
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            className="absolute top-2 right-2 text-white hover:bg-white hover:bg-opacity-20"
-                            onClick={() => openHargaModal('harga_dollar', summary.hargaDollar)}
-                        >
-                            <DollarSign size={20} />
-                        </Button>
-                        <DollarSign size={40} className="opacity-70" />
-                    </div>
-
-                    {/* Card 3: Pengeluaran */}
-                    <div className="bg-gradient-to-r from-rose-500 to-rose-600 text-white p-5 rounded-lg shadow-lg flex items-center justify-between relative">
-                        <div>
-                            <div className="text-sm font-medium opacity-90">Pengeluaran</div>
-                            <div className="text-3xl font-bold mt-1">{formatCurrency(summary.totalPengeluaran)}</div>
-                        </div>
-                        {/* Tombol untuk menambahkan pengeluaran */}
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            className="absolute top-2 right-10 text-white hover:bg-white hover:bg-opacity-20"
-                            onClick={openPengeluaranAddModal}
-                        >
-                            <PlusCircle size={20} />
-                        </Button>
-                        {/* Tombol untuk membuka modal daftar pengeluaran */}
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            className="absolute top-2 right-2 text-white hover:bg-white hover:bg-opacity-20"
-                            onClick={openPengeluaranListModal}
-                        >
-                            <Info size={20} />
-                        </Button>
-                        <Receipt size={40} className="opacity-70" />
-                    </div>
-
-                    {/* Card 4: Laba / Rugi */}
-                    <div
-                        className="bg-gradient-to-r from-green-500 to-green-600 text-white p-5 rounded-lg shadow-lg flex items-center justify-between relative cursor-pointer"
-                        onClick={openLabaRugiInfoModal}
-                    >
-                        <div>
-                            <div className="text-sm font-medium opacity-90">Laba / Rugi</div>
-                            <div className="text-3xl font-bold mt-1">{formatCurrency(summary.labaRugi)}</div>
-                        </div>
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            className="absolute top-2 right-2 text-white hover:bg-white hover:bg-opacity-20"
-                            onClick={(e) => { e.stopPropagation(); openLabaRugiInfoModal(); }}
-                        >
-                            <Info size={20} />
-                        </Button>
-                        <Banknote size={40} className="opacity-70" />
-                    </div>
-                </div>
-                {/* End Cards Section */}
-                
-                {/* Cards Section */}
-                <div className='border rounded-xl p-2 mb-6'>
-                    <div className='flex justify-center mb-2 font-semibold'>
-                        Beli & Jual
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                         
-                        <div className="bg-gradient-to-r from-gray-500 to-gray-600 text-white p-5 rounded-lg shadow-lg flex items-center justify-between relative">
-                            <div>
-                                <div className="text-sm font-medium opacity-90">Stok Pengiriman Karet</div>
-                                <div className="text-3xl font-bold mt-1">{summary.s_karet} Kg</div>
+                        {/* Dropdown filter for summary cards */}
+                        <div className="mb-6 flex justify-end items-center gap-4">
+                            <div className="flex items-center gap-2 p-1 ">
+                                <span className="text-black dark:text-white text-sm">Filter Waktu:</span>
+                                <div className='bg-accent dark:bg-white text-black rounded-xl'>
+                                    <Select value={timePeriod} onValueChange={handleTimePeriodChange}>
+                                        <SelectTrigger className="w-[180px]">
+                                            <SelectValue placeholder="Pilih periode waktu" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="all-time">Semua Waktu</SelectItem>
+                                            <SelectItem value="all-years">Semua Tahun</SelectItem>
+                                            <SelectItem value="this-year">Tahun Ini</SelectItem>
+                                            <SelectItem value="this-month">Bulan Ini</SelectItem>
+                                            <SelectItem value="last-month">Bulan Lalu</SelectItem>
+                                            <SelectItem value="this-week">Minggu Ini</SelectItem>
+                                            <SelectItem value="today">Hari Ini</SelectItem>
+                                            <SelectItem value="specific-month">Pilih Bulan & Tahun</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
                             </div>
-                            <Warehouse size={40} className="opacity-70" />
-                        </div>
 
-                        <div
-                            className="bg-gradient-to-r from-gray-500 to-gray-600 text-white p-5 rounded-lg shadow-lg flex items-center justify-between relative cursor-pointer"
-                            onClick={openLabaRugiInfoModal}
-                        >
-                            <div>
-                                <div className="text-sm font-medium opacity-90">Harga Jual Karet</div>
-                                <div className="text-3xl font-bold mt-1">{formatCurrency(summary.h_karet)}</div>
-                            </div>
-                            
-                            <Landmark size={40} className="opacity-70" />
-                        </div>
-
-                        <div className="bg-gradient-to-r from-gray-500 to-gray-600 text-white p-5 rounded-lg shadow-lg flex items-center justify-between relative">
-                            <div>
-                                <div className="text-sm font-medium opacity-90">Pembelian Karet</div>
-                                <div className="text-3xl font-bold mt-1">{formatCurrency(summary.tb_karet)}</div>
-                            </div>
-                            <Handshake size={40} className="opacity-70" />
-                        </div>
-
-                        <div className="bg-gradient-to-r from-gray-500 to-gray-600 text-white p-5 rounded-lg shadow-lg flex items-center justify-between relative">
-                            <div>
-                                <div className="text-sm font-medium opacity-90">Penjualan Karet</div>
-                                <div className="text-3xl font-bold mt-1">{formatCurrency(summary.tj_karet)}</div>
-                            </div>
-                            <HandCoins size={40} className="opacity-70" />
-                        </div>
-
-                    </div>
-                </div>
-                {/* End Cards Section */}
-                
-                {/* Cards Section (Original) */}
-                <div className='border-t'>
-                    <div className='p-2'>
-                        Validasi
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                        {/* Card 1: Total Request Letters */}
-                        <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-5 rounded-lg shadow-lg flex items-center justify-between">
-                            <div>
-                                <div className="text-sm font-medium opacity-90">Total Request Letters</div>
-                                <div className="text-3xl font-bold mt-1">{summary.totalRequests}</div>
-                            </div>
-                            <FileText size={40} className="opacity-70" />
-                        </div>
-
-                        {/* Card 2: Total Nota/Kwitansi */}
-                        <div className="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white p-5 rounded-lg shadow-lg flex items-center justify-between">
-                            <div>
-                                <div className="text-sm font-medium opacity-90">Total Nota/Kwitansi</div>
-                                <div className="text-3xl font-bold mt-1">{summary.totalNotas}</div>
-                            </div>
-                            <Receipt size={40} className="opacity-70" />
-                        </div>
-
-                        {/* Card 3: Request Pending */}
-                        <div className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-white p-5 rounded-lg shadow-lg flex items-center justify-between">
-                            <div>
-                                <div className="text-sm font-medium opacity-90">Request Pending</div>
-                                <div className="text-3xl font-bold mt-1">{summary.totalPendingRequests}</div>
-                            </div>
-                            <Clock size={40} className="opacity-70" />
-                        </div>
-
-                        {/* Card 4: Total Dana Disetujui (Contoh) */}
-                        <div className="bg-gradient-to-r from-purple-500 to-purple-600 text-white p-5 rounded-lg shadow-lg flex items-center justify-between">
-                            <div>
-                                <div className="text-sm font-medium opacity-90">Total Kwitansi/Nota Dana Disetujui</div>
-                                <div className="text-3xl font-bold mt-1">{formatCurrency(summary.totalApprovedDana)}</div>
-                            </div>
-                            <FileCheck2 size={40} className="opacity-70" />
-                        </div>
-                    </div>
-                </div>
-                {/* End Cards Section (Original) */}
-
-                {/* Table for Administration Documents */}
-                <div className="w-full border rounded-xl p-4 mt-4 overflow-x-auto">
-                    <div className="font-bold text-xl mb-4 text-gray-800">Daftar Dokumen Administrasi</div>
-                    <Table className="min-w-full">
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead className="w-[120px]">Tanggal</TableHead>
-                                <TableHead className="w-[150px]">Tipe Dokumen</TableHead>
-                                <TableHead className="w-[150px]">Pengaju/Pihak</TableHead>
-                                <TableHead>Perihal/Deskripsi</TableHead>
-                                <TableHead className="w-[100px]">Devisi</TableHead>
-                                <TableHead className="text-right w-[120px]">Dana</TableHead>
-                                <TableHead className="w-[100px]">Status</TableHead>
-                                <TableHead className="w-[120px]">Tgl. Update</TableHead> 
-                                <TableHead className="text-center w-[120px]">Aksi</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {combinedData.length > 0 ? (
-                                combinedData.map((item) => (
-                                    <TableRow key={`${item.type}-${item.id}`}>
-                                        <TableCell>{item.transactionDate}</TableCell>
-                                        <TableCell>
-                                            <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                                                item.type === 'request' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'
-                                            }`}>
-                                                {item.type === 'request' ? 'Request Letter' : 'Nota/Kwitansi'}
-                                            </span>
-                                        </TableCell>
-                                        <TableCell>{item.requesterOrParty}</TableCell>
-                                        <TableCell>{item.subjectOrDescription}</TableCell>
-                                        <TableCell>{item.devisi}</TableCell>
-                                        <TableCell className="text-right">{formatCurrency(parseFloat(item.dana))}</TableCell>
-                                        <TableCell>
-                                            <Tag status={item.status} />
-                                        </TableCell>
-                                        <TableCell>{item.updatedAt || '-'}</TableCell> 
-                                        <TableCell className="text-center space-x-2">
-                                            {/* Actions for Request Letter */}
-                                            {item.type === 'request' && (
-                                                <>
-                                                    {can('administrasis.view') && (
-                                                        <Link href={route('requests.showAct', item.originalId)}>
-                                                            <Button className="bg-transparent hover:bg-gray-200 p-2 rounded-full">
-                                                                <Eye color="gray" size={18} />
-                                                            </Button>
-                                                        </Link>
-                                                    )}
-                                                    {can('administrasis.edit') && (
-                                                        <Link href={route('requests.editAct', item.originalId)}>
-                                                            <Button className="bg-transparent hover:bg-gray-200 p-2 rounded-full">
-                                                                <Pencil color="blue" size={18} />
-                                                            </Button>
-                                                        </Link>
-                                                    )}
-                                                </>
-                                            )}
-                                            {/* Actions for Invoice/Receipt */}
-                                            {item.type === 'nota' && (
-                                                <>
-                                                    {can('administrasis.view') && (
-                                                        <Link href={route('notas.showAct', item.originalId)}>
-                                                            <Button className="bg-transparent hover:bg-gray-200 p-2 rounded-full">
-                                                                <Eye color="gray" size={18} />
-                                                            </Button>
-                                                        </Link>
-                                                    )}
-                                                    {can('administrasis.edit') && (
-                                                        <Link href={route('notas.editAct', item.originalId)}>
-                                                            <Button className="bg-transparent hover:bg-gray-200 p-2 rounded-full">
-                                                                <Pencil color="blue" size={18} />
-                                                            </Button>
-                                                        </Link>
-                                                    )}
-                                                </>
-                                            )}
-                                        </TableCell>
-                                    </TableRow>
-                                ))
-                            ) : (
-                                <TableRow>
-                                    <TableCell colSpan={9} className="text-center py-4 text-gray-500">
-                                        Tidak ada data administrasi yang tersedia.
-                                    </TableCell>
-                                </TableRow>
+                            {timePeriod === 'specific-month' && (
+                                <>
+                                    <div className="flex items-center gap-2 p-1">
+                                        <span className="text-black dark:text-white text-sm">Bulan:</span>
+                                        <div className='bg-accent dark:bg-white text-black rounded-xl'>
+                                            <Select value={selectedMonth} onValueChange={handleMonthChange}>
+                                                <SelectTrigger className="w-[140px]">
+                                                    <SelectValue placeholder="Pilih Bulan" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {months.map((month) => (
+                                                        <SelectItem key={month.value} value={month.value}>
+                                                            {month.label}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-2 p-1">
+                                        <span className="text-black dark:text-white text-sm">Tahun:</span>
+                                        <div className='bg-accent dark:bg-white text-black rounded-xl'>
+                                            <Select value={selectedYear} onValueChange={handleYearChange}>
+                                                <SelectTrigger className="w-[100px]">
+                                                    <SelectValue placeholder="Pilih Tahun" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {years.map((year) => (
+                                                        <SelectItem key={year.value} value={year.value}>
+                                                            {year.label}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                    </div>
+                                </>
                             )}
-                        </TableBody>
-                    </Table>
-                
-                    <div className="flex flex-col md:flex-row justify-center md:justify-between items-center mt-6 p-4 bg-gray-50 rounded-xl shadow-sm">
-                        {requests.data.length > 0 && renderPagination(requests, 'Paginasi Request')}
-                        {notas.data.length > 0 && renderPagination(notas, 'Paginasi Nota')}
-                    </div>
-                </div>
-            </div>
+                        </div>
 
-            {/* Modal for Price Update (Stock/Dollar) */}
-            <Dialog open={isHargaModalOpen} onOpenChange={setIsHargaModalOpen}>
-                <DialogContent className="sm:max-w-[425px]">
-                    <DialogHeader>
-                        <DialogTitle>Update {currentHargaType === 'harga_saham_karet' ? 'Harga Saham' : 'Harga Dollar'}</DialogTitle>
-                    </DialogHeader>
-                    <form onSubmit={submitHarga} className="grid gap-4 py-4">
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="nilai" className="text-right">
-                                Nilai
-                            </Label>
-                            <Input
-                                id="nilai"
-                                type="number"
-                                step="0.01"
-                                value={hargaForm.data.nilai}
-                                onChange={(e) => hargaForm.setData('nilai', e.target.value)}
-                                className="col-span-3"
-                                required
-                            />
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="tanggal_berlaku" className="text-right">
-                                Tanggal Berlaku
-                            </Label>
-                            <Input
-                                id="tanggal_berlaku"
-                                type="date"
-                                value={hargaForm.data.tanggal_berlaku}
-                                onChange={(e) => hargaForm.setData('tanggal_berlaku', e.target.value)}
-                                className="col-span-3"
-                                required
-                            />
-                        </div>
-                        <DialogFooter>
-                            <Button type="submit" disabled={hargaForm.processing}>
-                                {hargaForm.processing ? 'Menyimpan...' : 'Simpan Perubahan'}
-                            </Button>
-                        </DialogFooter>
-                    </form>
-                </DialogContent>
-            </Dialog>
+                        {/* Cards Section */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                            {/* Card 1: Harga Saham Karet */}
+                            <div className="bg-gradient-to-r from-amber-500 to-amber-600 text-white p-5 rounded-lg shadow-lg flex items-center justify-between relative">
+                                <div>
+                                    <div className="text-sm font-medium opacity-90">Harga Saham Karet</div>
+                                    <div className="text-3xl font-bold mt-1">{summary.hargaSahamKaret}</div>
+                                </div>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="absolute top-2 right-2 text-white hover:bg-white hover:bg-opacity-20"
+                                    onClick={() => openHargaModal('harga_saham_karet', summary.hargaSahamKaret)}
+                                >
+                                    <Edit size={20} />
+                                </Button>
+                                <FileText size={40} className="opacity-70" />
+                            </div>
 
-            {/* Modal for Add New Expense */}
-            <Dialog open={isPengeluaranAddModalOpen} onOpenChange={setIsPengeluaranAddModalOpen}>
-                <DialogContent className="sm:max-w-[425px]">
-                    <DialogHeader>
-                        <DialogTitle>Tambah Pengeluaran Baru</DialogTitle>
-                    </DialogHeader>
-                    <form onSubmit={submitPengeluaran} className="grid gap-4 py-4">
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="kategori" className="text-right">
-                                Kategori
-                            </Label>
-                            <Input
-                                id="kategori"
-                                value={pengeluaranForm.data.kategori}
-                                onChange={(e) => pengeluaranForm.setData('kategori', e.target.value)}
-                                className="col-span-3"
-                                required
-                            />
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="deskripsi" className="text-right">
-                                Deskripsi
-                            </Label>
-                            <Input
-                                id="deskripsi"
-                                value={pengeluaranForm.data.deskripsi || ''}
-                                onChange={(e) => pengeluaranForm.setData('deskripsi', e.target.value)}
-                                className="col-span-3"
-                            />
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="jumlah" className="text-right">
-                                Jumlah (Rp)
-                            </Label>
-                            <Input
-                                id="jumlah"
-                                type="number"
-                                step="any"
-                                value={pengeluaranForm.data.jumlah}
-                                onChange={(e) => pengeluaranForm.setData('jumlah', e.target.value)}
-                                className="col-span-3"
-                                required
-                            />
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="tanggal_pengeluaran" className="text-right">
-                                Tanggal
-                            </Label>
-                            <Input
-                                id="tanggal_pengeluaran"
-                                type="date"
-                                value={pengeluaranForm.data.tanggal_pengeluaran}
-                                onChange={(e) => pengeluaranForm.setData('tanggal_pengeluaran', e.target.value)}
-                                className="col-span-3"
-                                required
-                            />
-                        </div>
-                        <DialogFooter>
-                            <Button type="submit" disabled={pengeluaranForm.processing}>
-                                {pengeluaranForm.processing ? 'Menyimpan...' : 'Tambah Pengeluaran'}
-                            </Button>
-                        </DialogFooter>
-                    </form>
-                </DialogContent>
-            </Dialog>
+                            {/* Card 2: Harga Dollar */}
+                            <div className="bg-gradient-to-r from-cyan-500 to-cyan-600 text-white p-5 rounded-lg shadow-lg flex items-center justify-between relative">
+                                <div>
+                                    <div className="text-sm font-medium opacity-90">Harga Dollar</div>
+                                    <div className="text-3xl font-bold mt-1">{formatCurrency(summary.hargaDollar)}</div>
+                                </div>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="absolute top-2 right-2 text-white hover:bg-white hover:bg-opacity-20"
+                                    onClick={() => openHargaModal('harga_dollar', summary.hargaDollar)}
+                                >
+                                    <DollarSign size={20} />
+                                </Button>
+                                <DollarSign size={40} className="opacity-70" />
+                            </div>
 
-            {/* Modal for Edit Expense */}
-            <Dialog open={isPengeluaranEditModalOpen} onOpenChange={setIsPengeluaranEditModalOpen}>
-                <DialogContent className="sm:max-w-[425px]">
-                    <DialogHeader>
-                        <DialogTitle>Edit Pengeluaran</DialogTitle>
-                    </DialogHeader>
-                    <form onSubmit={submitPengeluaran} className="grid gap-4 py-4">
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="edit-kategori" className="text-right">
-                                Kategori
-                            </Label>
-                            <Input
-                                id="edit-kategori"
-                                value={pengeluaranForm.data.kategori}
-                                onChange={(e) => pengeluaranForm.setData('kategori', e.target.value)}
-                                className="col-span-3"
-                                required
-                            />
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="edit-deskripsi" className="text-right">
-                                Deskripsi
-                            </Label>
-                            <Input
-                                id="edit-deskripsi"
-                                value={pengeluaranForm.data.deskripsi || ''}
-                                onChange={(e) => pengeluaranForm.setData('deskripsi', e.target.value)}
-                                className="col-span-3"
-                            />
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="edit-jumlah" className="text-right">
-                                Jumlah (Rp)
-                            </Label>
-                            <Input
-                                id="edit-jumlah"
-                                type="number"
-                                step="any"
-                                value={pengeluaranForm.data.jumlah}
-                                onChange={(e) => pengeluaranForm.setData('jumlah', e.target.value)}
-                                className="col-span-3"
-                                required
-                            />
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="edit-tanggal_pengeluaran" className="text-right">
-                                Tanggal
-                            </Label>
-                            <Input
-                                id="edit-tanggal_pengeluaran"
-                                type="date"
-                                value={pengeluaranForm.data.tanggal_pengeluaran}
-                                onChange={(e) => pengeluaranForm.setData('tanggal_pengeluaran', e.target.value)}
-                                className="col-span-3"
-                                required
-                            />
-                        </div>
-                        <DialogFooter>
-                            <Button type="submit" disabled={pengeluaranForm.processing}>
-                                {pengeluaranForm.processing ? 'Menyimpan...' : 'Simpan Perubahan'}
-                            </Button>
-                        </DialogFooter>
-                    </form>
-                </DialogContent>
-            </Dialog>
+                            {/* Card 3: Pengeluaran */}
+                            <div className="bg-gradient-to-r from-rose-500 to-rose-600 text-white p-5 rounded-lg shadow-lg flex items-center justify-between relative">
+                                <div>
+                                    <div className="text-sm font-medium opacity-90">Pengeluaran</div>
+                                    <div className="text-3xl font-bold mt-1">{formatCurrency(summary.totalPengeluaran)}</div>
+                                </div>
+                                {/* Tombol untuk menambahkan pengeluaran */}
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="absolute top-2 right-10 text-white hover:bg-white hover:bg-opacity-20"
+                                    onClick={openPengeluaranAddModal}
+                                >
+                                    <PlusCircle size={20} />
+                                </Button>
+                                {/* Tombol untuk membuka modal daftar pengeluaran */}
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="absolute top-2 right-2 text-white hover:bg-white hover:bg-opacity-20"
+                                    onClick={openPengeluaranListModal}
+                                >
+                                    <Info size={20} />
+                                </Button>
+                                <Receipt size={40} className="opacity-70" />
+                            </div>
 
-            {/* Delete Confirmation Modal */}
-            <Dialog open={isDeleteConfirmModalOpen} onOpenChange={setIsDeleteConfirmModalOpen}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Konfirmasi Penghapusan</DialogTitle>
-                    </DialogHeader>
-                    <div className="py-4">
-                        Apakah Anda yakin ingin menghapus catatan pengeluaran ini? Tindakan ini tidak dapat dibatalkan.
-                    </div>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setIsDeleteConfirmModalOpen(false)}>Batal</Button>
-                        <Button variant="destructive" onClick={confirmDeletePengeluaran}>Hapus</Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-
-            {/* Laba/Rugi Information Modal */}
-            <Dialog open={isLabaRugiInfoModalOpen} onOpenChange={setIsLabaRugiInfoModalOpen}>
-                <DialogContent className="sm:max-w-[480px]">
-                    <DialogHeader>
-                        <DialogTitle>Informasi Laba / Rugi</DialogTitle>
-                    </DialogHeader>
-                    <div className="py-4 space-y-3 text-gray-700">
-                        <p>Berikut adalah rincian perhitungan Laba / Rugi untuk periode yang dipilih:</p>
+                            {/* Card 4: Laba / Rugi */}
+                            <div
+                                className="bg-gradient-to-r from-green-500 to-green-600 text-white p-5 rounded-lg shadow-lg flex items-center justify-between relative cursor-pointer"
+                                onClick={openLabaRugiInfoModal}
+                            >
+                                <div>
+                                    <div className="text-sm font-medium opacity-90">Laba / Rugi</div>
+                                    <div className="text-3xl font-bold mt-1">{formatCurrency(summary.labaRugi)}</div>
+                                </div>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="absolute top-2 right-2 text-white hover:bg-white hover:bg-opacity-20"
+                                    onClick={(e) => { e.stopPropagation(); openLabaRugiInfoModal(); }}
+                                >
+                                    <Info size={20} />
+                                </Button>
+                                <Banknote size={40} className="opacity-70" />
+                            </div>
+                        </div>
+                        {/* End Cards Section */}
                         
-                        <div className="grid grid-cols-2 gap-2 font-medium">
-                            <div className="text-gray-600">Total Penjualan Karet:</div>
-                            <div className="text-right">{formatCurrency(summary.totalPenjualanKaret || 0)}</div>
+                        {/* Cards Section */}
+                        <div className='border rounded-xl p-2 mb-6'>
+                            <div className='flex justify-center mb-2 font-semibold'>
+                                Beli & Jual
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                
+                                <div className="bg-gradient-to-r from-gray-500 to-gray-600 text-white p-5 rounded-lg shadow-lg flex items-center justify-between relative">
+                                    <div>
+                                        <div className="text-sm font-medium opacity-90">Stok Pengiriman Karet</div>
+                                        <div className="text-3xl font-bold mt-1">{summary.s_karet} Kg</div>
+                                    </div>
+                                    <Warehouse size={40} className="opacity-70" />
+                                </div>
+
+                                <div
+                                    className="bg-gradient-to-r from-gray-500 to-gray-600 text-white p-5 rounded-lg shadow-lg flex items-center justify-between relative cursor-pointer"
+                                    onClick={openLabaRugiInfoModal}
+                                >
+                                    <div>
+                                        <div className="text-sm font-medium opacity-90">Harga Jual Karet</div>
+                                        <div className="text-3xl font-bold mt-1">{formatCurrency(summary.h_karet)}</div>
+                                    </div>
+                                    
+                                    <Landmark size={40} className="opacity-70" />
+                                </div>
+
+                                <div className="bg-gradient-to-r from-gray-500 to-gray-600 text-white p-5 rounded-lg shadow-lg flex items-center justify-between relative">
+                                    <div>
+                                        <div className="text-sm font-medium opacity-90">Pembelian Karet</div>
+                                        <div className="text-3xl font-bold mt-1">{formatCurrency(summary.tb_karet)}</div>
+                                    </div>
+                                    <Handshake size={40} className="opacity-70" />
+                                </div>
+
+                                <div className="bg-gradient-to-r from-gray-500 to-gray-600 text-white p-5 rounded-lg shadow-lg flex items-center justify-between relative">
+                                    <div>
+                                        <div className="text-sm font-medium opacity-90">Penjualan Karet</div>
+                                        <div className="text-3xl font-bold mt-1">{formatCurrency(summary.tj_karet)}</div>
+                                    </div>
+                                    <HandCoins size={40} className="opacity-70" />
+                                </div>
+
+                            </div>
                         </div>
+                        {/* End Cards Section */}
                         
-                        <div className="grid grid-cols-2 gap-2 font-medium">
-                            <div className="text-gray-600">Total Pengeluaran:</div>
-                            <div className="text-right">{formatCurrency(summary.totalPengeluaran || 0)}</div>
-                        </div>
-                        
-                        <div className="border-t pt-3 mt-3">
-                            <div className="grid grid-cols-2 gap-2 font-bold text-lg">
-                                <div className="text-gray-800">Laba / Rugi:</div>
-                                <div className={`text-right ${summary.labaRugi >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                    {formatCurrency(summary.labaRugi || 0)}
+                        {/* Cards Section (Original) */}
+                        <div className='border-t'>
+                            <div className='p-2'>
+                                Validasi
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                                {/* Card 1: Total Request Letters */}
+                                <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-5 rounded-lg shadow-lg flex items-center justify-between">
+                                    <div>
+                                        <div className="text-sm font-medium opacity-90">Total Request Letters</div>
+                                        <div className="text-3xl font-bold mt-1">{summary.totalRequests}</div>
+                                    </div>
+                                    <FileText size={40} className="opacity-70" />
+                                </div>
+
+                                {/* Card 2: Total Nota/Kwitansi */}
+                                <div className="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white p-5 rounded-lg shadow-lg flex items-center justify-between">
+                                    <div>
+                                        <div className="text-sm font-medium opacity-90">Total Nota/Kwitansi</div>
+                                        <div className="text-3xl font-bold mt-1">{summary.totalNotas}</div>
+                                    </div>
+                                    <Receipt size={40} className="opacity-70" />
+                                </div>
+
+                                {/* Card 3: Request Pending */}
+                                <div className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-white p-5 rounded-lg shadow-lg flex items-center justify-between">
+                                    <div>
+                                        <div className="text-sm font-medium opacity-90">Request Pending</div>
+                                        <div className="text-3xl font-bold mt-1">{summary.totalPendingRequests}</div>
+                                    </div>
+                                    <Clock size={40} className="opacity-70" />
+                                </div>
+
+                                {/* Card 4: Total Dana Disetujui (Contoh) */}
+                                <div className="bg-gradient-to-r from-purple-500 to-purple-600 text-white p-5 rounded-lg shadow-lg flex items-center justify-between">
+                                    <div>
+                                        <div className="text-sm font-medium opacity-90">Total Kwitansi/Nota Dana Disetujui</div>
+                                        <div className="text-3xl font-bold mt-1">{formatCurrency(summary.totalApprovedDana)}</div>
+                                    </div>
+                                    <FileCheck2 size={40} className="opacity-70" />
                                 </div>
                             </div>
                         </div>
+                        {/* End Cards Section (Original) */}
 
-                        <p className="text-sm text-gray-500 mt-4">
-                            Perhitungan: Laba / Rugi = Total Penjualan Karet - Total Pengeluaran.
-                            Nilai-nilai ini disesuaikan berdasarkan "Filter Waktu" yang Anda pilih di atas.
-                        </p>
-                    </div>
-                    <DialogFooter>
-                        <Button onClick={() => setIsLabaRugiInfoModalOpen(false)}>Tutup</Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-
-            {/* Modal Daftar Pengeluaran */}
-            <Dialog open={isPengeluaranListModalOpen} onOpenChange={setIsPengeluaranListModalOpen}>
-                <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
-                    <DialogHeader>
-                        <DialogTitle>Daftar Pengeluaran</DialogTitle>
-                    </DialogHeader>
-                    <div className="flex justify-end items-center gap-4 mb-4">
-                        <div className="flex items-center gap-2">
-                            <span className="text-black dark:text-white text-sm">Bulan:</span>
-                            <div className='bg-accent dark:bg-white text-black rounded-xl'>
-                                <Select value={modalPengeluaranMonth} onValueChange={handleModalPengeluaranMonthChange}>
-                                    <SelectTrigger className="w-[140px]">
-                                        <SelectValue placeholder="Pilih Bulan" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {months.map((month) => (
-                                            <SelectItem key={month.value} value={month.value}>
-                                                {month.label}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <span className="text-black dark:text-white text-sm">Tahun:</span>
-                            <div className='bg-accent dark:bg-white text-black rounded-xl'>
-                                <Select value={modalPengeluaranYear} onValueChange={handleModalPengeluaranYearChange}>
-                                    <SelectTrigger className="w-[100px]">
-                                        <SelectValue placeholder="Pilih Tahun" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {years.map((year) => (
-                                            <SelectItem key={year.value} value={year.value}>
-                                                {year.label}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                        </div>
-                    </div>
-
-                    {isLoadingPengeluarans ? (
-                        <div className="text-center py-8">Memuat data pengeluaran...</div>
-                    ) : (
-                        <Table className="min-w-full">
-                            <TableHeader>
-                                <TableRow>
-                                    {/* <TableHead className="w-[120px]">Tanggal</TableHead> */}
-                                    <TableHead className="w-[150px]">Kategori</TableHead>
-                                    <TableHead>Deskripsi</TableHead>
-                                    <TableHead className="text-right w-[120px]">Jumlah (Rp)</TableHead>
-                                    {/* <TableHead className="w-[120px]">Tgl. Update</TableHead> */}
-                                    <TableHead className="text-center w-[100px]">Aksi</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {modalPengeluarans.data.length > 0 ? (
-                                    modalPengeluarans.data.map((item) => (
-                                        <TableRow key={item.id}>
-                                            {/* <TableCell>{item.tanggal_pengeluaran}</TableCell> */}
-                                            <TableCell>{item.kategori}</TableCell>
-                                            <TableCell>{item.deskripsi || '-'}</TableCell>
-                                            <TableCell className="text-right">{formatCurrency(item.jumlah)}</TableCell>
-                                            {/* <TableCell>{item.updated_at || '-'}</TableCell> */}
-                                            <TableCell className="text-center space-x-2">
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    onClick={() => openPengeluaranEditModal(item)}
-                                                >
-                                                    <Pencil color="blue" size={18} />
-                                                </Button>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    onClick={() => handleDeletePengeluaran(item.id)}
-                                                >
-                                                    <Trash2 color="red" size={18} />
-                                                </Button>
+                        {/* Table for Administration Documents */}
+                        <div className="w-full border rounded-xl p-4 mt-4 overflow-x-auto">
+                            <div className="font-bold text-xl mb-4 text-gray-800">Daftar Dokumen Administrasi</div>
+                            <Table className="min-w-full">
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead className="w-[120px]">Tanggal</TableHead>
+                                        <TableHead className="w-[150px]">Tipe Dokumen</TableHead>
+                                        <TableHead className="w-[150px]">Pengaju/Pihak</TableHead>
+                                        <TableHead>Perihal/Deskripsi</TableHead>
+                                        <TableHead className="w-[100px]">Devisi</TableHead>
+                                        <TableHead className="text-right w-[120px]">Dana</TableHead>
+                                        <TableHead className="w-[100px]">Status</TableHead>
+                                        <TableHead className="w-[120px]">Tgl. Update</TableHead> 
+                                        <TableHead className="text-center w-[120px]">Aksi</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {combinedData.length > 0 ? (
+                                        combinedData.map((item) => (
+                                            <TableRow key={`${item.type}-${item.id}`}>
+                                                <TableCell>{item.transactionDate}</TableCell>
+                                                <TableCell>
+                                                    <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                                                        item.type === 'request' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'
+                                                    }`}>
+                                                        {item.type === 'request' ? 'Request Letter' : 'Nota/Kwitansi'}
+                                                    </span>
+                                                </TableCell>
+                                                <TableCell>{item.requesterOrParty}</TableCell>
+                                                <TableCell>{item.subjectOrDescription}</TableCell>
+                                                <TableCell>{item.devisi}</TableCell>
+                                                <TableCell className="text-right">{formatCurrency(parseFloat(item.dana))}</TableCell>
+                                                <TableCell>
+                                                    <Tag status={item.status} />
+                                                </TableCell>
+                                                <TableCell>{item.updatedAt || '-'}</TableCell> 
+                                                <TableCell className="text-center space-x-2">
+                                                    {/* Actions for Request Letter */}
+                                                    {item.type === 'request' && (
+                                                        <>
+                                                            {can('administrasis.view') && (
+                                                                <Link href={route('requests.showAct', item.originalId)}>
+                                                                    <Button className="bg-transparent hover:bg-gray-200 p-2 rounded-full">
+                                                                        <Eye color="gray" size={18} />
+                                                                    </Button>
+                                                                </Link>
+                                                            )}
+                                                            {can('administrasis.edit') && (
+                                                                <Link href={route('requests.editAct', item.originalId)}>
+                                                                    <Button className="bg-transparent hover:bg-gray-200 p-2 rounded-full">
+                                                                        <Pencil color="blue" size={18} />
+                                                                    </Button>
+                                                                </Link>
+                                                            )}
+                                                        </>
+                                                    )}
+                                                    {/* Actions for Invoice/Receipt */}
+                                                    {item.type === 'nota' && (
+                                                        <>
+                                                            {can('administrasis.view') && (
+                                                                <Link href={route('notas.showAct', item.originalId)}>
+                                                                    <Button className="bg-transparent hover:bg-gray-200 p-2 rounded-full">
+                                                                        <Eye color="gray" size={18} />
+                                                                    </Button>
+                                                                </Link>
+                                                            )}
+                                                            {can('administrasis.edit') && (
+                                                                <Link href={route('notas.editAct', item.originalId)}>
+                                                                    <Button className="bg-transparent hover:bg-gray-200 p-2 rounded-full">
+                                                                        <Pencil color="blue" size={18} />
+                                                                    </Button>
+                                                                </Link>
+                                                            )}
+                                                        </>
+                                                    )}
+                                                </TableCell>
+                                            </TableRow>
+                                        ))
+                                    ) : (
+                                        <TableRow>
+                                            <TableCell colSpan={9} className="text-center py-4 text-gray-500">
+                                                Tidak ada data administrasi yang tersedia.
                                             </TableCell>
                                         </TableRow>
-                                    ))
-                                ) : (
-                                    <TableRow>
-                                        <TableCell colSpan={6} className="h-24 text-center text-gray-500">
-                                            Tidak ada data pengeluaran untuk periode ini.
-                                        </TableCell>
-                                    </TableRow>
-                                )}
-                            </TableBody>
-                        </Table>
-                    )}
-                    {modalPengeluarans.data.length > 0 && renderPagination(modalPengeluarans, 'Paginasi Pengeluaran', 'page', true)}
-                    <DialogFooter>
-                        <Button onClick={() => setIsPengeluaranListModalOpen(false)}>Tutup</Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+                                    )}
+                                </TableBody>
+                            </Table>
+                        
+                            <div className="flex flex-col md:flex-row justify-center md:justify-between items-center mt-6 p-4 bg-gray-50 rounded-xl shadow-sm">
+                                {requests.data.length > 0 && renderPagination(requests, 'Paginasi Request')}
+                                {notas.data.length > 0 && renderPagination(notas, 'Paginasi Nota')}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Modal for Price Update (Stock/Dollar) */}
+                    <Dialog open={isHargaModalOpen} onOpenChange={setIsHargaModalOpen}>
+                        <DialogContent className="sm:max-w-[425px]">
+                            <DialogHeader>
+                                <DialogTitle>Update {currentHargaType === 'harga_saham_karet' ? 'Harga Saham' : 'Harga Dollar'}</DialogTitle>
+                            </DialogHeader>
+                            <form onSubmit={submitHarga} className="grid gap-4 py-4">
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                    <Label htmlFor="nilai" className="text-right">
+                                        Nilai
+                                    </Label>
+                                    <Input
+                                        id="nilai"
+                                        type="number"
+                                        step="0.01"
+                                        value={hargaForm.data.nilai}
+                                        onChange={(e) => hargaForm.setData('nilai', e.target.value)}
+                                        className="col-span-3"
+                                        required
+                                    />
+                                </div>
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                    <Label htmlFor="tanggal_berlaku" className="text-right">
+                                        Tanggal Berlaku
+                                    </Label>
+                                    <Input
+                                        id="tanggal_berlaku"
+                                        type="date"
+                                        value={hargaForm.data.tanggal_berlaku}
+                                        onChange={(e) => hargaForm.setData('tanggal_berlaku', e.target.value)}
+                                        className="col-span-3"
+                                        required
+                                    />
+                                </div>
+                                <DialogFooter>
+                                    <Button type="submit" disabled={hargaForm.processing}>
+                                        {hargaForm.processing ? 'Menyimpan...' : 'Simpan Perubahan'}
+                                    </Button>
+                                </DialogFooter>
+                            </form>
+                        </DialogContent>
+                    </Dialog>
+
+                    {/* Modal for Add New Expense */}
+                    <Dialog open={isPengeluaranAddModalOpen} onOpenChange={setIsPengeluaranAddModalOpen}>
+                        <DialogContent className="sm:max-w-[425px]">
+                            <DialogHeader>
+                                <DialogTitle>Tambah Pengeluaran Baru</DialogTitle>
+                            </DialogHeader>
+                            <form onSubmit={submitPengeluaran} className="grid gap-4 py-4">
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                    <Label htmlFor="kategori" className="text-right">
+                                        Kategori
+                                    </Label>
+                                    <Input
+                                        id="kategori"
+                                        value={pengeluaranForm.data.kategori}
+                                        onChange={(e) => pengeluaranForm.setData('kategori', e.target.value)}
+                                        className="col-span-3"
+                                        required
+                                    />
+                                </div>
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                    <Label htmlFor="deskripsi" className="text-right">
+                                        Deskripsi
+                                    </Label>
+                                    <Input
+                                        id="deskripsi"
+                                        value={pengeluaranForm.data.deskripsi || ''}
+                                        onChange={(e) => pengeluaranForm.setData('deskripsi', e.target.value)}
+                                        className="col-span-3"
+                                    />
+                                </div>
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                    <Label htmlFor="jumlah" className="text-right">
+                                        Jumlah (Rp)
+                                    </Label>
+                                    <Input
+                                        id="jumlah"
+                                        type="number"
+                                        step="any"
+                                        value={pengeluaranForm.data.jumlah}
+                                        onChange={(e) => pengeluaranForm.setData('jumlah', e.target.value)}
+                                        className="col-span-3"
+                                        required
+                                    />
+                                </div>
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                    <Label htmlFor="tanggal_pengeluaran" className="text-right">
+                                        Tanggal
+                                    </Label>
+                                    <Input
+                                        id="tanggal_pengeluaran"
+                                        type="date"
+                                        value={pengeluaranForm.data.tanggal_pengeluaran}
+                                        onChange={(e) => pengeluaranForm.setData('tanggal_pengeluaran', e.target.value)}
+                                        className="col-span-3"
+                                        required
+                                    />
+                                </div>
+                                <DialogFooter>
+                                    <Button type="submit" disabled={pengeluaranForm.processing}>
+                                        {pengeluaranForm.processing ? 'Menyimpan...' : 'Tambah Pengeluaran'}
+                                    </Button>
+                                </DialogFooter>
+                            </form>
+                        </DialogContent>
+                    </Dialog>
+
+                    {/* Modal for Edit Expense */}
+                    <Dialog open={isPengeluaranEditModalOpen} onOpenChange={setIsPengeluaranEditModalOpen}>
+                        <DialogContent className="sm:max-w-[425px]">
+                            <DialogHeader>
+                                <DialogTitle>Edit Pengeluaran</DialogTitle>
+                            </DialogHeader>
+                            <form onSubmit={submitPengeluaran} className="grid gap-4 py-4">
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                    <Label htmlFor="edit-kategori" className="text-right">
+                                        Kategori
+                                    </Label>
+                                    <Input
+                                        id="edit-kategori"
+                                        value={pengeluaranForm.data.kategori}
+                                        onChange={(e) => pengeluaranForm.setData('kategori', e.target.value)}
+                                        className="col-span-3"
+                                        required
+                                    />
+                                </div>
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                    <Label htmlFor="edit-deskripsi" className="text-right">
+                                        Deskripsi
+                                    </Label>
+                                    <Input
+                                        id="edit-deskripsi"
+                                        value={pengeluaranForm.data.deskripsi || ''}
+                                        onChange={(e) => pengeluaranForm.setData('deskripsi', e.target.value)}
+                                        className="col-span-3"
+                                    />
+                                </div>
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                    <Label htmlFor="edit-jumlah" className="text-right">
+                                        Jumlah (Rp)
+                                    </Label>
+                                    <Input
+                                        id="edit-jumlah"
+                                        type="number"
+                                        step="any"
+                                        value={pengeluaranForm.data.jumlah}
+                                        onChange={(e) => pengeluaranForm.setData('jumlah', e.target.value)}
+                                        className="col-span-3"
+                                        required
+                                    />
+                                </div>
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                    <Label htmlFor="edit-tanggal_pengeluaran" className="text-right">
+                                        Tanggal
+                                    </Label>
+                                    <Input
+                                        id="edit-tanggal_pengeluaran"
+                                        type="date"
+                                        value={pengeluaranForm.data.tanggal_pengeluaran}
+                                        onChange={(e) => pengeluaranForm.setData('tanggal_pengeluaran', e.target.value)}
+                                        className="col-span-3"
+                                        required
+                                    />
+                                </div>
+                                <DialogFooter>
+                                    <Button type="submit" disabled={pengeluaranForm.processing}>
+                                        {pengeluaranForm.processing ? 'Menyimpan...' : 'Simpan Perubahan'}
+                                    </Button>
+                                </DialogFooter>
+                            </form>
+                        </DialogContent>
+                    </Dialog>
+
+                    {/* Delete Confirmation Modal */}
+                    <Dialog open={isDeleteConfirmModalOpen} onOpenChange={setIsDeleteConfirmModalOpen}>
+                        <DialogContent>
+                            <DialogHeader>
+                                <DialogTitle>Konfirmasi Penghapusan</DialogTitle>
+                            </DialogHeader>
+                            <div className="py-4">
+                                Apakah Anda yakin ingin menghapus catatan pengeluaran ini? Tindakan ini tidak dapat dibatalkan.
+                            </div>
+                            <DialogFooter>
+                                <Button variant="outline" onClick={() => setIsDeleteConfirmModalOpen(false)}>Batal</Button>
+                                <Button variant="destructive" onClick={confirmDeletePengeluaran}>Hapus</Button>
+                            </DialogFooter>
+                        </DialogContent>
+                    </Dialog>
+
+                    {/* Laba/Rugi Information Modal */}
+                    <Dialog open={isLabaRugiInfoModalOpen} onOpenChange={setIsLabaRugiInfoModalOpen}>
+                        <DialogContent className="sm:max-w-[480px]">
+                            <DialogHeader>
+                                <DialogTitle>Informasi Laba / Rugi</DialogTitle>
+                            </DialogHeader>
+                            <div className="py-4 space-y-3 text-gray-700">
+                                <p>Berikut adalah rincian perhitungan Laba / Rugi untuk periode yang dipilih:</p>
+                                
+                                <div className="grid grid-cols-2 gap-2 font-medium">
+                                    <div className="text-gray-600">Total Penjualan Karet:</div>
+                                    <div className="text-right">{formatCurrency(summary.totalPenjualanKaret || 0)}</div>
+                                </div>
+                                
+                                <div className="grid grid-cols-2 gap-2 font-medium">
+                                    <div className="text-gray-600">Total Pengeluaran:</div>
+                                    <div className="text-right">{formatCurrency(summary.totalPengeluaran || 0)}</div>
+                                </div>
+                                
+                                <div className="border-t pt-3 mt-3">
+                                    <div className="grid grid-cols-2 gap-2 font-bold text-lg">
+                                        <div className="text-gray-800">Laba / Rugi:</div>
+                                        <div className={`text-right ${summary.labaRugi >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                            {formatCurrency(summary.labaRugi || 0)}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <p className="text-sm text-gray-500 mt-4">
+                                    Perhitungan: Laba / Rugi = Total Penjualan Karet - Total Pengeluaran.
+                                    Nilai-nilai ini disesuaikan berdasarkan "Filter Waktu" yang Anda pilih di atas.
+                                </p>
+                            </div>
+                            <DialogFooter>
+                                <Button onClick={() => setIsLabaRugiInfoModalOpen(false)}>Tutup</Button>
+                            </DialogFooter>
+                        </DialogContent>
+                    </Dialog>
+
+                    {/* Modal Daftar Pengeluaran */}
+                    <Dialog open={isPengeluaranListModalOpen} onOpenChange={setIsPengeluaranListModalOpen}>
+                        <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
+                            <DialogHeader>
+                                <DialogTitle>Daftar Pengeluaran</DialogTitle>
+                            </DialogHeader>
+                            <div className="flex justify-end items-center gap-4 mb-4">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-black dark:text-white text-sm">Bulan:</span>
+                                    <div className='bg-accent dark:bg-white text-black rounded-xl'>
+                                        <Select value={modalPengeluaranMonth} onValueChange={handleModalPengeluaranMonthChange}>
+                                            <SelectTrigger className="w-[140px]">
+                                                <SelectValue placeholder="Pilih Bulan" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {months.map((month) => (
+                                                    <SelectItem key={month.value} value={month.value}>
+                                                        {month.label}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-black dark:text-white text-sm">Tahun:</span>
+                                    <div className='bg-accent dark:bg-white text-black rounded-xl'>
+                                        <Select value={modalPengeluaranYear} onValueChange={handleModalPengeluaranYearChange}>
+                                            <SelectTrigger className="w-[100px]">
+                                                <SelectValue placeholder="Pilih Tahun" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {years.map((year) => (
+                                                    <SelectItem key={year.value} value={year.value}>
+                                                        {year.label}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {isLoadingPengeluarans ? (
+                                <div className="text-center py-8">Memuat data pengeluaran...</div>
+                            ) : (
+                                <Table className="min-w-full">
+                                    <TableHeader>
+                                        <TableRow>
+                                            {/* <TableHead className="w-[120px]">Tanggal</TableHead> */}
+                                            <TableHead className="w-[150px]">Kategori</TableHead>
+                                            <TableHead>Deskripsi</TableHead>
+                                            <TableHead className="text-right w-[120px]">Jumlah (Rp)</TableHead>
+                                            {/* <TableHead className="w-[120px]">Tgl. Update</TableHead> */}
+                                            <TableHead className="text-center w-[100px]">Aksi</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {modalPengeluarans.data.length > 0 ? (
+                                            modalPengeluarans.data.map((item) => (
+                                                <TableRow key={item.id}>
+                                                    {/* <TableCell>{item.tanggal_pengeluaran}</TableCell> */}
+                                                    <TableCell>{item.kategori}</TableCell>
+                                                    <TableCell>{item.deskripsi || '-'}</TableCell>
+                                                    <TableCell className="text-right">{formatCurrency(item.jumlah)}</TableCell>
+                                                    {/* <TableCell>{item.updated_at || '-'}</TableCell> */}
+                                                    <TableCell className="text-center space-x-2">
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            onClick={() => openPengeluaranEditModal(item)}
+                                                        >
+                                                            <Pencil color="blue" size={18} />
+                                                        </Button>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            onClick={() => handleDeletePengeluaran(item.id)}
+                                                        >
+                                                            <Trash2 color="red" size={18} />
+                                                        </Button>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))
+                                        ) : (
+                                            <TableRow>
+                                                <TableCell colSpan={6} className="h-24 text-center text-gray-500">
+                                                    Tidak ada data pengeluaran untuk periode ini.
+                                                </TableCell>
+                                            </TableRow>
+                                        )}
+                                    </TableBody>
+                                </Table>
+                            )}
+                            {modalPengeluarans.data.length > 0 && renderPagination(modalPengeluarans, 'Paginasi Pengeluaran', 'page', true)}
+                            <DialogFooter>
+                                <Button onClick={() => setIsPengeluaranListModalOpen(false)}>Tutup</Button>
+                            </DialogFooter>
+                        </DialogContent>
+                    </Dialog>
+                
+                </>
+            )}
+            
+
         </AppLayout>
     );
 }

@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, router } from '@inertiajs/react';
-import { Megaphone, Package, Search, TreePalm, Undo2, Wheat } from 'lucide-react';
+import { Megaphone, Search, Sprout, TreePalm, Trees, TrendingDown, TrendingUp, Undo2 } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -282,7 +282,81 @@ export default function AllofPage({ // Ganti nama komponen agar lebih deskriptif
                     </Link>
                 </div>
 
-                {/* Bagian Kartu Statistik */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {/* Kartu Uang Masuk (saldoin) */}
+                    <Card className="shadow-2xl border-2 border-green-500 bg-gradient-to-br from-green-400 to-green-600 text-white transition-all duration-500 rounded-2xl hover:shadow-green-500/50 hover:scale-105">
+                        <CardHeader className="p-6 flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-xl font-bold flex items-center">
+                                <TreePalm className="mr-3 text-white drop-shadow-md" size={32} /> Available Stock Kelapa
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-6 pt-0">
+                            <p className="text-5xl font-extrabold mt-2 tracking-tighter">
+                                {hsl_kelapa} kg
+                            </p>
+                            <div className="flex justify-between text-sm mt-3 text-yellow-100">
+                                <div className="flex items-center font-medium">
+                                    <TrendingUp size={18} className="mr-1" />
+                                    <span>Pengeluaran: {formatCurrency(saldoinklp)}</span>
+                                </div>
+                                <div className="flex items-center font-medium">
+                                    <TrendingUp size={18} className="mr-1" />
+                                    <span>Pemasukan: {formatCurrency(saldooutklp)}</span>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Kartu Total KG (hsl_karet) */}
+                    <Card className="shadow-2xl border-2 border-blue-500 bg-gradient-to-br from-blue-400 to-blue-600 text-white transition-all duration-500 rounded-2xl hover:shadow-blue-500/50 hover:scale-105">
+                        <CardHeader className="p-6 flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-xl font-bold flex items-center">
+                                <Trees className="mr-3 text-white drop-shadow-md" size={32} /> Available Stock Karet
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-6 pt-0">
+                            <p className="text-5xl font-extrabold mt-2 tracking-tighter">
+                                {hsl_karet} kg
+                            </p>
+                            <div className="flex justify-between text-sm mt-3 text-blue-100">
+                                <div className="flex items-center font-medium">
+                                    <TrendingDown size={18} className="mr-1" />
+                                    <span>Pengeluaran : {formatCurrency(saldoin)}</span>
+                                </div>
+                                <div className="flex items-center font-medium">
+                                    <TrendingUp size={18} className="mr-1" />
+                                    <span>Pemasukan : {formatCurrency(saldoout)}</span>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Kartu Total Keping */}
+                    <Card className="shadow-2xl border-2 border-yellow-500 bg-gradient-to-br from-yellow-400 to-yellow-600 text-white transition-all duration-500 rounded-2xl hover:shadow-yellow-500/50 hover:scale-105">
+                        <CardHeader className="p-6 flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-xl font-bold flex items-center">
+                                <Sprout className="mr-3 text-white drop-shadow-md" size={32} /> Available Stock Pupuk
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-6 pt-0">
+                            <p className="text-5xl font-extrabold mt-2 tracking-tighter">
+                                {hsl_pupuk} kg
+                            </p>
+                            <div className="flex justify-between text-sm mt-3 text-yellow-100">
+                                <div className="flex items-center font-medium">
+                                    <TrendingUp size={18} className="mr-1" />
+                                    <span>Pengeluaran: {formatCurrency(saldoinppk)}</span>
+                                </div>
+                                <div className="flex items-center font-medium">
+                                    <TrendingUp size={18} className="mr-1" />
+                                    <span>Pemasukan: {formatCurrency(saldooutppk)}</span>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+
+                {/* Bagian Kartu Statistik
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <Card className="shadow-sm transition-shadow hover:shadow-md bg-amber-50">
                         <CardHeader className="bg-amber-300">
@@ -323,7 +397,7 @@ export default function AllofPage({ // Ganti nama komponen agar lebih deskriptif
                             <div className="flex gap-2"><p className="text-red-400">Out</p> {formatCurrency(saldooutppk)}</div>
                         </CardContent>
                     </Card>
-                </div>
+                </div> */}
 
                 <Card>
                     <CardContent className="pt-6">

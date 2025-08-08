@@ -220,7 +220,7 @@ class IncisedController extends Controller
     {
         $incised->load('incisor');
         $data = $incised->toArray();
-        $data['incisor_name'] = $incised->incisor ? $incisor->name : null;
+        $data['incisor_name'] = $incised->incisor ? $incised->incisor->name : null;
         return Inertia::render('Inciseds/show', [
             'incised' => $data,
         ]);

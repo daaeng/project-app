@@ -133,116 +133,121 @@ export default function Index({ usermanagements, flash, filter } : PageProps) { 
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="User Management" />
 
-            <div className="h-full flex-col rounded-xl p-4 bg-gray-50 dark:bg-black">
-                <Heading title='User Management' />
+            {can('usermanagements.view') && (
+                <>
+                    <div className="h-full flex-col rounded-xl p-4 bg-gray-50 dark:bg-black">
+                        <Heading title='User Management' />
 
-                <div className='border h-auto p-3 rounded-lg'>
-                    {can('usermanagements.create') &&
-                        <div className='w-full mb-2 justify-end h-auto flex gap-2'>
-                            <Link href={route('usermanagements.create')}>
-                                <Button className='bg-blue-600 w-30 hover:bg-blue-500 text-white'>
-                                    <CirclePlus className="w-4 h-4 mr-2" /> {/* Added class for icon spacing */}
-                                    Add User
-                                </Button>
-                            </Link>
-                        </div>
-                    }
-
-                    <div>
-                        {flash.message && (
-                            <Alert className="mb-4"> {/* Added margin-bottom */}
-                                <Megaphone className='h-4 w-4' /> {/* Corrected class from h4-w4 */}
-                                <AlertTitle className='text-green-600'>
-                                    Notification
-                                </AlertTitle>
-                                <AlertDescription>
-                                    {flash.message}
-                                </AlertDescription>
-                            </Alert>
-                        )}
-                    </div>
-
-                    <div className='flex flex-col gap-4 py-4 sm:flex-row sm:items-center'> {/* Changed layout for search and button */}
-                        <div className='relative flex-1'> {/* Make search input flexible */}
-                            <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
-                            <Input
-                                placeholder="Search by Name, Email, Role..."
-                                value={searchValue} // Bind value to state
-                                onChange={handleInputChange} // Handle input changes
-                                onKeyPress={handleKeyPress} // Handle Enter key press
-                                className="pl-10"
-                            />
-                        </div>
-                        <Button onClick={performSearch}> {/* Added search button */}
-                            <Search className="h-4 w-4 mr-2" /> Search
-                        </Button>
-                    </div>
-
-                    <CardContent className='border rounded-lg mt-4'> {/* Added mt-4 for spacing */}
-                        <div className="rounded-md">
-                            {usermanagements.data.length > 0 ? ( // Conditional rendering based on data existence
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead>ID</TableHead>
-                                            <TableHead>NAME</TableHead>
-                                            <TableHead>EMAIL</TableHead>
-                                            <TableHead>ROLES</TableHead>
-                                            <TableHead className="text-center">ACTION</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-
-                                    <TableBody>
-                                        {usermanagements.data.map(({ id, name, email, roles }) => ( // Use usermanagements.data
-                                            <TableRow key={id}>
-                                                <TableCell>{id}</TableCell>
-                                                <TableCell>{name}</TableCell>
-                                                <TableCell>{email}</TableCell>
-                                                <TableCell>
-                                                    {roles.map((role) =>
-                                                        <span key={role.id} className='mr-1 bg-green-100 text-green-800 text-xs font-medium rounded-lg p-1.5 w-auto'>
-                                                            {role.name}
-                                                        </span>
-                                                    )}
-                                                </TableCell>
-
-                                                <TableCell className="text-center space-x-2">
-                                                    {can('usermanagements.view') &&
-                                                        <Link href={route('usermanagements.show', id)}>
-                                                            <Button className='bg-transparent hover:bg-gray-700'>
-                                                                <Eye color='gray' />
-                                                            </Button>
-                                                        </Link>
-                                                    }
-
-                                                    {can('usermanagements.edit') &&
-                                                        <Link href={route('usermanagements.edit', id)}>
-                                                            <Button className='bg-transparent hover:bg-gray-700'>
-                                                                <Pencil color='blue' />
-                                                            </Button>
-                                                        </Link>
-                                                    }
-
-                                                    {can('usermanagements.delete') &&
-                                                        <Button disabled={processing} onClick={() => handleDelete(id, name)} className='bg-transparent hover:bg-gray-700'>
-                                                            <Trash color='red' />
-                                                        </Button>
-                                                    }
-                                                </TableCell>
-                                            </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
-                            ) : (
-                                <div className="p-4 text-center text-gray-500">
-                                    No results found.
+                        <div className='border h-auto p-3 rounded-lg'>
+                            {can('usermanagements.create') &&
+                                <div className='w-full mb-2 justify-end h-auto flex gap-2'>
+                                    <Link href={route('usermanagements.create')}>
+                                        <Button className='bg-blue-600 w-30 hover:bg-blue-500 text-white'>
+                                            <CirclePlus className="w-4 h-4 mr-2" /> {/* Added class for icon spacing */}
+                                            Add User
+                                        </Button>
+                                    </Link>
                                 </div>
-                            )}
+                            }
+
+                            <div>
+                                {flash.message && (
+                                    <Alert className="mb-4"> {/* Added margin-bottom */}
+                                        <Megaphone className='h-4 w-4' /> {/* Corrected class from h4-w4 */}
+                                        <AlertTitle className='text-green-600'>
+                                            Notification
+                                        </AlertTitle>
+                                        <AlertDescription>
+                                            {flash.message}
+                                        </AlertDescription>
+                                    </Alert>
+                                )}
+                            </div>
+
+                            <div className='flex flex-col gap-4 py-4 sm:flex-row sm:items-center'> {/* Changed layout for search and button */}
+                                <div className='relative flex-1'> {/* Make search input flexible */}
+                                    <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+                                    <Input
+                                        placeholder="Search by Name, Email, Role..."
+                                        value={searchValue} // Bind value to state
+                                        onChange={handleInputChange} // Handle input changes
+                                        onKeyPress={handleKeyPress} // Handle Enter key press
+                                        className="pl-10"
+                                    />
+                                </div>
+                                <Button onClick={performSearch}> {/* Added search button */}
+                                    <Search className="h-4 w-4 mr-2" /> Search
+                                </Button>
+                            </div>
+
+                            <CardContent className='border rounded-lg mt-4'> {/* Added mt-4 for spacing */}
+                                <div className="rounded-md">
+                                    {usermanagements.data.length > 0 ? ( // Conditional rendering based on data existence
+                                        <Table>
+                                            <TableHeader>
+                                                <TableRow>
+                                                    <TableHead>ID</TableHead>
+                                                    <TableHead>NAME</TableHead>
+                                                    <TableHead>EMAIL</TableHead>
+                                                    <TableHead>ROLES</TableHead>
+                                                    <TableHead className="text-center">ACTION</TableHead>
+                                                </TableRow>
+                                            </TableHeader>
+
+                                            <TableBody>
+                                                {usermanagements.data.map(({ id, name, email, roles }) => ( // Use usermanagements.data
+                                                    <TableRow key={id}>
+                                                        <TableCell>{id}</TableCell>
+                                                        <TableCell>{name}</TableCell>
+                                                        <TableCell>{email}</TableCell>
+                                                        <TableCell>
+                                                            {roles.map((role) =>
+                                                                <span key={role.id} className='mr-1 bg-green-100 text-green-800 text-xs font-medium rounded-lg p-1.5 w-auto'>
+                                                                    {role.name}
+                                                                </span>
+                                                            )}
+                                                        </TableCell>
+
+                                                        <TableCell className="text-center space-x-2">
+                                                            {can('usermanagements.view') &&
+                                                                <Link href={route('usermanagements.show', id)}>
+                                                                    <Button className='bg-transparent hover:bg-gray-700'>
+                                                                        <Eye color='gray' />
+                                                                    </Button>
+                                                                </Link>
+                                                            }
+
+                                                            {can('usermanagements.edit') &&
+                                                                <Link href={route('usermanagements.edit', id)}>
+                                                                    <Button className='bg-transparent hover:bg-gray-700'>
+                                                                        <Pencil color='blue' />
+                                                                    </Button>
+                                                                </Link>
+                                                            }
+
+                                                            {can('usermanagements.delete') &&
+                                                                <Button disabled={processing} onClick={() => handleDelete(id, name)} className='bg-transparent hover:bg-gray-700'>
+                                                                    <Trash color='red' />
+                                                                </Button>
+                                                            }
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ))}
+                                            </TableBody>
+                                        </Table>
+                                    ) : (
+                                        <div className="p-4 text-center text-gray-500">
+                                            No results found.
+                                        </div>
+                                    )}
+                                </div>
+                                {usermanagements.data.length > 0 && renderPagination(usermanagements)} {/* Add pagination navigation */}
+                            </CardContent>
                         </div>
-                        {usermanagements.data.length > 0 && renderPagination(usermanagements)} {/* Add pagination navigation */}
-                    </CardContent>
-                </div>
-            </div>
+                    </div>
+                </>
+            )}
+
         </AppLayout>
     );
 }

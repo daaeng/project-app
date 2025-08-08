@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, router } from '@inertiajs/react';
-import { CirclePlus, Eye, Megaphone, Pencil, Search, Send, Sprout, Trash, TreePalm, Undo2, Wheat } from 'lucide-react';
+import { Building2, CirclePlus, Coins, Droplet, Eye, Megaphone, Package, Pencil, Search, Send, Sprout, Trash, TreePalm, Truck, Undo2, Warehouse, Wheat } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -419,6 +419,53 @@ export default function GkaPage({
           </Link>
         </div>
 
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6">
+          {/* Kartu Uang Masuk (saldoin) */}
+          <Card className="shadow-2xl border-2 border-green-500 bg-gradient-to-br from-green-400 to-green-600 text-white transition-all duration-500 rounded-2xl hover:shadow-green-500/50 hover:scale-105">
+              <CardHeader className="p-6 flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-xl font-bold flex items-center">
+                      <Coins className="mr-3 text-white drop-shadow-md" size={32} /> Uang Masuk Karet
+                  </CardTitle>
+              </CardHeader>
+              <CardContent className="p-6 pt-0">
+                  <p className="text-5xl font-extrabold mt-2 tracking-tighter">
+                     {formatCurrency(tm_slou)} 
+                  </p>
+                  <div className="flex justify-between text-sm mt-3 text-green-100">
+                      <div className="flex items-center font-medium">
+                          <Truck size={18} className="mr-1" />
+                          <span>Hasil Pengiriman</span>
+                      </div>
+                  </div>
+              </CardContent>
+          </Card>
+
+          {/* Kartu Total KG (hsl_karet) */}
+          <Card className="shadow-2xl border-2 border-blue-500 bg-gradient-to-br from-blue-400 to-blue-600 text-white transition-all duration-500 rounded-2xl hover:shadow-blue-500/50 hover:scale-105">
+              <CardHeader className="p-6 flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-xl font-bold flex items-center">
+                      <Package className="mr-3 text-white drop-shadow-md" size={32} /> Total KG
+                  </CardTitle>
+              </CardHeader>
+              <CardContent className="p-6 pt-0">
+                  <p className="text-5xl font-extrabold mt-2 tracking-tighter">
+                    {tm_sou} kg
+                  </p>
+                  <div className="flex justify-between text-sm mt-3 text-blue-100">
+                      <div className="flex items-center font-medium">
+                          <Warehouse size={18} className="mr-1" />
+                          <span>Gudang : {tm_sin}</span>
+                      </div>
+                      <div className="flex items-center font-medium">
+                          <Droplet size={18} className="mr-1" />
+                          <span>Susut : {s_ready}kg</span>
+                      </div>
+                  </div>
+              </CardContent>
+          </Card>
+
+        </div>
+
         <div className='w-full justify-center h-auto flex mb-5 gap-2'>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             
@@ -520,7 +567,7 @@ export default function GkaPage({
             </Alert>
           )}
 
-        <div>
+        {/* <div>
           {can('products.create') && 
             <div className='w-full justify-end h-auto flex mb-5 gap-2'>
               <Link href={route('products.c_send')}>
@@ -538,7 +585,24 @@ export default function GkaPage({
 
             </div>
           }
-        </div>
+        </div> */}
+
+        <div className="flex space-x-3 justify-end">
+          <Link href={route('products.create')}>
+              <Button className="flex items-center bg-green-600 hover:bg-green-700 text-white font-semibold rounded-full shadow-lg transition-all duration-300 transform hover:scale-105 px-6 py-3">
+                  <CirclePlus size={18} className="mr-2" />
+                  Tambah Produk
+              </Button>
+          </Link>
+          {can('products.create') && (
+              <Link href={route('products.c_send')}>
+                  <Button className="flex items-center bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-full shadow-lg transition-all duration-300 transform hover:scale-105 px-6 py-3">
+                      <Building2 size={18} className="mr-2" />
+                      Kirim Barang
+                  </Button>
+              </Link>
+          )}
+      </div>
 
         <div>
           <CardContent className="p-1">

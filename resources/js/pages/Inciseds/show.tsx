@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link } from '@inertiajs/react';
-import { CircleAlert, Undo2 } from 'lucide-react';
+import { Box, Calendar, CircleAlert, DollarSign, Leaf, Rss, Tag, Undo2 } from 'lucide-react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -16,6 +16,13 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
+const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        minimumFractionDigits: 0,
+    }).format(value);
+};
 interface Incised {
     id: number;
     product: string;
@@ -65,65 +72,53 @@ export default function ShowIncised({ incised }: { incised: Incised }) {
                     <form className="space-y-3 grid lg:grid-cols-2 md:grid-cols-1 gap-5">
                         <div className="space-y-2">
                             <div>
-                                <div className="gap-2">
-                                    <Label htmlFor="Nama Penoreh">Nama Penoreh</Label>
-                                    <Input
-                                        placeholder="Nama Penoreh"
-                                        value={incised.incisor?.name || incised.incisor_name || 'N/A'}
-                                        readOnly
-                                    />
-                                </div>
-                                <div className="gap-2">
-                                    <Label htmlFor="Product Name">Product</Label>
-                                    <Input
-                                        placeholder="Jenis Barang"
-                                        value={incised.product || 'N/A'}
-                                        readOnly
-                                    />
-                                </div>
-                                <div className="gap-2">
-                                    <Label htmlFor="Tanggal">Tanggal</Label>
-                                    <Input
-                                        type="date"
-                                        placeholder="Tanggal"
-                                        value={incised.date || ''}
-                                        readOnly
-                                    />
+                                <div className="space-y-2 mb-2">
+                                    <Label htmlFor="incisor_name" className="text-sm font-medium flex items-center gap-1">
+                                        <Leaf className="w-4 h-4 text-green-500" /> Nama Penoreh
+                                    </Label>
+                                    <Input value={incised.incisor?.name || 'N/A'} readOnly className="bg-gray-50 dark:bg-gray-900 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-600 rounded-md" />
                                 </div>
 
-                                <div className="gap-2">
-                                    <Label htmlFor="Kode Penoreh">Kode Penoreh</Label>
-                                    <Input
-                                        placeholder="Kode Penoreh"
-                                        value={incised.no_invoice || 'N/A'}
-                                        readOnly
-                                    />
+                                <div className="space-y-2 mb-2">
+                                    <Label htmlFor="product" className="text-sm font-medium flex items-center gap-1">
+                                        <Box className="w-4 h-4 text-blue-500" /> Produk
+                                    </Label>
+                                    <Input value={incised.product || 'N/A'} readOnly className="bg-gray-50 dark:bg-gray-900 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-600 rounded-md" />
+                                </div>
+                                
+                                <div className="space-y-2 mb-2">
+                                    <Label htmlFor="date" className="text-sm font-medium flex items-center gap-1">
+                                        <Calendar className="w-4 h-4 text-red-500" /> Tanggal
+                                    </Label>
+                                    <Input value={incised.date || 'N/A'} readOnly className="bg-gray-50 dark:bg-gray-900 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-600 rounded-md" />
                                 </div>
 
-                                <div className="gap-2">
-                                    <Label htmlFor="Lokasi">Lokasi Kebun</Label>
-                                    <Input
-                                        placeholder="Lokasi Kebun"
-                                        value={incised.lok_kebun || 'N/A'}
-                                        readOnly
-                                    />
+                                <div className="space-y-2 mb-2">
+                                    <Label htmlFor="no_invoice" className="text-sm font-medium flex items-center gap-1">
+                                        <Rss className="w-4 h-4 text-gray-500" /> No. Invoice
+                                    </Label>
+                                    <Input value={incised.no_invoice || 'N/A'} readOnly className="bg-gray-50 dark:bg-gray-900 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-600 rounded-md" />
                                 </div>
 
-                                <div className="gap-2">
-                                    <Label htmlFor="Jenis Barang">Jenis Barang</Label>
-                                    <Input
-                                        placeholder="Jenis Barang"
-                                        value={incised.j_brg || 'N/A'}
-                                        readOnly
-                                    />
+                                <div className="space-y-2 mb-2">
+                                    <Label htmlFor="lok_kebun" className="text-sm font-medium flex items-center gap-1">
+                                        <Leaf className="w-4 h-4 text-teal-500" /> Lokasi Kebun
+                                    </Label>
+                                    <Input value={incised.lok_kebun || 'N/A'} readOnly className="bg-gray-50 dark:bg-gray-900 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-600 rounded-md" />
                                 </div>
-                                <div className="gap-2">
-                                    <Label htmlFor="Description">Description</Label>
-                                    <Textarea
-                                        placeholder="Description"
-                                        value={incised.desk || ''}
-                                        readOnly
-                                    />
+
+                                <div className="space-y-2 mb-2">
+                                    <Label htmlFor="j_brg" className="text-sm font-medium flex items-center gap-1">
+                                        <Tag className="w-4 h-4 text-orange-500" /> Jenis Barang
+                                    </Label>
+                                    <Input value={incised.j_brg || 'N/A'} readOnly className="bg-gray-50 dark:bg-gray-900 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-600 rounded-md" />
+                                </div>
+                                
+                                <div className="mt-6">
+                                    <Label htmlFor="desk" className="text-sm font-medium mb-2 block items-center gap-1">
+                                        <Box className="w-4 h-4 text-gray-500" /> Deskripsi
+                                    </Label>
+                                    <Textarea value={incised.desk || 'N/A'} readOnly className="bg-gray-50 dark:bg-gray-900 text-gray-700 dark:text-gray-200 min-h-[100px] border-gray-300 dark:border-gray-600 rounded-md" />
                                 </div>
                                 
                             </div>
@@ -136,45 +131,39 @@ export default function ShowIncised({ incised }: { incised: Incised }) {
                                         <Label htmlFor="In">MASUK</Label>
                                     </div>
 
-                                    <div className="gap-2 md:col-span-1 sm:col-span-3">
-                                        <Label htmlFor="Quantity">Quantity (Kg)</Label>
-                                        <Input
-                                            placeholder="Quantity"
-                                            value={incised.qty_kg !== undefined ? incised.qty_kg.toString() : 'N/A'}
-                                            readOnly
-                                        />
+                                    <div className="space-y-2">
+                                        <Label htmlFor="qty_kg" className="text-sm font-medium flex items-center gap-1">
+                                            <Box className="w-4 h-4 text-purple-500" /> QTY (Kg)
+                                        </Label>
+                                        <Input value={incised.qty_kg !== undefined ? incised.qty_kg.toString() : 'N/A'} readOnly className="bg-gray-50 dark:bg-gray-900 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-600 rounded-md" />
                                     </div>
-                                    <div className="gap-2 md:col-span-1 sm:col-span-3">
-                                        <Label htmlFor="Price">Price /Qty</Label>
-                                        <Input
-                                            placeholder="Price"
-                                            value={incised.price_qty !== undefined ? incised.price_qty.toString() : 'N/A'}
-                                            readOnly
-                                        />
+
+                                    <div className="space-y-2">
+                                        <Label htmlFor="price_qty" className="text-sm font-medium flex items-center gap-1">
+                                            <DollarSign className="w-4 h-4 text-yellow-500" /> Harga per Kg
+                                        </Label>
+                                        <Input value={incised.price_qty !== undefined ? formatCurrency(incised.price_qty) : 'N/A'} readOnly className="bg-gray-50 dark:bg-gray-900 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-600 rounded-md" />
                                     </div>
-                                    <div className="gap-2 md:col-span-1 sm:col-span-3">
-                                        <Label htmlFor="Amount">Amount</Label>
-                                        <Input
-                                            placeholder="Amount"
-                                            value={incised.amount !== undefined ? incised.amount.toString() : 'N/A'}
-                                            readOnly
-                                        />
+
+                                    <div className="space-y-2">
+                                        <Label htmlFor="amount" className="text-sm font-medium flex items-center gap-1">
+                                            <DollarSign className="w-4 h-4 text-lime-500" /> Total Jumlah
+                                        </Label>
+                                        <Input value={incised.amount !== undefined ? formatCurrency(incised.amount) : 'N/A'} readOnly className="bg-gray-50 dark:bg-gray-900 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-600 rounded-md" />
                                     </div>
-                                    <div className="gap-2 md:col-span-1 sm:col-span-3">
-                                        <Label htmlFor="Keping">Keping</Label>
-                                        <Input
-                                            placeholder="Keping"
-                                            value={incised.keping !== undefined ? incised.keping.toString() : 'N/A'}
-                                            readOnly
-                                        />
+
+                                    <div className="space-y-2">
+                                        <Label htmlFor="keping" className="text-sm font-medium flex items-center gap-1">
+                                            <Tag className="w-4 h-4 text-cyan-500" /> Keping
+                                        </Label>
+                                        <Input value={incised.keping !== undefined ? incised.keping.toString() : 'N/A'} readOnly className="bg-gray-50 dark:bg-gray-900 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-600 rounded-md" />
                                     </div>
-                                    <div className="gap-2 md:col-span-1 sm:col-span-3">
-                                        <Label htmlFor="Kualitas">Kualitas</Label>
-                                        <Input
-                                            placeholder="Kualitas"
-                                            value={incised.kualitas || 'N/A'}
-                                            readOnly
-                                        />
+
+                                    <div className="space-y-2">
+                                        <Label htmlFor="kualitas" className="text-sm font-medium flex items-center gap-1">
+                                            <Leaf className="w-4 h-4 text-emerald-500" /> Kualitas
+                                        </Label>
+                                        <Input value={incised.kualitas || 'N/A'} readOnly className="bg-gray-50 dark:bg-gray-900 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-600 rounded-md" />
                                     </div>
                                 </div>
                             </div>

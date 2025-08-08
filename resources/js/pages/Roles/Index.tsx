@@ -45,107 +45,109 @@ export default function index({ roles,  flash } : PageProps) {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Roles" />
 
-            <div className="h-full flex-col rounded-xl p-4 bg-gray-50 dark:bg-black">
-            
-                <Heading title='Roles User Management'/>
-
-                <div className='border h-auto p-3 rounded-lg'>
-
-                    {can('roles.create') && 
+            {can('roles.view') && (
+                <>
+                    <div className="h-full flex-col rounded-xl p-4 bg-gray-50 dark:bg-black">
                     
-                        <div className='w-full mb-2 justify-end h-auto flex gap-2'>
-                            <Link href={route('roles.create')}>
-                                <Button className='bg-blue-600 w-25 hover:bg-blue-500 text-white'>
-                                    <CirclePlus />
-                                    User
-                                </Button>
-                            </Link>
-                        </div>
-                    }
+                        <Heading title='Roles User Management'/>
 
-                    <div>
-                        {flash.message && (
-                            <Alert>
-                                <Megaphone className='h4-w4' />
-                                <AlertTitle className='text-green-600'>
-                                    Notification
-                                </AlertTitle>
-                                <AlertDescription>
-                                    {flash.message}
-                                </AlertDescription>
-                            </Alert>
-                        )}
-                    </div>
+                        <div className='border h-auto p-3 rounded-lg'>
 
-                    <CardContent className='border rounded-lg'>
-                        <div className="rounded-md">
+                            {can('roles.create') && 
                             
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>ID</TableHead>
-                                        <TableHead>Name</TableHead>
-                                        <TableHead>Permission</TableHead>
-                                    
-                                        <TableHead className="text-center">Action</TableHead>
-                                    </TableRow>
-                                </TableHeader>
+                                <div className='w-full mb-2 justify-end h-auto flex gap-2'>
+                                    <Link href={route('roles.create')}>
+                                        <Button className='bg-blue-600 w-25 hover:bg-blue-500 text-white'>
+                                            <CirclePlus />
+                                            User
+                                        </Button>
+                                    </Link>
+                                </div>
+                            }
 
-                                {roles.map(({id, name, permissions}) =>
-                                    <TableBody>
-
-                                        <TableRow>
-                                            <TableCell>{id}</TableCell>
-                                            <TableCell>{name}</TableCell>
-                                            <TableCell>
-                                                {permissions.map((permission) =>
-                                                    <span className='mr-1 bg-green-100 text-green-800 text-xs font-medium rounded-lg p-1.5 w-auto'>
-                                                        {permission.name}
-                                                    </span>
-                                                
-                                                )}
-                                            </TableCell>
-                                            
-                                            <TableCell className="text-center space-x-2">
-                                                
-                                                {can('roles.view') &&
-                                                    <Link href={route('roles.show', id)}>
-                                                        <Button className='bg-transparent hover:bg-gray-700'>
-                                                            <Eye color='gray'/>
-                                                        </Button>
-                                                    </Link>
-                                                }
-                                                
-                                                {can('roles.edit') && 
-                                                    <Link href={route('roles.edit', id)}>
-                                                        <Button className='bg-transparent hover:bg-gray-700'>
-                                                            <Pencil color='blue'/>
-                                                        </Button>
-                                                    </Link>
-                                                
-                                                }
-                                                
-                                                {can('roles.delete') && 
-                                                    <Button disabled={processing} onClick={() => handleDelete(id, name)} className='bg-transparent hover:bg-gray-700'>
-                                                        <Trash color='red'/>
-                                                    </Button>
-                                                
-                                                }
-                                            </TableCell>
-                                        </TableRow>
-                                    </TableBody>
+                            <div>
+                                {flash.message && (
+                                    <Alert>
+                                        <Megaphone className='h4-w4' />
+                                        <AlertTitle className='text-green-600'>
+                                            Notification
+                                        </AlertTitle>
+                                        <AlertDescription>
+                                            {flash.message}
+                                        </AlertDescription>
+                                    </Alert>
                                 )}
-                            </Table>
-                            
+                            </div>
 
+                            <CardContent className='border rounded-lg'>
+                                <div className="rounded-md">
+                                    
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead>ID</TableHead>
+                                                <TableHead>Name</TableHead>
+                                                <TableHead>Permission</TableHead>
+                                            
+                                                <TableHead className="text-center">Action</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+
+                                        {roles.map(({id, name, permissions}) =>
+                                            <TableBody>
+
+                                                <TableRow>
+                                                    <TableCell>{id}</TableCell>
+                                                    <TableCell>{name}</TableCell>
+                                                    <TableCell>
+                                                        {permissions.map((permission) =>
+                                                            <span className='mr-1 bg-green-100 text-green-800 text-xs font-medium rounded-lg p-1.5 w-auto'>
+                                                                {permission.name}
+                                                            </span>
+                                                        
+                                                        )}
+                                                    </TableCell>
+                                                    
+                                                    <TableCell className="text-center space-x-2">
+                                                        
+                                                        {can('roles.view') &&
+                                                            <Link href={route('roles.show', id)}>
+                                                                <Button className='bg-transparent hover:bg-gray-700'>
+                                                                    <Eye color='gray'/>
+                                                                </Button>
+                                                            </Link>
+                                                        }
+                                                        
+                                                        {can('roles.edit') && 
+                                                            <Link href={route('roles.edit', id)}>
+                                                                <Button className='bg-transparent hover:bg-gray-700'>
+                                                                    <Pencil color='blue'/>
+                                                                </Button>
+                                                            </Link>
+                                                        
+                                                        }
+                                                        
+                                                        {can('roles.delete') && 
+                                                            <Button disabled={processing} onClick={() => handleDelete(id, name)} className='bg-transparent hover:bg-gray-700'>
+                                                                <Trash color='red'/>
+                                                            </Button>
+                                                        
+                                                        }
+                                                    </TableCell>
+                                                </TableRow>
+                                            </TableBody>
+                                        )}
+                                    </Table>
+                                    
+
+                                </div>
+                            </CardContent>
                         </div>
-                    </CardContent>
-                </div>
 
-                
-            </div>
-
-
+                        
+                    </div>
+                </>
+            )}
 
         </AppLayout>
     );

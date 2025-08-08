@@ -18,9 +18,13 @@ class DashboardController extends Controller
     {
         $perPage = 10;
         $searchTerm = $request->input('search');
-        $timePeriod = $request->input('time_period', 'all-time'); 
+        $timePeriod = $request->input('time_period', 'this-month'); // Ubah default dari 'all-time' menjadi 'this-month'
+        $selectedMonth = $request->input('month');
+        $selectedYear = $request->input('year');
+        
         $productQueryFilteredByTime = Product::query();
         $incisedQueryFilteredByTime = Incised::query(); 
+
         if ($timePeriod !== 'all-time' && $timePeriod !== 'all-years') {
             $dateRangeStart = null;
             $dateRangeEnd = null;
@@ -38,9 +42,19 @@ class DashboardController extends Controller
                     $dateRangeStart = Carbon::now()->startOfMonth();
                     $dateRangeEnd = Carbon::now()->endOfMonth();
                     break;
+                case 'last-month':
+                    $dateRangeStart = Carbon::now()->subMonth()->startOfMonth();
+                    $dateRangeEnd = Carbon::now()->subMonth()->endOfMonth();
+                    break;
                 case 'this-year':
                     $dateRangeStart = Carbon::now()->startOfYear();
                     $dateRangeEnd = Carbon::now()->endOfYear();
+                    break;
+                case 'custom':
+                    if ($selectedMonth && $selectedYear) {
+                        $dateRangeStart = Carbon::createFromDate($selectedYear, $selectedMonth, 1)->startOfMonth();
+                        $dateRangeEnd = Carbon::createFromDate($selectedYear, $selectedMonth, 1)->endOfMonth();
+                    }
                     break;
             }
 
@@ -58,7 +72,6 @@ class DashboardController extends Controller
         $stok_gka_qty_out = $productQueryFilteredByTime->clone()->where('status', 'gka')->where('product', 'karet')->sum('qty_out');
         $stok_gka = $stok_gka_qty_kg > 0 ? $stok_gka_qty_kg : $stok_gka_qty_out;
 
-
         $hsl_sebayar = $productQueryFilteredByTime->clone()->where('nm_supplier', 'Sebayar')->where('product', 'karet')->sum('amount');
         $hsl_temadu = $productQueryFilteredByTime->clone()->where('nm_supplier', 'Temadu')->where('product', 'karet')->sum('amount');
 
@@ -73,7 +86,7 @@ class DashboardController extends Controller
         $monthlyData = [];
         $monthlyRevenueData = [];
 
-        if ($timePeriod === 'all-years') {
+        if ($monthlyData === 'all-years') {
             $years = Product::selectRaw('DISTINCT YEAR(date) as year')
                             ->orderBy('year', 'asc')
                             ->pluck('year');
@@ -109,60 +122,55 @@ class DashboardController extends Controller
                 ];
             }
         } else {
-            $currentYear = Carbon::now()->year;
+            $currentYear = $selectedYear ?? Carbon::now()->year;
             $startMonth = 1;
             $endMonth = 12;
 
-            $chartDateQuery = Product::query();
-
             if ($timePeriod === 'today') {
-                $chartDateQuery->whereDate('date', Carbon::today());
                 $startMonth = Carbon::now()->month;
                 $endMonth = Carbon::now()->month;
             } elseif ($timePeriod === 'this-week') {
-                $chartDateQuery->whereBetween('date', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]);
                 $startMonth = Carbon::now()->month;
                 $endMonth = Carbon::now()->month;
             } elseif ($timePeriod === 'this-month') {
-                $chartDateQuery->whereMonth('date', Carbon::now()->month)
-                               ->whereYear('date', $currentYear);
                 $startMonth = Carbon::now()->month;
-                $endMonth = Carbon()->now()->month;
-            } elseif ($timePeriod === 'this-year') {
-                $chartDateQuery->whereYear('date', $currentYear);
+                $endMonth = Carbon::now()->month;
+            } elseif ($timePeriod === 'last-month') {
+                $startMonth = Carbon::now()->subMonth()->month;
+                $endMonth = Carbon::now()->subMonth()->month;
+                $currentYear = Carbon::now()->subMonth()->year;
+            } elseif ($timePeriod === 'custom' && $selectedMonth) {
+                $startMonth = (int)$selectedMonth;
+                $endMonth = (int)$selectedMonth;
             }
 
             for ($i = $startMonth; $i <= $endMonth; $i++) {
                 $monthName = Carbon::create()->month($i)->translatedFormat('M');
 
-                $produksiTemaduBulanIni = $chartDateQuery->clone()
-                                                ->where('product', 'karet')
-                                                ->where('nm_supplier', 'Temadu')
-                                                ->when(!in_array($timePeriod, ['today', 'this-week']), function($query) use ($i) {
-                                                    $query->whereMonth('date', $i);
-                                                })
-                                                ->sum('qty_kg');
+                $produksiTemaduBulanIni = Product::where('product', 'karet')
+                    ->where('nm_supplier', 'Temadu')
+                    ->where('status', 'tsa')
+                    ->whereMonth('date', $i)
+                    ->whereYear('date', $currentYear)
+                    ->sum('qty_kg');
 
-                $produksiSebayarBulanIni = $chartDateQuery->clone()
-                                                ->where('product', 'karet')
-                                                ->where('nm_supplier', 'Sebayar')
-                                                ->when(!in_array($timePeriod, ['today', 'this-week']), function($query) use ($i) {
-                                                    $query->whereMonth('date', $i);
-                                                })
-                                                ->sum('qty_kg');
+                $produksiSebayarBulanIni = Product::where('product', 'karet')
+                    ->where('nm_supplier', 'Sebayar')
+                    ->where('status', 'tsa')
+                    ->whereMonth('date', $i)
+                    ->whereYear('date', $currentYear)
+                    ->sum('qty_kg');
 
-                $penjualanBulanIni = $chartDateQuery->clone()
-                                                ->where('product', 'karet')
-                                                ->where('status', 'buyer')
-                                                ->when(!in_array($timePeriod, ['today', 'this-week']), function($query) use ($i) {
-                                                    $query->whereMonth('date', $i);
-                                                })
-                                                ->sum('amount_out');
+                $penjualanBulanIni = Product::where('product', 'karet')
+                    ->where('status', 'buyer')
+                    ->whereMonth('date', $i)
+                    ->whereYear('date', $currentYear)
+                    ->sum('amount_out');
 
                 $monthlyData[] = [
                     'name' => $monthName,
-                    'temadu' => $produksiTemaduBulanIni, 
-                    'sebayar' => $produksiSebayarBulanIni, 
+                    'temadu' => $produksiTemaduBulanIni,
+                    'sebayar' => $produksiSebayarBulanIni,
                     'penjualan' => $penjualanBulanIni,
                 ];
 
@@ -176,19 +184,17 @@ class DashboardController extends Controller
         $qualityDistributionData = Product::query()
             ->selectRaw('kualitas_out as kualitas, SUM(qty_out) as total_qty')
             ->where('product', 'karet')
-            ->where('status', 'gka') 
-            ->whereNotNull('kualitas_out') 
-            ->whereNotNull('qty_out') 
+            ->where('status', 'gka')
+            ->whereNotNull('kualitas_out')
+            ->whereNotNull('qty_out')
             ->groupBy('kualitas_out')
             ->get();
 
         $qualityDistribution = [];
         foreach ($qualityDistributionData as $item) {
-            
-            $qualityName = $item->kualitas; 
-
+            $qualityName = $item->kualitas;
             $qualityDistribution[] = [
-                'name' => $qualityName, 
+                'name' => $qualityName,
                 'value' => (float)$item->total_qty
             ];
         }
@@ -205,7 +211,7 @@ class DashboardController extends Controller
         $topIncisorRevenue = Incisor::select(
                 'incisors.name',
                 \DB::raw('SUM(inciseds.amount) as total_revenue'),
-                \DB::raw('SUM(inciseds.qty_kg) as total_qty_karet') 
+                \DB::raw('SUM(inciseds.qty_kg) as total_qty_karet')
             )
             ->join('inciseds', 'incisors.no_invoice', '=', 'inciseds.no_invoice')
             ->where('inciseds.product', 'karet')
@@ -216,7 +222,7 @@ class DashboardController extends Controller
             ->map(function ($item) {
                 return [
                     'name' => $item->name,
-                    'value' => (float)$item->total_revenue, 
+                    'value' => (float)$item->total_revenue,
                     'qty_karet' => (float)$item->total_qty_karet
                 ];
             })->toArray();
@@ -247,8 +253,7 @@ class DashboardController extends Controller
 
         return Inertia::render("Dashboard/Index", [
             "products" => $products,
-            "filter" => $request->only(['search', 'time_period']),
-
+            "filter" => $request->only(['search', 'time_period', 'month', 'year']),
             'totalAmountOutKaret' => $totalAmountOutKaret,
             "hsl_tsa" => $karet_sebayar + $karet_temadu,
             "totalPendingRequests" => $totalPendingRequests,
