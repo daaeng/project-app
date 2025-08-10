@@ -13,22 +13,15 @@ use Carbon\Carbon;
 
 class KasbonController extends Controller
 {
-    // Daftar status yang valid (opsional, untuk konsistensi)
     private $statuses = ['Pending', 'Approved', 'Rejected'];
 
-    /**
-     * Display a listing of the Kasbon resource.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Inertia\Response
-     */
     public function index(Request $request)
     {
-        $perPage = 10; // Items per page
-        $searchTerm = $request->input('search'); // Get search term from request
+        $perPage = 10; 
+        $searchTerm = $request->input('search'); 
 
         $kasbons = Kasbon::query()
-            ->with(['incisor', 'incised']) // Eager load relationships
+            ->with(['incisor', 'incised']) 
             ->when($searchTerm, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
                     $q->orWhereHas('incisor', function ($incisorQuery) use ($search) {
@@ -76,12 +69,6 @@ class KasbonController extends Controller
         ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     * Mengambil daftar penoreh dan bulan/tahun yang tersedia dari data torehan.
-     *
-     * @return \Inertia\Response
-     */
     public function create()
     {
         // Mengambil semua penoreh (Incisor) untuk dropdown
@@ -108,13 +95,6 @@ class KasbonController extends Controller
         ]);
     }
 
-    /**
-     * Mengambil detail penoreh dan data torehan terkait berdasarkan ID penoreh, bulan, dan tahun.
-     * Endpoint ini akan dipanggil via AJAX/Inertia oleh frontend.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\JsonResponse
-     */
     public function getIncisorData(Request $request)
     {
         $request->validate([
@@ -142,21 +122,14 @@ class KasbonController extends Controller
             'incisor' => [
                 'name' => $incisor->name,
                 'address' => $incisor->address,
-                'no_invoice' => $incisor->no_invoice, // Ini adalah kode penoreh
+                'no_invoice' => $incisor->no_invoice, 
             ],
             'total_toreh_bulan_ini' => $totalAmount,
             'gaji_bulan_ini' => $gaji,
-            'max_kasbon_amount' => $gaji, // Asumsi maksimal kasbon adalah gaji bulan ini
+            'max_kasbon_amount' => $gaji, 
         ]);
     }
 
-
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\RedirectResponse
-     */
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -193,12 +166,6 @@ class KasbonController extends Controller
         }
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\Kasbon  $kasbon
-     * @return \Inertia\Response
-     */
     public function show(Kasbon $kasbon)
     {
         $kasbon->load(['incisor', 'incised']);
@@ -215,24 +182,18 @@ class KasbonController extends Controller
             'kasbon' => [
                 'id' => $kasbon->id,
                 'incisor_name' => $kasbon->incisor ? $kasbon->incisor->name : 'N/A',
-                'incisor_no_invoice' => $incisorNoInvoice, // Mengirim kode penoreh
-                'gaji' => $kasbon->gaji, // Ini adalah 50% dari total toreh (jumlah maksimal kasbon)
-                'kasbon' => $kasbon->kasbon, // Ini adalah jumlah kasbon yang diajukan
+                'incisor_no_invoice' => $incisorNoInvoice,
+                'gaji' => $kasbon->gaji, 
+                'kasbon' => $kasbon->kasbon, 
                 'status' => $kasbon->status,
                 'reason' => $kasbon->reason,
-                'total_toreh_bulan_ini_raw' => $totalTorehBulanIni, // Mengirim total toreh murni
+                'total_toreh_bulan_ini_raw' => $totalTorehBulanIni, 
                 'created_at' => $kasbon->created_at->format('Y-m-d H:i:s'),
                 'updated_at' => $kasbon->updated_at->format('Y-m-d H:i:s'),
             ],
         ]);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\Kasbon  $kasbon
-     * @return \Inertia\Response
-     */
     public function edit(Kasbon $kasbon)
     {
         $kasbon->load(['incisor', 'incised']);
@@ -242,8 +203,8 @@ class KasbonController extends Controller
         $year = '';
         if ($kasbon->incised && $kasbon->incised->date) {
             $carbonDate = Carbon::parse($kasbon->incised->date);
-            $month = (string)$carbonDate->format('n'); // Ambil bulan dari tanggal incised (tanpa leading zero)
-            $year = (string)$carbonDate->format('Y');   // Ambil tahun dari tanggal incised
+            $month = (string)$carbonDate->format('n'); 
+            $year = (string)$carbonDate->format('Y'); 
         }
         
         $incisors = Incisor::select('id', 'no_invoice', 'name')->get();
@@ -267,9 +228,9 @@ class KasbonController extends Controller
                 'kasbon' => $kasbon->kasbon,
                 'status' => $kasbon->status,
                 'reason' => $kasbon->reason,
-                'gaji' => $kasbon->gaji, // Pastikan gaji dikirim
-                'month' => $month, // Menggunakan nilai bulan yang sudah diperiksa dan dijamin string
-                'year' => $year,   // Menggunakan nilai tahun yang sudah diperiksa dan dijamin string
+                'gaji' => $kasbon->gaji, 
+                'month' => $month, 
+                'year' => $year,  
             ],
             'incisors' => $incisors->map(function ($incisor) {
                 return [
@@ -277,23 +238,16 @@ class KasbonController extends Controller
                     'label' => "{$incisor->no_invoice} - {$incisor->name}",
                 ];
             }),
-            'monthsYears' => $monthsYears, // Kirim daftar bulan/tahun ke frontend
-            'statuses' => $this->statuses, // Kirim daftar status ke frontend
+            'monthsYears' => $monthsYears, 
+            'statuses' => $this->statuses, 
         ]);
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Kasbon  $kasbon
-     * @return \Illuminate\Http\RedirectResponse
-     */
     public function update(Request $request, Kasbon $kasbon)
     {
         $validated = $request->validate([
             'incisor_id' => 'required|exists:incisors,id',
-            'month' => 'required|integer|between:1,12', // Tambahkan validasi bulan dan tahun
+            'month' => 'required|integer|between:1,12', 
             'year' => 'required|integer',
             'kasbon' => 'required|numeric|min:0',
             'status' => 'nullable|string|max:255|in:' . implode(',', $this->statuses),
@@ -326,12 +280,6 @@ class KasbonController extends Controller
         }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\Kasbon  $kasbon
-     * @return \Illuminate\Http\RedirectResponse
-     */
     public function destroy(Kasbon $kasbon)
     {
         DB::beginTransaction();

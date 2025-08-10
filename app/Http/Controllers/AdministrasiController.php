@@ -99,7 +99,7 @@ class AdministrasiController extends Controller
         $h_karet = $productQueryFilteredByTime->clone()
                                                   ->where('product', 'karet')
                                                   ->where('status', 'buyer')
-                                                  ->whereNotNull('price_out') // Hanya ambil yang price_out-nya tidak NULL
+                                                  ->whereNotNull('price_out')
                                                   ->average('price_out');
         // Pembelian karet (DIFILTER WAKTU) - diasumsikan 'gka' adalah status pembelian
         $tb_karet = $productQueryFilteredByTime->clone()->where('status', 'gka')->where('product', 'karet')->SUM('amount_out');

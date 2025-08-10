@@ -6,18 +6,18 @@ use Illuminate\Http\Request;
 use App\Models\Incised;
 use App\Models\Incisor;
 use Inertia\Inertia;
-use Carbon\Carbon; // Import Carbon untuk manipulasi tanggal
+use Carbon\Carbon;
 
 class IncisedController extends Controller
 {
     public function index(Request $request)
     {
-        $perPage = 10; // Jumlah item per halaman, bisa disesuaikan
-        $searchTerm = $request->input('search'); // Get the search term from the request
-        $timePeriod = $request->input('time_period', 'all-time'); // Get time_period, default to 'all-time'
+        $perPage = 10; 
+        $searchTerm = $request->input('search'); 
+        $timePeriod = $request->input('time_period', 'all-time'); 
 
         $incisedsQuery = Incised::query()
-            ->with('incisor'); // Eager load the 'incisor' relationship
+            ->with('incisor'); 
 
         // Apply search term filter
         $incisedsQuery->when($searchTerm, function ($query, $search) {
@@ -25,8 +25,6 @@ class IncisedController extends Controller
                   ->orWhere('no_invoice', 'like', "%{$search}%")
                   ->orWhere('lok_kebun', 'like', "%{$search}%")
                   ->orWhere('j_brg', 'like', "%{$search}%")
-                  // If 'incisor_name' needs to be searchable from the Incisor model,
-                  // you would typically need a join here:
                   ->orWhereHas('incisor', function ($q) use ($search) {
                       $q->where('name', 'like', "%{$search}%");
                   });
@@ -106,7 +104,7 @@ class IncisedController extends Controller
             ->orderBy('created_at', 'DESC')
             ->paginate($perPage)
             ->through(function ($incised) {
-                // Ensure the 'incisor' relationship is loaded before accessing it
+       
                 $incisor = $incised->incisor; 
                 return [
                     'id' => $incised->id,
@@ -121,14 +119,14 @@ class IncisedController extends Controller
                     'amount' => $incised->amount,
                     'keping' => $incised->keping,
                     'kualitas' => $incised->kualitas,
-                    'incisor_name' => $incisor ? $incisor->name : null, // Ambil nama dari incisor
+                    'incisor_name' => $incisor ? $incisor->name : null, 
                 ];
             })
-            ->withQueryString(); // Keep search and time_period parameters in pagination links
+            ->withQueryString(); 
 
         return Inertia::render("Inciseds/index", [
             "inciseds" => $inciseds,
-            "filter" => $request->only(['search', 'time_period']), // Send back the current search and time_period filters
+            "filter" => $request->only(['search', 'time_period']),
             'totalKebunA' => (float)$totalKebunA,
             'totalKebunB' => (float)$totalKebunB,
             'mostProductiveIncisor' => $mostProductiveIncisorData,

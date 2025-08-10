@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Product; // Make sure to import your Product model
+use App\Models\Product; 
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
-use Maatwebsite\Excel\Facades\Excel; // Make sure to import the Excel facade
-use App\Exports\ProductsAllExport; // Asumsikan Anda sudah punya kelas ini
-use Carbon\Carbon; // Import Carbon untuk manipulasi tanggal
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\ProductsAllExport; 
+use Carbon\Carbon; 
 
 class ProductController extends Controller
 {
@@ -156,7 +156,7 @@ class ProductController extends Controller
         $timePeriod = $request->input('time_period', 'this-month'); 
         $selectedMonth = $request->input('month', Carbon::now()->month);
         $selectedYear = $request->input('year', Carbon::now()->year);
-        $productType = $request->input('product_type', 'all'); // Get product_type, default to 'all'
+        $productType = $request->input('product_type', 'all'); 
 
         $baseQuery = Product::query()
             ->when($searchTerm, function ($query, $search) {
@@ -307,9 +307,9 @@ class ProductController extends Controller
             
             "products5" => $products5,
             "products6" => $product6,
-            "filter" => $request->only(['search', 'time_period', 'product_type', 'month', 'year']), // Send back all filters
-            "currentMonth" => (int)$selectedMonth, // Kirim bulan saat ini
-            "currentYear" => (int)$selectedYear,   // Kirim tahun saat ini
+            "filter" => $request->only(['search', 'time_period', 'product_type', 'month', 'year']),
+            "currentMonth" => (int)$selectedMonth,
+            "currentYear" => (int)$selectedYear,   
             
             // KARET
             "tm_slin" => $tm_slin,
@@ -481,9 +481,9 @@ class ProductController extends Controller
         return Inertia::render("Products/tsa", [
             "products" => $products,
             "products2" => $product2,
-            "filter" => $request->only(['search', 'time_period', 'month', 'year']), // Kirim kembali filter ke frontend
-            "currentMonth" => (int)$selectedMonth, // Kirim bulan saat ini
-            "currentYear" => (int)$selectedYear,   // Kirim tahun saat ini
+            "filter" => $request->only(['search', 'time_period', 'month', 'year']),
+            "currentMonth" => (int)$selectedMonth, 
+            "currentYear" => (int)$selectedYear,   
 
             "hsl_karet" => $karet + $karet2,
             "hsl_jual" => $jual + $jual2,
@@ -614,12 +614,6 @@ class ProductController extends Controller
         $saldoin = $statsQuery->clone()->where('status', 'agro')->where('product', 'pupuk')->sum('amount');
         $saldoout = $statsQuery->clone()->where('status', 'agro')->where('product', 'pupuk')->sum('amount_out');
 
-        // Statistik Karet
-        // $karet = $statsQuery->clone()->where('status', 'tsa')->where('product', 'karet')->sum('qty_kg');
-        // $karet2 = $statsQuery->clone()->where('status', 'tsa')->where('product', 'karet')->sum('qty_out');
-        // $saldoin = $statsQuery->clone()->where('status', 'tsa')->where('product', 'karet')->sum('amount');
-        // $saldoout = $statsQuery->clone()->where('status', 'gka')->where('product', 'karet')->sum('amount');
-
         // TEMADU totals based on filtered data
         $tm_slin = $statsQuery->clone()->where('nm_supplier', 'agro')->where('status', 'agro')->where('product', 'pupuk')->sum('amount');
         $tm_slou = $statsQuery->clone()->where('nm_supplier', 'agro')->where('status', 'gka')->where('product', 'pupuk')->sum('amount');
@@ -629,9 +623,9 @@ class ProductController extends Controller
         return Inertia::render("Products/agro", [
             "products" => $products,
             "products2" => $product2,
-            "filter" => $request->only(['search', 'time_period', 'month', 'year']), // Kirim kembali filter ke frontend
-            "currentMonth" => (int)$selectedMonth, // Kirim bulan saat ini
-            "currentYear" => (int)$selectedYear,   // Kirim tahun saat ini
+            "filter" => $request->only(['search', 'time_period', 'month', 'year']), 
+            "currentMonth" => (int)$selectedMonth, 
+            "currentYear" => (int)$selectedYear,  
 
             "hsl_karet" => $ppk_in - $ppk_out,
             "saldoin" => $saldoin,
@@ -646,7 +640,7 @@ class ProductController extends Controller
 
     public function allof(Request $request)
     {
-        $perPage = 10; // Jumlah item per halaman
+        $perPage = 10; 
         $searchTerm = $request->input('search');
         // Default timePeriod menjadi 'this-month'
         $timePeriod = $request->input('time_period', 'this-month'); 
@@ -680,7 +674,7 @@ class ProductController extends Controller
                         $query->whereMonth('date', Carbon::now()->month)
                               ->whereYear('date', Carbon::now()->year);
                         break;
-                    case 'last-month': // Added last-month filter
+                    case 'last-month':
                         $lastMonth = Carbon::now()->subMonth();
                         $query->whereMonth('date', $lastMonth->month)
                               ->whereYear('date', $lastMonth->year);
@@ -716,9 +710,9 @@ class ProductController extends Controller
 
         return Inertia::render("Products/allof", [
             "products" => $products,
-            "filter" => $request->only(['search', 'time_period', 'month', 'year']), // Send both search and time_period
-            "currentMonth" => (int)$selectedMonth, // Kirim bulan saat ini
-            "currentYear" => (int)$selectedYear,   // Kirim tahun saat ini
+            "filter" => $request->only(['search', 'time_period', 'month', 'year']), 
+            "currentMonth" => (int)$selectedMonth, 
+            "currentYear" => (int)$selectedYear,   
             
             "hsl_karet" => $karet_in - $karet_out,
             "saldoin" => $saldoin,
@@ -733,59 +727,6 @@ class ProductController extends Controller
             "saldooutppk" => $saldooutppk,
         ]);
     }
-
-    // public function exportExcel(Request $request)
-    // {
-    //     $query = Product::query();
-    //     $searchTerm = $request->input('search');
-    //     $timePeriod = $request->input('time_period', 'all-time'); // Get time_period, default to 'all-time'
-    //     $selectedMonth = $request->input('month');
-    //     $selectedYear = $request->input('year');
-
-    //     // Apply search filter if a search term is provided
-    //     if ($request->has('search') && !empty($request->input('search'))) {
-    //         $search = $request->input('search');
-    //         $query->where(function ($q) use ($search) {
-    //             $q->where('product', 'like', "%{$search}%")
-    //               ->orWhere('no_invoice', 'like', "%{$search}%")
-    //               ->orWhere('nm_supplier', 'like', "%{$search}%")
-    //               ->orWhere('j_brg', 'like', "%{$search}%")
-    //               ->orWhere('status', 'like', "%{$search}%")
-    //               ->orWhere('date', 'like', "%{$search}%");
-    //         });
-    //     }
-
-    //     // Apply time period filter to export query
-    //     if ($timePeriod === 'specific-month') {
-    //         $query->whereMonth('date', $selectedMonth)
-    //               ->whereYear('date', $selectedYear);
-    //     } elseif ($timePeriod !== 'all-time') {
-    //             switch ($timePeriod) {
-    //                 case 'today':
-    //                     $query->whereDate('date', Carbon::today());
-    //                     break;
-    //                 case 'this-week':
-    //                     $query->whereBetween('date', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]);
-    //                     break;
-    //                 case 'this-month':
-    //                     $query->whereMonth('date', Carbon::now()->month)
-    //                           ->whereYear('date', Carbon::now()->year);
-    //                     break;
-    //                 case 'last-month': // Added last-month filter
-    //                     $lastMonth = Carbon::now()->subMonth();
-    //                     $query->whereMonth('date', $lastMonth->month)
-    //                           ->whereYear('date', $lastMonth->year);
-    //                     break;
-    //                 case 'this-year':
-    //                     $query->whereYear('date', Carbon::now()->year);
-    //                     break;
-    //             }
-    //         }
-
-    //     $productsToExport = $query->orderBy('created_at', 'DESC')->get(); // Get all results without pagination
-
-    //     return Excel::download(new ProductsAllExport($productsToExport), 'all_products_data.xlsx');
-    // }
 
     public function destroy(Product $product){
         $product->delete();

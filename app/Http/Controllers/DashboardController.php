@@ -18,7 +18,7 @@ class DashboardController extends Controller
     {
         $perPage = 10;
         $searchTerm = $request->input('search');
-        $timePeriod = $request->input('time_period', 'this-month'); // Ubah default dari 'all-time' menjadi 'this-month'
+        $timePeriod = $request->input('time_period', 'this-month'); 
         $selectedMonth = $request->input('month');
         $selectedYear = $request->input('year');
         

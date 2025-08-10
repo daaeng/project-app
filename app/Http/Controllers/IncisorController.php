@@ -11,25 +11,25 @@ class IncisorController extends Controller
 {
     public function index(Request $request)
     {
-        $perPage = 10; // Jumlah item per halaman, bisa disesuaikan
-        $searchTerm = $request->input('search'); // Get the search term from the request
+        $perPage = 10; 
+        $searchTerm = $request->input('search'); 
 
         $incisors = Incisor::query()
             ->when($searchTerm, function ($query, $search) {
                 $query->where('name', 'like', "%{$search}%")
                       ->orWhere('lok_toreh', 'like', "%{$search}%")
                       ->orWhere('no_invoice', 'like', "%{$search}%")
-                      ->orWhere('ttl', 'like', "%{$search}%") // Search by Tanggal Lahir (ttl)
-                      ->orWhere('gender', 'like', "%{$search}%") // Search by Jenis Kelamin (gender)
-                      ->orWhere('agama', 'like', "%{$search}%"); // Search by Agama (agama)
+                      ->orWhere('ttl', 'like', "%{$search}%") 
+                      ->orWhere('gender', 'like', "%{$search}%") 
+                      ->orWhere('agama', 'like', "%{$search}%"); 
             })
             ->orderBy('created_at', 'ASC')
             ->paginate($perPage)
-            ->withQueryString(); // Keep search parameters in pagination links
+            ->withQueryString(); 
 
         return Inertia::render("Incisors/index", [
             "incisors" => $incisors,
-            "filter" => $request->only('search'), // Send back the current search filter
+            "filter" => $request->only('search'), 
         ]);
     }
 
@@ -118,7 +118,7 @@ class IncisorController extends Controller
             ->get();
 
         return Inertia::render('Incisors/show', [
-            'incisor' => $incisor->toArray(), // Konversi ke array untuk konsistensi
+            'incisor' => $incisor->toArray(), 
             'totalQtyKg' => $totalQtyKg,
             'dailyData' => $dailyData,
             'totalQtyKgThisMonth' => $totalQtyKgThisMonth,

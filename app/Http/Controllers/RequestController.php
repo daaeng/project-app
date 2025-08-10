@@ -12,21 +12,21 @@ use Illuminate\Support\Facades\Log;
 
 class RequestController extends Controller
 {
-   public function index(Request $request) // Added Request injection
+   public function index(Request $request) 
    {
-      $perPage = 10; // Jumlah item per halaman, bisa disesuaikan
-      $searchTerm = $request->input('search'); // Get the search term from the request
+      $perPage = 10; 
+      $searchTerm = $request->input('search');
 
       $requests = Requested::query()
          ->when($searchTerm, function ($query, $search) {
                $query->where('name', 'like', "%{$search}%")
                      ->orWhere('devisi', 'like', "%{$search}%")
-                     ->orWhere('j_pengajuan', 'like', "%{$search}%") // Added search by j_pengajuan
+                     ->orWhere('j_pengajuan', 'like', "%{$search}%") 
                      ->orWhere('mengetahui', 'like', "%{$search}%");
          })
          ->orderBy('created_at', 'DESC')
          ->paginate($perPage)
-         ->withQueryString(); // Keep search parameters in pagination links
+         ->withQueryString(); 
       
       $jml_rl = Requested::count();
       $totalPending = Requested::where('status', 'belum ACC')->count();
@@ -35,7 +35,7 @@ class RequestController extends Controller
 
       return Inertia::render("Requests/index", [
          "requests" => $requests,
-         "filter" => $request->only('search'), // Send back the current search filter
+         "filter" => $request->only('search'),
          "jml_rl" => $jml_rl,
          "totalPending" => $totalPending,
          "totalApproved" => $totalApproved,
@@ -84,10 +84,10 @@ class RequestController extends Controller
             $file = $request->file('file');
             // Pisahkan nama file dan ekstensi
             $originalName = $file->getClientOriginalName();
-            $extension = $file->getClientOriginalExtension(); // Ambil ekstensi asli (misalnya 'png', 'jpg')
-            $nameWithoutExtension = pathinfo($originalName, PATHINFO_FILENAME); // Ambil nama tanpa ekstensi
-            $sluggedName = Str::slug($nameWithoutExtension); // Slug hanya pada nama
-            $filename = 'request_'.time().'_'.$sluggedName.'.'.$extension; // Gabungkan kembali dengan ekstensi
+            $extension = $file->getClientOriginalExtension();
+            $nameWithoutExtension = pathinfo($originalName, PATHINFO_FILENAME); 
+            $sluggedName = Str::slug($nameWithoutExtension); 
+            $filename = 'request_'.time().'_'.$sluggedName.'.'.$extension; 
             $path = $file->storeAs('public/requesteds', $filename);
 
             // Simpan file menggunakan Storage disk
@@ -111,7 +111,6 @@ class RequestController extends Controller
                'dana' => $request->dana,
                'file' => 'storage/requesteds/'.$filename,
                'file_hash' => md5_file($file->getRealPath()),
-                  // 'status' => 'belum ACC'
             ]);
 
             return redirect()->route('requests.index')->with('success', 'Invoice Created Successfully');
@@ -147,7 +146,6 @@ class RequestController extends Controller
             'mengetahui' => 'required|string|max:250',
             'desk' => 'nullable|string',
             'dana' => 'required|numeric',
-            // 'file' => 'required|image|mimes:jpeg,png,jpg,gif,pdf,csv,xls|max:2048', 
             
          ]);
 
@@ -203,9 +201,7 @@ class RequestController extends Controller
          'desk' => 'nullable|string',
          'dana' => 'required|numeric',
          'status' => 'required|string|max:250',
-         'reason' => 'required|string|max:250',
-         // 'file' => 'required|image|mimes:jpeg,png,jpg,gif,pdf,csv,xls|max:2048', 
-         
+         'reason' => 'required|string|max:250',         
       ]);
 
       Log::info('Validasi input selesai');
@@ -237,69 +233,3 @@ class RequestController extends Controller
     }
 
 }
-
-
-
-
-      // -------------------------------------------
-      // $request->validate([
-      //    'name' => 'required|string|max:250',
-      //    'date' => 'required|date',
-      //    'devisi' => 'required|string',
-      //    'j_pengajuan' => 'required|string|max:250',
-      //    'mengetahui' => 'required|string|max:250',
-      //    'desk' => 'nullable|string',
-      //    'file' => 'required|string',
-      // ]);
-
-      
-      //    // Cek duplikasi berdasarkan hash file
-      //    $fileHash = md5_file($request->file('file')->getRealPath());
-      //    $existing = Requested::where('name', $request->name)
-      //                ->where('date', $request->date)
-      //                ->where('devisi', $request->devisi)
-      //                ->where('file_hash', $fileHash)
-      //                ->exists();
-
-      //    if ($existing) {
-      //          return back()->with('error', 'Data dengan file yang sama sudah ada!, Jika baru ganti nama file nya ya :)');
-      //    }
-
-      //   // Gunakan DB transaction
-      //    return DB::transaction(function () use ($request) {
-      //       // Proses file
-      //       $file = $request->file('file');
-      //       // Pisahkan nama file dan ekstensi
-      //       $originalName = $file->getClientOriginalName();
-      //       $extension = $file->getClientOriginalExtension(); // Ambil ekstensi asli (misalnya 'png', 'jpg')
-      //       $nameWithoutExtension = pathinfo($originalName, PATHINFO_FILENAME); // Ambil nama tanpa ekstensi
-      //       $sluggedName = Str::slug($nameWithoutExtension); // Slug hanya pada nama
-      //       $filename = 'requested_'.time().'_'.$sluggedName.'.'.$extension; // Gabungkan kembali dengan ekstensi
-      //       $path = $file->storeAs('public/requests', $filename);
-
-      //       // Simpan file menggunakan Storage disk
-      //       $disk = Storage::disk('public');
-      //       $path = $disk->putFileAs('requests', $file, $filename);
-
-      //       // Pastikan file tersimpan dengan benar
-      //       $fullPath = storage_path('app/public/requests/' . $filename);
-      //       if (!file_exists($fullPath)) {
-      //           throw new \Exception("File gagal disimpan di: " . $fullPath);
-      //       }
-            
-      //       // Simpan data SEKALI saja
-      //       $requested = Requested::create([
-      //           'name' => $request->name,
-      //           'date' => $request->date,
-      //           'devisi' => $request->devisi,
-      //           'mengetahui' => $request->mengetahui,
-      //           'desk' => $request->desk,
-      //           'file' => 'storage/requests/'.$filename,
-      //           'file_hash' => md5_file($file->getRealPath()),
-      //           // 'status' => 'belum ACC'
-      //       ]);
-
-      //       return redirect()->route('requests.index')->with('success', 'Invoice Created Successfully');
-      //    }); 
-      // Requested::create($request->all());
-      // return redirect()->route('requests.index')->with('message', 'Submission Creadted Successfully');        

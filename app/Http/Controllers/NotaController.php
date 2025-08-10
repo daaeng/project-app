@@ -12,10 +12,10 @@ use Illuminate\Support\Facades\Log;
 
 class NotaController extends Controller
 {
-    public function index(Request $request) // Added Request injection
+    public function index(Request $request) 
     {
-        $perPage = 10; // Jumlah item per halaman, bisa disesuaikan
-        $searchTerm = $request->input('search'); // Get the search term from the request
+        $perPage = 10;
+        $searchTerm = $request->input('search'); 
 
         $notas = Nota::query()
             ->when($searchTerm, function ($query, $search) {
@@ -25,7 +25,7 @@ class NotaController extends Controller
             })
             ->orderBy('created_at', 'DESC')
             ->paginate($perPage)
-            ->withQueryString(); // Keep search parameters in pagination links
+            ->withQueryString(); 
 
         // Calculate summary data for the cards
         $jml_nota = Nota::count();
@@ -36,7 +36,7 @@ class NotaController extends Controller
 
         return Inertia::render("Notas/index", [
             "notas" => $notas,
-            "filter" => $request->only('search'), // Send back the current search filter
+            "filter" => $request->only('search'), 
             "totalPendingNotas" => $totalPendingNotas,
             "totalApprovedNotas" => $totalApprovedNotas,
             "sumApprovedNotasAmount" => $sumApprovedNotasAmount,
@@ -80,10 +80,10 @@ class NotaController extends Controller
             $file = $request->file('file');
             // Pisahkan nama file dan ekstensi
             $originalName = $file->getClientOriginalName();
-            $extension = $file->getClientOriginalExtension(); // Ambil ekstensi asli (misalnya 'png', 'jpg')
-            $nameWithoutExtension = pathinfo($originalName, PATHINFO_FILENAME); // Ambil nama tanpa ekstensi
-            $sluggedName = Str::slug($nameWithoutExtension); // Slug hanya pada nama
-            $filename = 'nota_'.time().'_'.$sluggedName.'.'.$extension; // Gabungkan kembali dengan ekstensi
+            $extension = $file->getClientOriginalExtension(); 
+            $nameWithoutExtension = pathinfo($originalName, PATHINFO_FILENAME); 
+            $sluggedName = Str::slug($nameWithoutExtension); 
+            $filename = 'nota_'.time().'_'.$sluggedName.'.'.$extension; 
             $path = $file->storeAs('public/notas', $filename);
 
             // Simpan file menggunakan Storage disk
@@ -106,7 +106,6 @@ class NotaController extends Controller
                 'dana' => $request->dana,
                 'file' => 'storage/notas/'.$filename,
                 'file_hash' => md5_file($file->getRealPath()),
-                // 'status' => 'belum ACC'
             ]);
 
             return redirect()->route('notas.index')->with('success', 'Invoice Created Successfully');

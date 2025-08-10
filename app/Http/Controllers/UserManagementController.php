@@ -13,26 +13,25 @@ class UserManagementController extends Controller
 {
     public function index(Request $request)
     {
-        $perPage = 10; // Jumlah item per halaman, bisa disesuaikan
-        $searchTerm = $request->input('search'); // Get the search term from the request
+        $perPage = 10; 
+        $searchTerm = $request->input('search'); 
 
         $usermanagements = User::query()
-            ->with('roles') // Eager load the 'roles' relationship
+            ->with('roles') 
             ->when($searchTerm, function ($query, $search) {
                 $query->where('name', 'like', "%{$search}%")
                       ->orWhere('email', 'like', "%{$search}%")
-                      // Search through the roles relationship
                       ->orWhereHas('roles', function ($q) use ($search) {
                           $q->where('name', 'like', "%{$search}%");
                       });
             })
             ->orderBy('created_at', 'ASC')
-            ->paginate($perPage) // Use paginate instead of get() for pagination
-            ->withQueryString(); // Keep search parameters in pagination links
+            ->paginate($perPage) 
+            ->withQueryString(); 
 
         return Inertia::render("UserManagements/index", [
             "usermanagements" => $usermanagements,
-            "filter" => $request->only('search'), // Send back the current search filter
+            "filter" => $request->only('search'), 
         ]);
     }
 
@@ -66,12 +65,11 @@ class UserManagementController extends Controller
     }
     
     public function show(User $user){
-        $user->load('roles'); //
+        $user->load('roles'); 
         return inertia('UserManagements/show', [
             "user" => $user,
-            "userRoles" => $user->roles()->pluck('name') //
+            "userRoles" => $user->roles()->pluck('name') 
         ]);
-        // return inertia('UserManagements/show', compact('user'));
     }
 
     public function update(Request $request, User $user)
@@ -92,8 +90,7 @@ class UserManagementController extends Controller
 
         $user->syncRoles([$request->roles]);
 
-        return to_route('usermanagements.index')->with('message', 'User Updated Successfully');
-        // return redirect()->route('usermanagements.index')->with('message', 'User Updated Successfully');        
+        return to_route('usermanagements.index')->with('message', 'User Updated Successfully');   
 
     }
 
