@@ -23,8 +23,8 @@ class Incisor extends Model
         return $this->hasMany(Incised::class, 'no_invoice', 'no_invoice');
     }
 
-    public function kasbon()
+    public function kasbons()
     {
-        return $this->hasMany(Kasbon::class);
+        return $this->morphMany(Kasbon::class, 'kasbonable');
     }
 }

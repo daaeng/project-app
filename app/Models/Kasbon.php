@@ -11,8 +11,10 @@ class Kasbon extends Model
     use HasFactory;
 
     protected $fillable = [
-        'incisor_id',
-        'incised_id', 
+        'incisor_id', //untuk penoreh
+        'incised_id', //untuk penoreh
+        'kasbonable_id',
+        'kasbonable_type',
         'kasbon',
         'status',
         'reason',
@@ -28,5 +30,12 @@ class Kasbon extends Model
     {
         return $this->belongsTo(Incised::class);
     }
+
+    public function kasbonable(): MorphTo
+    {
+        return $this->morphTo();
+    }
+
+
 }
 

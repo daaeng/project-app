@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Kasbon;
 use App\Models\Incisor;
 use App\Models\Incised;
+use App\Models\Employee;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
@@ -293,5 +294,57 @@ class KasbonController extends Controller
             return redirect()->back()->with('error', 'Gagal menghapus kasbon: ' . $e->getMessage());
         }
     }
-}
 
+    public function createPegawai()
+    {
+        // $employees = Employee::select('id', 'name', 'position', 'salary')->get()->map(function ($employee) {
+        //     return [
+        //         'id' => $employee->id,
+        //         'label' => "{$employee->name} - {$employee->position}",
+        //         'salary' => $employee->salary,
+        //     ];
+        // });
+
+        // return Inertia::render("Kasbons/create_pegawai", [
+        //     'employees' => $employees,
+        // ]);
+
+        return Inertia::render("Kasbons/create_pegawai");
+        
+    }
+
+    public function storePegawai(Request $request)
+    {
+        $validated = $request->validate([
+            'employee_id' => 'required|exists:employees,id',
+            'kasbon' => 'required|numeric|min:1',
+            'reason' => 'nullable|string|max:255',
+        ]);
+
+        $employee = Employee::findOrFail($validated['employee_id']);
+
+        if ($validated['kasbon'] > $employee->salary) {
+            return redirect()->back()->with('error', 'Jumlah kasbon tidak boleh melebihi gaji pokok.')->withInput();
+        }
+
+        DB::beginTransaction();
+        try {
+            $kasbon = new Kasbon([
+                'kasbon' => $validated['kasbon'],
+                'status' => 'Pending', // Status default saat dibuat
+                'reason' => $validated['reason'],
+                'gaji' => $employee->salary, // 'gaji' di sini kita gunakan sebagai 'batas kasbon'
+            ]);
+
+            // Simpan kasbon menggunakan relasi polimorfik
+            $employee->kasbons()->save($kasbon);
+
+            DB::commit();
+            return redirect()->route('kasbons.index')->with('message', 'Kasbon pegawai berhasil dibuat.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error creating employee kasbon: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Gagal membuat kasbon. Silakan coba lagi.')->withInput();
+        }
+    }
+}
