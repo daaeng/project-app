@@ -6,6 +6,7 @@ use App\Models\Kasbon;
 use App\Models\Incisor;
 use App\Models\Incised;
 use Illuminate\Http\Request;
+use App\Models\Employee;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -117,6 +118,7 @@ class KasbonController extends Controller
 
         // Hitung gaji (50% dari total amount)
         $gaji = $totalAmount * 0.5;
+        // $gaji = 1000000;
 
         return response()->json([
             'incisor' => [
@@ -291,6 +293,62 @@ class KasbonController extends Controller
             DB::rollBack();
             Log::error('Error deleting kasbon: ' . $e->getMessage());
             return redirect()->back()->with('error', 'Gagal menghapus kasbon: ' . $e->getMessage());
+        }
+    }
+
+    public function createPegawai()
+    {
+        $employees = Employee::select('id', 'name', 'position', 'salary')->get()->map(function ($employee) {
+            return [
+                'id' => $employee->id,
+                'label' => "{$employee->name} - {$employee->position}",
+                'salary' => $employee->salary,
+            ];
+        });
+
+        return Inertia::render("Kasbons/create_pegawai", [
+            'employees' => $employees,
+            'statuses' => ['belum ACC', 'diterima', 'ditolak'],
+        ]);
+    }
+
+    /**
+     * Store a newly created employee kasbon in storage.
+     */
+    public function storePegawai(Request $request)
+    {
+        $validated = $request->validate([
+            'employee_id' => 'required|exists:employees,id',
+            'kasbon' => 'required|numeric|min:0',
+            'status' => 'required|string|in:belum ACC,diterima,ditolak',
+            'reason' => 'nullable|string|max:255',
+        ]);
+
+        $employee = Employee::findOrFail($validated['employee_id']);
+
+        // Maksimal kasbon adalah gaji pokok pegawai
+        if ($validated['kasbon'] > $employee->salary) {
+            return redirect()->back()->with('error', 'Jumlah kasbon tidak boleh melebihi gaji pokok.')->withInput();
+        }
+
+        DB::beginTransaction();
+        try {
+            // Simpan menggunakan relasi polimorfik
+            $kasbon = new Kasbon([
+                'kasbon' => $validated['kasbon'],
+                'status' => $validated['status'],
+                'reason' => $validated['reason'],
+                'gaji' => $employee->salary, // Gaji di sini adalah gaji pokok
+            ]);
+
+            $employee->kasbons()->save($kasbon);
+
+            DB::commit();
+            return redirect()->route('kasbons.index')->with('message', 'Kasbon pegawai berhasil dibuat.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error creating employee kasbon: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Gagal membuat kasbon. Silakan coba lagi.')->withInput();
         }
     }
 }

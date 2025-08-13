@@ -170,6 +170,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware("permission:kasbons.create|kasbons.edit|kasbons.delete|kasbons.view");
     Route::resource('kasbons', KasbonController::class)
         ->middleware("permission:kasbons.create|kasbons.edit|kasbons.delete|kasbons.view");
+    Route::get('/kasbons-pegawai/create', [KasbonController::class, 'createPegawai'])->name('kasbons.create_pegawai')
+        ->middleware("permission:kasbons.create|kasbons.edit|kasbons.delete|kasbons.view");
+    Route::post('/kasbons-pegawai', [KasbonController::class, 'storePegawai'])->name('kasbons.store_pegawai')
+        ->middleware("permission:kasbons.create|kasbons.edit|kasbons.delete|kasbons.view");
 
 });
 

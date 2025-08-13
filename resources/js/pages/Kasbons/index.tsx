@@ -1,34 +1,37 @@
 import Heading from '@/components/heading';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'; // Import CardHeader and CardTitle
+import { Card, CardContent, CardHeader} from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, useForm, router } from '@inertiajs/react';
-import { CirclePlus, Eye, Megaphone, Pencil, Search, Trash, Clock, CheckCircle2, Wallet } from 'lucide-react'; // Added Clock, CheckCircle2, Wallet icons
+import { CirclePlus, Search, Clock, CheckCircle2, Wallet, MoreHorizontal, Megaphone, XCircle } from 'lucide-react';
 import { can } from '@/lib/can';
 import { Input } from '@/components/ui/input';
 import { useState, useEffect } from 'react';
-import Tag from '@/components/ui/tag';
+import { cn } from '@/lib/utils';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Kasbon', // Changed title to Kasbon
-        href: '/kasbons', // Changed href to /kasbons
+        title: 'Kasbon',
+        href: route('kasbons.index'),
     },
 ];
 
+// --- INTERFACES ---
 interface Kasbon {
     id: number;
     incisor_id: number;
     incisor_name: string;
     incised_id: number;
-    incised_no_invoice: string; // Keep this for backend consistency, but we'll use incisor_no_invoice for display
-    incisor_no_invoice: string; // Add this for displaying the Incisor's no_invoice
+    incised_no_invoice: string;
+    incisor_no_invoice: string;
     gaji: number;
     kasbon: number;
-    status: 'Pending' | 'Approved' | 'Rejected' | 'belum ACC' | 'ditolak' | 'diterima'; // Update status types to match TagProps
+    status: 'Pending' | 'Approved' | 'Rejected' | 'belum ACC' | 'ditolak' | 'diterima';
     reason: string | null;
     created_at: string;
 }
@@ -42,24 +45,25 @@ interface PaginationLink {
 interface PageProps {
     flash: {
         message?: string;
-        error?: string; // Added error flash message
+        error?: string;
     };
     kasbons: {
         data: Kasbon[];
         links: PaginationLink[];
-        meta: {
+        meta?: {
             current_page: number;
             last_page: number;
             per_page: number;
             total: number;
         };
     };
-    filter?: { search?: string };
-    totalPendingKasbon: number; // New prop for total pending kasbon
-    totalApprovedKasbon: number; // New prop for total approved kasbon
-    sumApprovedKasbonAmount: number; // New prop for sum of approved kasbon amount
+    filter?: { search?: string, status?: string };
+    totalPendingKasbon: number;
+    totalApprovedKasbon: number;
+    sumApprovedKasbonAmount: number;
 }
 
+// --- HELPER FUNCTIONS ---
 const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('id-ID', {
         style: 'currency',
@@ -68,31 +72,94 @@ const formatCurrency = (value: number) => {
     }).format(value);
 };
 
-export default function KasbonIndex( { kasbons, flash, filter, totalPendingKasbon, totalApprovedKasbon, sumApprovedKasbonAmount } : PageProps) { 
+// --- STYLED COMPONENTS ---
+interface StatCardProps {
+    icon: React.ElementType;
+    title: string;
+    value: string | number;
+    description: string;
+    className?: string;
+}
 
-    // Adjusted useForm to match KasbonController destroy method, removing 'processing' as it's not used
-    const { delete: destroy } = useForm();
+const StatCard: React.FC<StatCardProps> = ({ icon: Icon, title, value, description, className }) => (
+    <Card className={cn("border-0 shadow-lg text-white overflow-hidden", className)}>
+        <CardContent className="p-5 relative">
+            <div className="absolute top-0 right-0 -mr-8 -mt-8 w-24 h-24 rounded-full bg-white/10"></div>
+            <div className="relative z-10">
+                <div className="bg-white/20 w-12 h-12 rounded-xl flex items-center justify-center mb-4">
+                    <Icon className="h-6 w-6" />
+                </div>
+                <p className="text-2xl font-bold">{value}</p>
+                <p className="text-sm font-medium">{title}</p>
+                <p className="text-xs opacity-80 mt-1">{description}</p>
+            </div>
+        </CardContent>
+    </Card>
+);
 
+
+interface TagProps {
+    status: 'belum ACC' | 'diterima' | 'ditolak';
+}
+
+const StatusTag: React.FC<TagProps> = ({ status }) => {
+    const statusMap = {
+        'diterima': { text: 'Disetujui', className: 'bg-green-100 text-green-800' },
+        'belum ACC': { text: 'Pending', className: 'bg-yellow-100 text-yellow-800' },
+        'ditolak': { text: 'Ditolak', className: 'bg-red-100 text-red-800' },
+    };
+    const currentStatus = statusMap[status] || { text: 'Unknown', className: 'bg-gray-100 text-gray-800' };
+    return (
+        <span className={cn('px-2.5 py-1 text-xs font-semibold rounded-full inline-flex items-center', currentStatus.className)}>
+            {currentStatus.text}
+        </span>
+    );
+};
+
+
+// --- MAIN COMPONENT ---
+export default function KasbonIndex({ kasbons, flash, filter, totalPendingKasbon, totalApprovedKasbon, sumApprovedKasbonAmount }: PageProps) {
+    const { delete: destroy, processing } = useForm();
     const [searchValue, setSearchValue] = useState(filter?.search || '');
+    const [activeTab, setActiveTab] = useState(filter?.status || 'all');
+
+    // --- PERUBAHAN: State untuk mengontrol visibilitas alert ---
+    const [showSuccessAlert, setShowSuccessAlert] = useState(false);
+    const [showErrorAlert, setShowErrorAlert] = useState(false);
 
     useEffect(() => {
         setSearchValue(filter?.search || '');
-    }, [filter?.search]);
+        setActiveTab(filter?.status || 'all');
+    }, [filter]);
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setSearchValue(e.target.value);
-    };
+    useEffect(() => {
+        if (flash.message) {
+            setShowSuccessAlert(true);
+            const timer = setTimeout(() => {
+                setShowSuccessAlert(false);
+            }, 1500); // Alert akan hilang setelah 5 detik
+            return () => clearTimeout(timer); // Membersihkan timer jika komponen unmount
+        }
+        if (flash.error) {
+            setShowErrorAlert(true);
+            const timer = setTimeout(() => {
+                setShowErrorAlert(false);
+            }, 5000); // Alert akan hilang setelah 5 detik
+            return () => clearTimeout(timer);
+        }
+    }, [flash]);
+
+    const handleTabChange = (tab: string) => {
+        setActiveTab(tab);
+        router.get(route('kasbons.index'), { search: searchValue, status: tab }, {
+            preserveState: true,
+            replace: true,
+            only: ['kasbons', 'filter', 'totalPendingKasbon', 'totalApprovedKasbon', 'sumApprovedKasbonAmount', 'flash'],
+        });
+    }
 
     const performSearch = () => {
-        router.get(
-            route('kasbons.index'),
-            { search: searchValue },
-            {
-                preserveState: true,
-                replace: true,
-                only: ['kasbons', 'filter', 'totalPendingKasbon', 'totalApprovedKasbon', 'sumApprovedKasbonAmount'], // Include new props in `only`
-            }
-        );
+        handleTabChange(activeTab);
     };
 
     const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -101,216 +168,196 @@ export default function KasbonIndex( { kasbons, flash, filter, totalPendingKasbo
         }
     };
 
-    const handleDelete = (id: number, incisorName: string, incisorNoInvoice: string) => { // Changed incisedNoInvoice to incisorNoInvoice
-        if (confirm(`Apakah Anda yakin ingin menghapus Kasbon ini untuk ${incisorName} (Kode Penoreh: ${incisorNoInvoice})?`)) { // Updated message
+
+    const handleDelete = (id: number, incisorName: string) => {
+        if (confirm(`Apakah Anda yakin ingin menghapus Kasbon untuk ${incisorName}?`)) {
             destroy(route('kasbons.destroy', id), {
-                preserveState: true,
                 preserveScroll: true,
-                onSuccess: () => {
-                    router.get(route('kasbons.index'), { search: searchValue }, { preserveState: true });
-                },
-                onError: (errors) => {
-                    console.error("Failed to delete kasbon:", errors);
-                    // You might want to display a more prominent error message to the user
-                    // For now, it will be handled by the flash.error in PageProps
-                }
             });
         }
     };
 
-    const renderPagination = (pagination: PageProps['kasbons']) => {
-        return (
-            <div className="flex justify-center items-center mt-6 space-x-1">
-                {pagination.links.map((link: PaginationLink, index: number) => (
-                    link.url === null ? (
-                        <div
-                            key={index}
-                            className="px-4 py-2 text-sm text-gray-400"
-                            dangerouslySetInnerHTML={{ __html: link.label }}
-                        />
-                    ) : (
-                        <Link
-                            key={`link-${index}`}
-                            href={link.url + (searchValue ? `&search=${searchValue}` : '')} // Append search param
-                            className={`px-4 py-2 text-sm rounded-md transition ${
-                                link.active
-                                    ? 'bg-blue-600 text-white shadow-md'
-                                    : 'bg-white text-gray-700 hover:bg-gray-100'
-                            }`}
-                            preserveState
-                            preserveScroll
-                        >
-                            <span dangerouslySetInnerHTML={{ __html: link.label }} />
-                        </Link>
-                    )
+    const renderPagination = (pagination: PageProps['kasbons']) => (
+        <div className="flex justify-between items-center px-6 py-3">
+             <span className="text-sm text-muted-foreground">
+                Total {pagination.meta?.total || 0} Data
+            </span>
+            <div className="flex items-center space-x-1">
+                {pagination.links.map((link, index) => (
+                    <Link
+                        key={index}
+                        href={link.url ? `${link.url}&status=${activeTab}` : '#'}
+                        className={cn(
+                            'px-3 py-1.5 text-sm rounded-md transition-colors',
+                            link.active ? 'bg-primary text-primary-foreground' : 'hover:bg-accent',
+                            !link.url && 'text-muted-foreground cursor-not-allowed'
+                        )}
+                        dangerouslySetInnerHTML={{ __html: link.label }}
+                        preserveState
+                        preserveScroll
+                    />
                 ))}
             </div>
-        );
-    };
+        </div>
+    );
+
+    const tabs = [
+        { key: 'all', label: 'Semua' },
+        { key: 'pending', label: 'Pending' },
+        { key: 'approved', label: 'Disetujui' },
+        { key: 'rejected', label: 'Ditolak' },
+    ];
 
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Data Kasbon" /> {/* Changed title */}
-
-            {can('kasbons.view') && (
-                <>
-                    <div className="h-full flex-col rounded-xl p-4 bg-gray-50 dark:bg-black">
-                        <Heading title='Data Kasbon' />
-
-                        {/* Summary Cards */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                            <Card className="shadow-sm transition-shadow hover:shadow-md">
-                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                    <CardTitle className="text-sm font-medium">Kasbon Pending</CardTitle>
-                                    <Clock className="h-4 w-4 text-gray-500" />
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="text-2xl font-bold">{totalPendingKasbon}</div>
-                                    <p className="text-xs text-gray-500">Total kasbon yang menunggu persetujuan</p>
-                                </CardContent>
-                            </Card>
-
-                            <Card className="shadow-sm transition-shadow hover:shadow-md">
-                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                    <CardTitle className="text-sm font-medium">Kasbon Disetujui</CardTitle>
-                                    <CheckCircle2 className="h-4 w-4 text-gray-500" />
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="text-2xl font-bold">{totalApprovedKasbon}</div>
-                                    <p className="text-xs text-gray-500">Total kasbon yang telah disetujui</p>
-                                </CardContent>
-                            </Card>
-
-                            <Card className="shadow-sm transition-shadow hover:shadow-md">
-                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                    <CardTitle className="text-sm font-medium">Total Kasbon Disetujui</CardTitle>
-                                    <Wallet className="h-4 w-4 text-gray-500" />
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="text-2xl font-bold">{formatCurrency(sumApprovedKasbonAmount)}</div>
-                                    <p className="text-xs text-gray-500">Jumlah total kasbon yang disetujui</p>
-                                </CardContent>
-                            </Card>
-                        </div>
-
-                        <div className='border h-auto p-3 rounded-lg  shadow-sm'>
-                            {/* Add New Button */}
-                            <div className='w-full mb-4 justify-end h-auto flex gap-2'>
-                                {can('kasbons.create') &&
-                                    <Link href={route('kasbons.create')}>
-                                        <Button className='bg-green-600 hover:bg-green-700 text-white rounded-md px-4 py-2 flex items-center gap-2'>
-                                            <CirclePlus className="w-4 h-4" />
-                                            Tambah Kasbon
-                                        </Button>
-                                    </Link>
-                                }
-                            </div>
-
-                            {/* Flash Messages */}
-                            {flash.message && (
-                                <Alert className="mb-4 bg-green-50 border-green-200 text-green-800">
-                                    <Megaphone className='h-4 w-4 text-green-600' />
-                                    <AlertTitle className='text-green-700 font-semibold'>Notifikasi</AlertTitle>
-                                    <AlertDescription>{flash.message}</AlertDescription>
-                                </Alert>
-                            )}
-                            {flash.error && ( // Display error flash message
-                                <Alert className="mb-4 bg-red-50 border-red-200 text-red-800">
-                                    <Megaphone className='h-4 w-4 text-red-600' />
-                                    <AlertTitle className='text-red-700 font-semibold'>Error</AlertTitle>
-                                    <AlertDescription>{flash.error}</AlertDescription>
-                                </Alert>
+        <div className="bg-gray-50 dark:bg-gray-900">
+            <AppLayout breadcrumbs={breadcrumbs}>
+                <Head title="Data Kasbon" />
+                <div className="space-y-6 p-4">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                        <Heading title="Dashboard Kasbon" description="Analitik dan manajemen data kasbon." />
+                         <div className="flex items-center gap-3">
+                            {can('kasbons.create') && (
+                                // kasbon penoreh
+                                <Link href={route('kasbons.create')}>
+                                    <Button className="bg-gradient-to-r from-purple-500 to-indigo-500 text-white shadow-lg hover:shadow-indigo-500/50 transition-shadow">
+                                        <CirclePlus className="w-4 h-4 mr-2" /> Buat Kasbon Penoreh
+                                    </Button>
+                                </Link>
                             )}
 
-                            {/* Search Input */}
-                            <div className='flex flex-col gap-4 py-4 sm:flex-row sm:items-center'>
-                                <div className='relative flex-1'>
-                                    <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
-                                    <Input
-                                        placeholder="Cari berdasarkan Penoreh, Kode Penoreh, Status..." // Updated placeholder
-                                        value={searchValue}
-                                        onChange={handleInputChange}
-                                        onKeyPress={handleKeyPress}
-                                        className="pl-10 pr-4 py-2 rounded-md border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
-                                    />
-                                </div>
-                                <Button onClick={performSearch} className="bg-blue-600 hover:bg-blue-700 text-white rounded-md px-4 py-2 flex items-center gap-2">
-                                    <Search className="h-4 w-4" /> Cari
-                                </Button>
-                            </div>
-
-                            {/* Data Table */}
-                            <CardContent className='border rounded-lg p-0 overflow-hidden'> {/* Removed padding from CardContent */}
-                                <div className="relative w-full overflow-auto"> {/* Added responsive scroll */}
-                                    {kasbons.data.length > 0 ? (
-                                        <Table className="min-w-full divide-y ">
-                                            <TableHeader className="">
-                                                <TableRow>
-                                                    <TableHead className="px-6 py-3 text-left text-xs font-medium  uppercase tracking-wider">ID</TableHead>
-                                                    <TableHead className="px-6 py-3 text-left text-xs font-medium  uppercase tracking-wider">Penoreh</TableHead>
-                                                    <TableHead className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Kode Penoreh</TableHead> {/* Changed to Kode Penoreh */}
-                                                    {/* Kolom Gaji dihapus sesuai permintaan */}
-                                                    {/* <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Gaji</TableHead> */}
-                                                    <TableHead className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Kasbon</TableHead>
-                                                    <TableHead className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Status</TableHead>
-                                                    <TableHead className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Alasan</TableHead>
-                                                    <TableHead className="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider">Aksi</TableHead>
-                                                </TableRow>
-                                            </TableHeader>
-
-                                            <TableBody className=" ">
-                                                {kasbons.data.map((kasbon) => (
-                                                    // Memastikan tidak ada whitespace antara TableRow dan TableCell pertama
-                                                    <TableRow key={kasbon.id}>
-                                                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm font-medium ">{kasbon.id}</TableCell>
-                                                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm ">{kasbon.incisor_name}</TableCell>
-                                                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm ">{kasbon.incisor_no_invoice}</TableCell>
-                                                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm ">{formatCurrency(kasbon.kasbon)}</TableCell>
-                                                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm">{/* Menggunakan komponen Tag */}
-                                                    <Tag status={kasbon.status === 'Pending' ? 'belum ACC' : (kasbon.status === 'Approved' ? 'diterima' : 'ditolak')} /></TableCell>
-                                                    <TableCell className="px-6 py-4 whitespace-nowrap text-sm ">{kasbon.reason || '-'}</TableCell>
-                                                    <TableCell className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium space-x-2">
-                                                        
-                                                    {can('kasbons.view') && 
-                                                        <Link href={route('kasbons.show', kasbon.id)}>
-                                                            <Button size="icon" variant="ghost" className="text-gray-500 hover:text-gray-700">
-                                                                <Eye className="h-4 w-4" />
-                                                            </Button>
-                                                        </Link>}
-                                                    
-                                                    {can('kasbons.edit') && 
-                                                        <Link href={route('kasbons.edit', kasbon.id)}>
-                                                            <Button size="icon" variant="ghost" className="text-blue-500 hover:text-blue-700">
-                                                                <Pencil className="h-4 w-4" />
-                                                            </Button>
-                                                        </Link>}
-                                                    
-                                                    {can('kasbons.delete') && 
-                                                        <Button onClick={() => handleDelete(kasbon.id, kasbon.incisor_name, kasbon.incisor_no_invoice)} 
-                                                            size="icon" variant="ghost" 
-                                                            className="text-red-500 hover:text-red-700">
-                                                                
-                                                            <Trash className="h-4 w-4" />
-                                                        </Button>
-                                                    }
-                                                    </TableCell>
-                                                    </TableRow>
-                                                ))}
-                                            </TableBody>
-                                        </Table>
-                                    ) : (
-                                        <div className="p-6 text-center text-gray-500 bg-white">
-                                            Tidak ada data kasbon ditemukan.
-                                        </div>
-                                    )}
-                                </div>
-                                {/* Pagination */}
-                                {kasbons.data.length > 0 && renderPagination(kasbons)}
-                            </CardContent>
+                                {/* //Kasbon pegawai */}
+                                <Link href={route('kasbons.create_pegawai')}>
+                                    <Button className="bg-gradient-to-r from-emerald-500 to-lime-500 text-white shadow-lg hover:shadow-indigo-500/50 transition-shadow">
+                                        <CirclePlus className="w-4 h-4 mr-2" /> Buat Kasbon Pegawai
+                                    </Button>
+                                </Link>
                         </div>
                     </div>
-                </>
-            )}
-        </AppLayout>
+
+                    {/* Stats Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <StatCard icon={Clock} title="Kasbon Pending" value={totalPendingKasbon} description="Menunggu persetujuan" className="bg-gradient-to-br from-yellow-400 to-orange-500"/>
+                        <StatCard icon={CheckCircle2} title="Kasbon Disetujui" value={totalApprovedKasbon} description="Telah diproses" className="bg-gradient-to-br from-green-400 to-cyan-500"/>
+                        <StatCard icon={Wallet} title="Total Dana" value={formatCurrency(sumApprovedKasbonAmount)} description="Jumlah dana disetujui" className="bg-gradient-to-br from-sky-400 to-blue-500"/>
+                    </div>
+
+                    <div className="px-6 py-4 space-y-2">
+                        {showSuccessAlert && flash.message && (
+                            <Alert variant="default" className="bg-green-50 border-green-200 text-green-800">
+                                <Megaphone className="h-4 w-4 text-green-600" />
+                                <AlertTitle className="font-semibold">Berhasil!</AlertTitle>
+                                <AlertDescription>{flash.message}</AlertDescription>
+                            </Alert>
+                        )}
+                        {showErrorAlert && flash.error && (
+                            <Alert variant="destructive">
+                                <XCircle className="h-4 w-4" />
+                                <AlertTitle className="font-semibold">Gagal!</AlertTitle>
+                                <AlertDescription>{flash.error}</AlertDescription>
+                            </Alert>
+                        )}
+                    </div>
+
+                    {/* Main Content Card */}
+                    <Card className="shadow-sm">
+                        <CardHeader>
+                            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                                {/* Tabs */}
+                                <div className="flex items-center border-b">
+                                    {tabs.map(tab => (
+                                        <button
+                                            key={tab.key}
+                                            onClick={() => handleTabChange(tab.key)}
+                                            className={cn(
+                                                "px-4 py-2 text-sm font-medium transition-colors -mb-px",
+                                                activeTab === tab.key
+                                                    ? "border-b-2 border-primary text-primary"
+                                                    : "text-muted-foreground hover:text-primary border-b-2 border-transparent"
+                                            )}
+                                        >
+                                            {tab.label}
+                                        </button>
+                                    ))}
+                                </div>
+                                {/* Search */}
+                                <div className='relative sm:w-1/3'>
+                                    <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+                                    <Input
+                                        placeholder="Cari berdasarkan nama atau kode..."
+                                        value={searchValue}
+                                        onChange={(e) => setSearchValue(e.target.value)}
+                                        onKeyPress={handleKeyPress}
+                                        className="pl-10 w-full"
+                                    />
+                                </div>
+                            </div>
+                        </CardHeader>
+                        <CardContent className="p-0">
+                            {/* --- Blok untuk menampilkan Alert --- */}
+                            
+                            <div className="overflow-x-auto">
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow className="bg-slate-100 dark:bg-gray-600 hover:bg-slate-100">
+                                            <TableHead className="pl-6">Penoreh</TableHead>
+                                            <TableHead>Tanggal Pengajuan</TableHead>
+                                            <TableHead>Status</TableHead>
+                                            <TableHead className="text-right">Jumlah</TableHead>
+                                            <TableHead className="text-center pr-6">Aksi</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {kasbons.data.length > 0 ? (
+                                            kasbons.data.map((kasbon) => (
+                                                <TableRow key={kasbon.id} className="hover:bg-slate-50/50 transition-colors">
+                                                    <TableCell className="pl-6 font-medium">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center font-bold text-slate-600">
+                                                                {kasbon.incisor_name.charAt(0)}
+                                                            </div>
+                                                            <div>
+                                                                <span>{kasbon.incisor_name}</span>
+                                                                <p className="text-xs text-muted-foreground">{kasbon.incisor_no_invoice}</p>
+                                                            </div>
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell className="text-muted-foreground">{new Date(kasbon.created_at).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })}</TableCell>
+                                                    <TableCell>
+                                                        <StatusTag status={kasbon.status === 'Pending' ? 'belum ACC' : (kasbon.status === 'Approved' ? 'diterima' : 'ditolak')} />
+                                                    </TableCell>
+                                                    <TableCell className="text-right font-semibold">{formatCurrency(kasbon.kasbon)}</TableCell>
+                                                    <TableCell className="text-center pr-6">
+                                                        <DropdownMenu>
+                                                            <DropdownMenuTrigger asChild>
+                                                                <Button variant="ghost" className="h-8 w-8 p-0">
+                                                                    <MoreHorizontal className="h-4 w-4" />
+                                                                </Button>
+                                                            </DropdownMenuTrigger>
+                                                            <DropdownMenuContent align="end">
+                                                                {can('kasbons.view') && <DropdownMenuItem onSelect={() => router.get(route('kasbons.show', kasbon.id))}>Lihat Detail</DropdownMenuItem>}
+                                                                {can('kasbons.edit') && <DropdownMenuItem onSelect={() => router.get(route('kasbons.edit', kasbon.id))}>Edit</DropdownMenuItem>}
+                                                                {can('kasbons.delete') && <DropdownMenuItem onSelect={() => handleDelete(kasbon.id, kasbon.incisor_name)} className="text-destructive focus:text-destructive focus:bg-destructive/10">Hapus</DropdownMenuItem>}
+                                                            </DropdownMenuContent>
+                                                        </DropdownMenu>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))
+                                        ) : (
+                                            <TableRow>
+                                                <TableCell colSpan={5} className="h-48 text-center text-muted-foreground">
+                                                    <p className="font-semibold">Data Tidak Ditemukan</p>
+                                                    <p className="text-sm">Tidak ada data kasbon yang cocok dengan filter Anda.</p>
+                                                </TableCell>
+                                            </TableRow>
+                                        )}
+                                    </TableBody>
+                                </Table>
+                            </div>
+                        </CardContent>
+                        {kasbons.data.length > 0 && kasbons.meta && renderPagination(kasbons)}
+                    </Card>
+                </div>
+            </AppLayout>
+        </div>
     );
 }

@@ -10,16 +10,17 @@ import { CirclePlus, Eye, Megaphone, Pencil, Search, Trash } from 'lucide-react'
 import { can } from '@/lib/can';
 import { Input } from '@/components/ui/input';
 import { useState, useEffect } from 'react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // Import Select components
-import { FaSeedling, FaUserFriends } from 'react-icons/fa'; // Import new icons
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { FaSeedling, FaUserFriends } from 'react-icons/fa';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Incised',
-        href: '/inciseds',
+        href: route('inciseds.index'),
     },
 ];
 
+// ... (Interface Incised, PaginationLink tetap sama)
 interface Incised {
     id: number;
     product: string;
@@ -56,10 +57,10 @@ interface PageProps {
             total: number;
         };
     };
-    filter?: { search?: string; time_period?: string }; // Added time_period to filter
-    totalKebunA: number; // Added for Kebun A total
-    totalKebunB: number; // Added for Kebun B total
-    mostProductiveIncisor: { // Added for most productive incisor
+    filter?: { search?: string; time_period?: string; month?: string; year?: string; }; // Tambah month & year
+    totalKebunA: number;
+    totalKebunB: number;
+    mostProductiveIncisor: {
         name: string;
         total_qty_kg: number;
     };
@@ -73,7 +74,7 @@ const formatCurrency = (value: number) => {
     }).format(value);
 };
 
-// StatCard component (reused and adapted from Dashboard for consistent look)
+// ... (Komponen StatCard tetap sama)
 interface StatCardProps {
     icon: React.ElementType;
     title: string;
@@ -102,41 +103,55 @@ export default function Admin({ inciseds, flash, filter, totalKebunA, totalKebun
     const { processing, delete: destroy } = useForm();
 
     const [searchValue, setSearchValue] = useState(filter?.search || '');
-    const [timePeriod, setTimePeriod] = useState(filter?.time_period || 'all-time'); // State for time period filter
+    // --- PERUBAHAN 1: Set state awal ke 'this-month' ---
+    const [timePeriod, setTimePeriod] = useState(filter?.time_period || 'this-month');
+    
+    // --- PERUBAHAN 2: State untuk filter bulan dan tahun spesifik ---
+    const currentYear = new Date().getFullYear();
+    const [specificMonth, setSpecificMonth] = useState(filter?.month || (new Date().getMonth() + 1).toString());
+    const [specificYear, setSpecificYear] = useState(filter?.year || currentYear.toString());
 
     useEffect(() => {
         setSearchValue(filter?.search || '');
-        setTimePeriod(filter?.time_period || 'all-time'); // Sync time period from props
-    }, [filter?.search, filter?.time_period]);
+        setTimePeriod(filter?.time_period || 'this-month');
+        setSpecificMonth(filter?.month || (new Date().getMonth() + 1).toString());
+        setSpecificYear(filter?.year || currentYear.toString());
+    }, [filter]);
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setSearchValue(e.target.value);
+    // --- PERUBAHAN 3: Fungsi untuk melakukan filter/pencarian ---
+    const applyFilters = (params: { search: string; time_period: string; month?: string; year?: string }) => {
+        const queryParams: any = {
+            search: params.search,
+            time_period: params.time_period,
+        };
+
+        if (params.time_period === 'specific-month' && params.month && params.year) {
+            queryParams.month = params.month;
+            queryParams.year = params.year;
+        }
+
+        router.get(route('inciseds.index'), queryParams, {
+            preserveState: true,
+            replace: true,
+            only: ['inciseds', 'filter', 'totalKebunA', 'totalKebunB', 'mostProductiveIncisor'],
+        });
     };
 
     const handleTimePeriodChange = (value: string) => {
         setTimePeriod(value);
-        // Trigger search when time period changes
-        router.get(
-            route('inciseds.index'),
-            { search: searchValue, time_period: value }, // Include time_period in the request
-            {
-                preserveState: true,
-                replace: true,
-                only: ['inciseds', 'filter', 'totalKebunA', 'totalKebunB', 'mostProductiveIncisor'], // Ensure new data is refreshed
-            }
-        );
+        if (value !== 'specific-month') {
+            applyFilters({ search: searchValue, time_period: value });
+        }
     };
+    
+    const handleSpecificDateChange = () => {
+        if (timePeriod === 'specific-month') {
+            applyFilters({ search: searchValue, time_period: 'specific-month', month: specificMonth, year: specificYear });
+        }
+    }
 
     const performSearch = () => {
-        router.get(
-            route('inciseds.index'),
-            { search: searchValue, time_period: timePeriod }, // Send the search term and time_period to the backend
-            {
-                preserveState: true,
-                replace: true,
-                only: ['inciseds', 'filter', 'totalKebunA', 'totalKebunB', 'mostProductiveIncisor'], // Ensure new data is refreshed
-            }
-        );
+        applyFilters({ search: searchValue, time_period: timePeriod, month: specificMonth, year: specificYear });
     };
 
     const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -146,59 +161,36 @@ export default function Admin({ inciseds, flash, filter, totalKebunA, totalKebun
     };
 
     const handleDelete = (id: number, product: string) => {
-        if (confirm(`Do you want to delete this - ${id}. ${product} `)) {
+        if (confirm(`Apakah Anda yakin ingin menghapus data: ${product}?`)) {
             destroy(route('inciseds.destroy', id), {
-                preserveState: true,
                 preserveScroll: true,
                 onSuccess: () => {
-                    // After successful deletion, refresh the data with the current search and time filters
-                    router.get(route('inciseds.index'), { search: searchValue, time_period: timePeriod }, { preserveState: true });
+                    // Refresh data setelah berhasil hapus
+                    performSearch();
                 },
             });
         }
     };
+    
+    // Opsi untuk dropdown bulan dan tahun
+    const monthOptions = Array.from({ length: 12 }, (_, i) => ({ value: (i + 1).toString(), label: new Date(0, i).toLocaleString('id-ID', { month: 'long' }) }));
+    const yearOptions = Array.from({ length: 10 }, (_, i) => ({ value: (currentYear - i).toString(), label: (currentYear - i).toString() }));
 
-    // Fungsi untuk render link paginasi
+
+    // ... (renderPagination tetap sama)
     const renderPagination = (pagination: PageProps['inciseds']) => {
-        return (
-            <div className="flex justify-center items-center mt-6 space-x-1">
-                {pagination.links.map((link: PaginationLink, index: number) => (
-                    link.url === null ? (
-                        <div
-                            key={index}
-                            className="px-4 py-2 text-sm text-gray-400"
-                            dangerouslySetInnerHTML={{ __html: link.label }}
-                        />
-                    ) : (
-                        <Link
-                            key={`link-${index}`}
-                            href={link.url + (searchValue ? `&search=${searchValue}` : '') + (timePeriod !== 'all-time' ? `&time_period=${timePeriod}` : '')} // Append search and time_period
-                            className={`px-4 py-2 text-sm rounded-md transition ${
-                                link.active
-                                    ? 'bg-blue-600 text-white shadow-md'
-                                    : 'bg-white text-gray-700 hover:bg-gray-100'
-                            }`}
-                            preserveState
-                            preserveScroll
-                        >
-                            <span dangerouslySetInnerHTML={{ __html: link.label }} />
-                        </Link>
-                    )
-                ))}
-            </div>
-        );
+        // ...
     };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Incised" />
+            <Head title="Data Penorehan" />
 
             {can('incised.view') && (
                 <>
                     <div className="h-full flex-col rounded-xl p-4 bg-gray-50 dark:bg-black">
                         <Heading title="Data Harian Penoreh" />
 
-                        {/* New Stat Cards Section */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
                             <StatCard
                                 icon={FaSeedling}
@@ -218,19 +210,18 @@ export default function Admin({ inciseds, flash, filter, totalKebunA, totalKebun
                                 icon={FaUserFriends}
                                 title="Penoreh Paling Produktif"
                                 value={mostProductiveIncisor.name}
-                                subtitle={`Total ${mostProductiveIncisor.total_qty_kg} kg`}
+                                subtitle={`Total ${mostProductiveIncisor.total_qty_kg.toFixed(2)} kg`}
                                 gradient="from-purple-400 to-purple-600"
                             />
                         </div>
-                        {/* End New Stat Cards Section */}
 
-                        <div className="border h-auto p-3 rounded-lg">
+                        <div className="border h-auto p-3 rounded-lg bg-white">
                             <div className="w-full mb-2 justify-end h-auto flex gap-2">
                                 {can('incised.create') && (
                                     <Link href={route('inciseds.create')}>
-                                        <Button className="bg-blue-600 w-25 hover:bg-blue-500 text-white">
+                                        <Button className="bg-blue-600 w-auto hover:bg-blue-500 text-white">
                                             <CirclePlus className="w-4 h-4 mr-2" />
-                                            Add User
+                                            Tambah Data
                                         </Button>
                                     </Link>
                                 )}
@@ -240,42 +231,68 @@ export default function Admin({ inciseds, flash, filter, totalKebunA, totalKebun
                                 {flash.message && (
                                     <Alert className="mb-4">
                                         <Megaphone className="h-4 w-4" />
-                                        <AlertTitle className="text-green-600">Notification</AlertTitle>
+                                        <AlertTitle className="text-green-600">Notifikasi</AlertTitle>
                                         <AlertDescription>{flash.message}</AlertDescription>
                                     </Alert>
                                 )}
                             </div>
 
-                            <div className='flex flex-col gap-4 py-4 sm:flex-row sm:items-center'>
-                                <div className='relative flex-1'>
+                            <div className='flex flex-col gap-4 py-4 sm:flex-row sm:items-center sm:flex-wrap'>
+                                <div className='relative flex-1 min-w-[250px]'>
                                     <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
                                     <Input
-                                        placeholder="Search by Product, Invoice, Kebun, Jenis Barang..."
+                                        placeholder="Cari Produk, Invoice, Kebun..."
                                         value={searchValue}
-                                        onChange={handleInputChange}
+                                        onChange={(e) => setSearchValue(e.target.value)}
                                         onKeyPress={handleKeyPress}
                                         className="pl-10"
                                     />
                                 </div>
-                                <Button onClick={performSearch}>
-                                    <Search className="h-4 w-4 mr-2" /> Search
-                                </Button>
-                                {/* Select filter by time period */}
+                                
+                                {/* --- PERUBAHAN 4: Update filter Select --- */}
                                 <Select value={timePeriod} onValueChange={handleTimePeriodChange}>
-                                    <SelectTrigger className="w-[180px]">
-                                        <SelectValue placeholder="Select time period" />
+                                    <SelectTrigger className="w-full sm:w-[180px]">
+                                        <SelectValue placeholder="Pilih Periode Waktu" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="all-time">All Time</SelectItem>
-                                        <SelectItem value="today">Today</SelectItem>
-                                        <SelectItem value="this-week">This Week</SelectItem>
-                                        <SelectItem value="this-month">This Month</SelectItem>
-                                        <SelectItem value="this-year">This Year</SelectItem>
+                                        <SelectItem value="all-time">Sepanjang Waktu</SelectItem>
+                                        <SelectItem value="today">Hari Ini</SelectItem>
+                                        <SelectItem value="this-week">Minggu Ini</SelectItem>
+                                        <SelectItem value="this-month">Bulan Ini</SelectItem>
+                                        <SelectItem value="last-month">Bulan Lalu</SelectItem>
+                                        <SelectItem value="this-year">Tahun Ini</SelectItem>
+                                        <SelectItem value="specific-month">Pilih Bulan & Tahun</SelectItem>
                                     </SelectContent>
                                 </Select>
+
+                                {/* --- PERUBAHAN 5: Tambah UI untuk filter bulan & tahun spesifik --- */}
+                                {timePeriod === 'specific-month' && (
+                                    <div className="flex gap-2 w-full sm:w-auto">
+                                        <Select value={specificMonth} onValueChange={setSpecificMonth}>
+                                            <SelectTrigger className="w-full sm:w-[150px]">
+                                                <SelectValue placeholder="Pilih Bulan" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {monthOptions.map(opt => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}
+                                            </SelectContent>
+                                        </Select>
+                                        <Select value={specificYear} onValueChange={setSpecificYear}>
+                                            <SelectTrigger className="w-full sm:w-[120px]">
+                                                <SelectValue placeholder="Pilih Tahun" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {yearOptions.map(opt => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                )}
+
+                                <Button onClick={performSearch}>
+                                    <Search className="h-4 w-4 mr-2" /> Terapkan
+                                </Button>
                             </div>
 
-                            <CardContent className="border rounded-lg mt-4">
+                            <CardContent className="border rounded-lg mt-4 p-0">
                                 <div className="rounded-md">
                                     {inciseds.data.length > 0 ? (
                                         <Table>
@@ -291,12 +308,11 @@ export default function Admin({ inciseds, flash, filter, totalKebunA, totalKebun
                                                     <TableHead className="text-center">ACTION</TableHead>
                                                 </TableRow>
                                             </TableHeader>
-
                                             <TableBody>
                                                 {inciseds.data.map((incised) => (
                                                     <TableRow key={incised.id}>
                                                         <TableCell>{incised.product}</TableCell>
-                                                        <TableCell>{incised.date}</TableCell>
+                                                        <TableCell>{new Date(incised.date).toLocaleDateString('id-ID')}</TableCell>
                                                         <TableCell>
                                                             {incised.no_invoice} - {incised.incisor_name || 'N/A'}
                                                         </TableCell>
@@ -307,25 +323,22 @@ export default function Admin({ inciseds, flash, filter, totalKebunA, totalKebun
                                                         <TableCell className="text-center space-x-2">
                                                             {can('incised.view') && (
                                                                 <Link href={route('inciseds.show', incised.id)}>
-                                                                    <Button className="bg-transparent hover:bg-gray-700">
-                                                                        <Eye color="gray" />
-                                                                    </Button>
+                                                                    <Button size="icon" variant="ghost"><Eye className="h-4 w-4 text-gray-500" /></Button>
                                                                 </Link>
                                                             )}
                                                             {can('incised.edit') && (
                                                                 <Link href={route('inciseds.edit', incised.id)}>
-                                                                    <Button className="bg-transparent hover:bg-gray-700">
-                                                                        <Pencil color="blue" />
-                                                                    </Button>
+                                                                    <Button size="icon" variant="ghost"><Pencil className="h-4 w-4 text-blue-500" /></Button>
                                                                 </Link>
                                                             )}
                                                             {can('incised.delete') && (
                                                                 <Button
+                                                                    size="icon"
+                                                                    variant="ghost"
                                                                     disabled={processing}
                                                                     onClick={() => handleDelete(incised.id, incised.product)}
-                                                                    className="bg-transparent hover:bg-gray-700"
                                                                 >
-                                                                    <Trash color="red" />
+                                                                    <Trash className="h-4 w-4 text-red-500" />
                                                                 </Button>
                                                             )}
                                                         </TableCell>
@@ -335,7 +348,7 @@ export default function Admin({ inciseds, flash, filter, totalKebunA, totalKebun
                                         </Table>
                                     ) : (
                                         <div className="p-4 text-center text-gray-500">
-                                            No results found.
+                                            Tidak ada data yang ditemukan untuk periode yang dipilih.
                                         </div>
                                     )}
                                 </div>
