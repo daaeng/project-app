@@ -77,7 +77,7 @@ export default function CreateKasbon({ incisors, monthsYears, flash, errors: pag
         month: '',
         year: '',
         kasbon: 0,
-        status: 'belum ACC', // Default status
+        status: 'Pending', // Default status
         reason: '',
     });
 

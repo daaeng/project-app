@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Kasbon;
 use App\Models\Incisor;
 use App\Models\Incised;
-use Illuminate\Http\Request;
+use App\Models\Kasbon;
 use App\Models\Employee;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -14,37 +14,73 @@ use Carbon\Carbon;
 
 class KasbonController extends Controller
 {
+    // Standarisasi status untuk konsistensi di seluruh aplikasi
     private $statuses = ['Pending', 'Approved', 'Rejected'];
 
+    /**
+     * Menampilkan daftar semua kasbon (Pegawai dan Penoreh).
+     */
     public function index(Request $request)
     {
-        $perPage = 10; 
-        $searchTerm = $request->input('search'); 
+        $perPage = 10;
+        $searchTerm = $request->input('search');
+        $statusFilter = $request->input('status');
 
         $kasbons = Kasbon::query()
-            ->with(['incisor', 'incised']) 
+            // Eager load relasi polimorfik 'kasbonable'
+            // Ini akan mengambil data Employee atau Incisor secara otomatis.
+            ->with(['kasbonable']) 
             ->when($searchTerm, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
-                    $q->orWhereHas('incisor', function ($incisorQuery) use ($search) {
-                        $incisorQuery->where('name', 'like', "%{$search}%");
+                    // Pencarian untuk nama Penoreh (Incisor)
+                    $q->orWhereHasMorph('kasbonable', [Incisor::class], function ($incisorQuery) use ($search) {
+                        $incisorQuery->where('name', 'like', "%{$search}%")
+                                     ->orWhere('no_invoice', 'like', "%{$search}%");
                     })
-                    ->orWhereHas('incised', function ($incisedQuery) use ($search) {
-                        $incisedQuery->where('no_invoice', 'like', "%{$search}%");
-                    })
-                    ->orWhere('status', 'like', "%{$search}%")
-                    ->orWhere('reason', 'like', "%{$search}%");
+                    // Pencarian untuk nama Pegawai (Employee)
+                    ->orWhereHasMorph('kasbonable', [Employee::class], function ($employeeQuery) use ($search) {
+                        $employeeQuery->where('name', 'like', "%{$search}%")
+                                      ->orWhere('employee_id', 'like', "%{$search}%");
+                    });
                 });
+            })
+            ->when($statusFilter && $statusFilter !== 'all', function ($query) use ($statusFilter) {
+                 // Map frontend status to backend status if necessary
+                $backendStatus = '';
+                if ($statusFilter === 'pending') $backendStatus = 'Pending';
+                if ($statusFilter === 'approved') $backendStatus = 'Approved';
+                if ($statusFilter === 'rejected') $backendStatus = 'Rejected';
+                
+                if ($backendStatus) {
+                    return $query->where('status', $backendStatus);
+                }
+                return $query;
             })
             ->orderBy('created_at', 'DESC')
             ->paginate($perPage)
             ->through(function ($kasbon) {
+                // Logika untuk menentukan nama dan ID pemilik kasbon
+                $ownerName = 'N/A';
+                $ownerIdentifier = 'N/A';
+                $kasbonType = 'Tidak Diketahui';
+
+                if ($kasbon->kasbonable) {
+                    if ($kasbon->kasbonable_type === Employee::class) {
+                        $ownerName = $kasbon->kasbonable->name;
+                        $ownerIdentifier = 'NIP: ' . $kasbon->kasbonable->employee_id;
+                        $kasbonType = 'Pegawai';
+                    } elseif ($kasbon->kasbonable_type === Incisor::class) {
+                        $ownerName = $kasbon->kasbonable->name;
+                        $ownerIdentifier = 'No. Invoice: ' . $kasbon->kasbonable->no_invoice;
+                        $kasbonType = 'Penoreh';
+                    }
+                }
+
                 return [
                     'id' => $kasbon->id,
-                    'incisor_id' => $kasbon->incisor_id,
-                    'incisor_name' => $kasbon->incisor ? $kasbon->incisor->name : 'N/A',
-                    'incised_id' => $kasbon->incised_id,
-                    'incised_no_invoice' => $kasbon->incised ? $kasbon->incised->no_invoice : 'N/A',
-                    'incisor_no_invoice' => $kasbon->incisor ? $kasbon->incisor->no_invoice : 'N/A',
+                    'owner_name' => $ownerName,
+                    'owner_identifier' => $ownerIdentifier,
+                    'kasbon_type' => $kasbonType,
                     'gaji' => $kasbon->gaji,
                     'kasbon' => $kasbon->kasbon,
                     'status' => $kasbon->status,
@@ -54,48 +90,202 @@ class KasbonController extends Controller
             })
             ->withQueryString();
 
-        // Calculate summary data for the cards
+        // Kalkulasi summary data (tidak perlu diubah)
         $totalPendingKasbon = Kasbon::where('status', 'Pending')->count();
         $totalApprovedKasbon = Kasbon::where('status', 'Approved')->count();
         $sumApprovedKasbonAmount = Kasbon::where('status', 'Approved')->sum('kasbon');
 
-
         return Inertia::render("Kasbons/index", [
             'kasbons' => $kasbons,
-            'filter' => $request->only('search'),
-            'statuses' => $this->statuses, // Kirim daftar status ke frontend
+            'filter' => $request->only('search', 'status'),
+            'statuses' => $this->statuses,
             'totalPendingKasbon' => $totalPendingKasbon,
             'totalApprovedKasbon' => $totalApprovedKasbon,
             'sumApprovedKasbonAmount' => $sumApprovedKasbonAmount,
         ]);
     }
 
+    /**
+     * Menampilkan form untuk membuat kasbon penoreh baru.
+     */
     public function create()
     {
-        // Mengambil semua penoreh (Incisor) untuk dropdown
-        $incisors = Incisor::select('id', 'no_invoice', 'name')->get()->map(function ($incisor) {
-            return ['id' => $incisor->id, 'label' => "{$incisor->no_invoice} - {$incisor->name}"];
-        });
-
-        // Mengambil kombinasi bulan dan tahun unik dari tabel Incised
+        $incisors = Incisor::select('id', 'no_invoice', 'name')->get()->map(fn ($i) => ['id' => $i->id, 'label' => "{$i->no_invoice} - {$i->name}"]);
         $monthsYears = Incised::select(DB::raw('YEAR(date) as year, MONTH(date) as month'))
-            ->groupBy('year', 'month')
-            ->orderBy('year', 'desc')
-            ->orderBy('month', 'desc')
-            ->get()
+            ->groupBy('year', 'month')->orderBy('year', 'desc')->orderBy('month', 'desc')->get()
             ->map(function ($item) {
-                // Mengonversi angka bulan menjadi nama bulan yang lebih mudah dibaca
                 $monthName = Carbon::createFromDate($item->year, $item->month, 1)->translatedFormat('F');
                 return ['year' => $item->year, 'month' => $item->month, 'label' => "{$monthName} {$item->year}"];
             });
 
-        return Inertia::render("Kasbons/create", [
+        return Inertia::render('Kasbons/create', [
             'incisors' => $incisors,
             'monthsYears' => $monthsYears,
-            'statuses' => $this->statuses,
+            'statuses' => $this->statuses
         ]);
     }
 
+    /**
+     * Menyimpan kasbon penoreh baru.
+     */
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'incisor_id' => 'required|exists:incisors,id',
+            'month' => 'required|integer|between:1,12',
+            'year' => 'required|integer',
+            'kasbon' => 'required|numeric|min:0',
+            'status' => 'required|string|in:' . implode(',', $this->statuses),
+            'reason' => 'nullable|string',
+        ]);
+
+        $incisor = Incisor::findOrFail($validated['incisor_id']);
+        $totalAmount = Incised::where('no_invoice', $incisor->no_invoice)
+            ->whereMonth('date', $validated['month'])
+            ->whereYear('date', $validated['year'])
+            ->sum('amount');
+        $gaji = $totalAmount * 0.5;
+
+        if ($validated['kasbon'] > $gaji && $gaji > 0) {
+            return redirect()->back()->with('error', 'Jumlah kasbon tidak boleh melebihi gaji.')->withInput();
+        }
+
+        $kasbon = new Kasbon(array_merge($validated, ['gaji' => $gaji]));
+        $incisor->kasbons()->save($kasbon);
+
+        return redirect()->route('kasbons.index')->with('message', 'Kasbon Penoreh berhasil dibuat.');
+    }
+
+    /**
+     * Menampilkan detail satu kasbon.
+     */
+    public function show(Kasbon $kasbon)
+    {
+        $kasbon->load('kasbonable');
+        return Inertia::render('Kasbons/show', compact('kasbon'));
+    }
+
+    /**
+     * Menampilkan form untuk mengedit kasbon.
+     */
+    public function edit(Kasbon $kasbon)
+    {
+        $kasbon->load('kasbonable');
+        $isEmployee = $kasbon->kasbonable_type === Employee::class;
+
+        if ($isEmployee) {
+            return Inertia::render('Kasbons/edit_pegawai', [
+                'kasbon' => $kasbon,
+                'statuses' => $this->statuses
+            ]);
+        } else {
+            $incisors = Incisor::select('id', 'no_invoice', 'name')->get()->map(fn ($i) => ['id' => $i->id, 'label' => "{$i->no_invoice} - {$i->name}"]);
+            return Inertia::render('Kasbons/edit', [
+                'kasbon' => $kasbon,
+                'incisors' => $incisors,
+                'statuses' => $this->statuses
+            ]);
+        }
+    }
+
+    /**
+     * Mengupdate data kasbon.
+     */
+    public function update(Request $request, Kasbon $kasbon)
+    {
+        $validated = $request->validate([
+            'kasbon' => 'required|numeric|min:0',
+            'status' => 'required|string|in:' . implode(',', $this->statuses),
+            'reason' => 'nullable|string|max:255',
+        ]);
+        
+        // Validasi tambahan untuk memastikan kasbon tidak melebihi gaji
+        if ($kasbon->kasbonable_type === Employee::class) {
+            if ($validated['kasbon'] > $kasbon->kasbonable->salary) {
+                return redirect()->back()->with('error', 'Jumlah kasbon tidak boleh melebihi gaji pokok.')->withInput();
+            }
+        } elseif ($kasbon->kasbonable_type === Incisor::class) {
+            if ($validated['kasbon'] > $kasbon->gaji) {
+                 return redirect()->back()->with('error', 'Jumlah kasbon tidak boleh melebihi gaji penoreh.')->withInput();
+            }
+        }
+
+        $kasbon->update($validated);
+        return redirect()->route('kasbons.index')->with('message', 'Kasbon berhasil diperbarui.');
+    }
+
+    /**
+     * Menghapus data kasbon.
+     */
+    public function destroy(Kasbon $kasbon)
+    {
+        $kasbon->delete();
+        return redirect()->route('kasbons.index')->with('message', 'Kasbon berhasil dihapus.');
+    }
+
+    /**
+     * Menampilkan form untuk membuat kasbon pegawai baru.
+     */
+    public function createPegawai()
+    {
+        $employees = Employee::select('id', 'name', 'salary', 'employee_id')->get()->map(fn ($e) => ['id' => $e->id, 'label' => "{$e->employee_id} - {$e->name}", 'salary' => $e->salary]);
+        return Inertia::render("Kasbons/create_pegawai", [
+            'employees' => $employees,
+            'statuses' => $this->statuses
+        ]);
+    }
+
+    /**
+     * Menyimpan kasbon pegawai baru.
+     */
+    public function storePegawai(Request $request)
+    {
+        // 1. Validasi request, termasuk 'employee_id'.
+        $validated = $request->validate([
+            'employee_id' => 'required|exists:employees,id',
+            'kasbon' => 'required|numeric|min:0',
+            'status' => 'required|string|in:' . implode(',', $this->statuses),
+            'reason' => 'nullable|string',
+        ]);
+
+        // 2. Temukan pegawai berdasarkan ID yang divalidasi.
+        $employee = Employee::findOrFail($validated['employee_id']);
+
+        // 3. Validasi logika bisnis (kasbon tidak boleh > gaji).
+        if ($validated['kasbon'] > $employee->salary) {
+            return redirect()->back()->with('error', 'Jumlah kasbon tidak boleh melebihi gaji pokok.')->withInput();
+        }
+
+        // 4. Siapkan data untuk model Kasbon, TANPA menyertakan 'employee_id'.
+        $kasbonData = [
+            'kasbon' => $validated['kasbon'],
+            'status' => $validated['status'],
+            'reason' => $validated['reason'],
+            'gaji'   => $employee->salary, // 'gaji' di sini adalah batas pinjaman.
+        ];
+
+        DB::beginTransaction();
+        try {
+            // 5. Buat instance Kasbon dengan data yang sudah bersih.
+            $kasbon = new Kasbon($kasbonData);
+            
+            // 6. Simpan menggunakan relasi polimorfik.
+            //    Laravel akan secara otomatis mengisi 'kasbonable_id' dan 'kasbonable_type'.
+            $employee->kasbons()->save($kasbon);
+
+            DB::commit();
+            return redirect()->route('kasbons.index')->with('message', 'Kasbon pegawai berhasil dibuat.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            // Mencatat error untuk mempermudah debugging
+            Log::error('Gagal menyimpan kasbon pegawai: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Terjadi kesalahan saat menyimpan data. Silakan coba lagi.')->withInput();
+        }
+    }
+
+    /**
+     * Mengambil data penoreh via AJAX.
+     */
     public function getIncisorData(Request $request)
     {
         $request->validate([
@@ -110,246 +300,18 @@ class KasbonController extends Controller
             return response()->json(['message' => 'Penoreh tidak ditemukan.'], 404);
         }
 
-        // Hitung total torehan untuk bulan dan tahun yang dipilih
         $totalAmount = Incised::where('no_invoice', $incisor->no_invoice)
             ->whereMonth('date', $request->month)
             ->whereYear('date', $request->year)
             ->sum('amount');
 
-        // Hitung gaji (50% dari total amount)
         $gaji = $totalAmount * 0.5;
-        // $gaji = 1000000;
 
         return response()->json([
-            'incisor' => [
-                'name' => $incisor->name,
-                'address' => $incisor->address,
-                'no_invoice' => $incisor->no_invoice, 
-            ],
+            'incisor' => $incisor,
             'total_toreh_bulan_ini' => $totalAmount,
             'gaji_bulan_ini' => $gaji,
-            'max_kasbon_amount' => $gaji, 
+            'max_kasbon_amount' => $gaji,
         ]);
-    }
-
-    public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'incisor_id' => 'required|exists:incisors,id',
-            'month' => 'required|integer|between:1,12',
-            'year' => 'required|integer',
-            'kasbon' => 'required|numeric|min:0',
-            'status' => 'nullable|string|max:255|in:' . implode(',', $this->statuses),
-            'reason' => 'nullable|string|max:255',
-        ]);
-
-        $incisor = Incisor::findOrFail($validated['incisor_id']);
-        // Mengambil total amount berdasarkan no_invoice dari incisor yang dipilih
-        $totalAmount = Incised::where('no_invoice', $incisor->no_invoice)
-            ->whereMonth('date', $validated['month'])
-            ->whereYear('date', $validated['year'])
-            ->sum('amount');
-
-        if ($totalAmount <= 0) {
-            return redirect()->back()->withErrors(['month' => 'Tidak ada data amount untuk periode ini.'])->withInput();
-        }
-
-        $gaji = $totalAmount * 0.5;
-
-        DB::beginTransaction();
-        try {
-            $kasbon = Kasbon::create(array_merge($validated, ['gaji' => $gaji]));
-            DB::commit();
-            return redirect()->route('kasbons.index')->with('message', 'Kasbon berhasil dibuat.');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error('Error creating kasbon: ' . $e->getMessage());
-            return redirect()->back()->with('error', 'Gagal membuat kasbon: ' . $e->getMessage())->withInput();
-        }
-    }
-
-    public function show(Kasbon $kasbon)
-    {
-        $kasbon->load(['incisor', 'incised']);
-
-        // Pastikan incisor ada sebelum mengakses propertinya, untuk mencegah error
-        $incisorNoInvoice = $kasbon->incisor ? $kasbon->incisor->no_invoice : 'N/A';
-
-        // 'Total Toreh Bulan Ini' haruslah gaji utama sebelum dipotong 50%.
-        // Karena 'gaji' di tabel kasbons adalah 50% dari total toreh, maka
-        // total toreh bulan ini adalah 'gaji' * 2.
-        $totalTorehBulanIni = $kasbon->gaji * 2;
-
-        return Inertia::render("Kasbons/show", [
-            'kasbon' => [
-                'id' => $kasbon->id,
-                'incisor_name' => $kasbon->incisor ? $kasbon->incisor->name : 'N/A',
-                'incisor_no_invoice' => $incisorNoInvoice,
-                'gaji' => $kasbon->gaji, 
-                'kasbon' => $kasbon->kasbon, 
-                'status' => $kasbon->status,
-                'reason' => $kasbon->reason,
-                'total_toreh_bulan_ini_raw' => $totalTorehBulanIni, 
-                'created_at' => $kasbon->created_at->format('Y-m-d H:i:s'),
-                'updated_at' => $kasbon->updated_at->format('Y-m-d H:i:s'),
-            ],
-        ]);
-    }
-
-    public function edit(Kasbon $kasbon)
-    {
-        $kasbon->load(['incisor', 'incised']);
-
-        // Safely get month and year from incised date, defaulting to empty strings
-        $month = '';
-        $year = '';
-        if ($kasbon->incised && $kasbon->incised->date) {
-            $carbonDate = Carbon::parse($kasbon->incised->date);
-            $month = (string)$carbonDate->format('n'); 
-            $year = (string)$carbonDate->format('Y'); 
-        }
-        
-        $incisors = Incisor::select('id', 'no_invoice', 'name')->get();
-
-        // Mengambil kombinasi bulan dan tahun unik dari tabel Incised
-        $monthsYears = Incised::select(DB::raw('YEAR(date) as year, MONTH(date) as month'))
-            ->groupBy('year', 'month')
-            ->orderBy('year', 'desc')
-            ->orderBy('month', 'desc')
-            ->get()
-            ->map(function ($item) {
-                $monthName = Carbon::createFromDate($item->year, $item->month, 1)->translatedFormat('F');
-                return ['year' => $item->year, 'month' => $item->month, 'label' => "{$monthName} {$item->year}"];
-            });
-
-        return Inertia::render("Kasbons/edit", [
-            'kasbon' => [
-                'id' => $kasbon->id,
-                'incisor_id' => $kasbon->incisor_id,
-                'incised_id' => $kasbon->incised_id,
-                'kasbon' => $kasbon->kasbon,
-                'status' => $kasbon->status,
-                'reason' => $kasbon->reason,
-                'gaji' => $kasbon->gaji, 
-                'month' => $month, 
-                'year' => $year,  
-            ],
-            'incisors' => $incisors->map(function ($incisor) {
-                return [
-                    'id' => $incisor->id,
-                    'label' => "{$incisor->no_invoice} - {$incisor->name}",
-                ];
-            }),
-            'monthsYears' => $monthsYears, 
-            'statuses' => $this->statuses, 
-        ]);
-    }
-
-    public function update(Request $request, Kasbon $kasbon)
-    {
-        $validated = $request->validate([
-            'incisor_id' => 'required|exists:incisors,id',
-            'month' => 'required|integer|between:1,12', 
-            'year' => 'required|integer',
-            'kasbon' => 'required|numeric|min:0',
-            'status' => 'nullable|string|max:255|in:' . implode(',', $this->statuses),
-            'reason' => 'nullable|string|max:255',
-        ]);
-
-        $incisor = Incisor::findOrFail($validated['incisor_id']);
-
-        // Hitung ulang totalAmount dan gaji berdasarkan bulan/tahun baru
-        $totalAmount = Incised::where('no_invoice', $incisor->no_invoice)
-            ->whereMonth('date', $validated['month'])
-            ->whereYear('date', $validated['year'])
-            ->sum('amount');
-
-        if ($totalAmount <= 0) {
-            return redirect()->back()->withErrors(['month' => 'Tidak ada data amount untuk penoreh ini pada bulan/tahun tersebut.'])->withInput();
-        }
-
-        $gaji = $totalAmount * 0.5;
-
-        DB::beginTransaction();
-        try {
-            $kasbon->update(array_merge($validated, ['gaji' => $gaji]));
-            DB::commit();
-            return redirect()->route('kasbons.index')->with('message', 'Kasbon berhasil diperbarui.');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error('Error updating kasbon: ' . $e->getMessage());
-            return redirect()->back()->with('error', 'Gagal memperbarui kasbon: ' . $e->getMessage())->withInput();
-        }
-    }
-
-    public function destroy(Kasbon $kasbon)
-    {
-        DB::beginTransaction();
-        try {
-            $kasbon->delete();
-            DB::commit();
-            return redirect()->route('kasbons.index')->with('message', 'Kasbon berhasil dihapus.');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error('Error deleting kasbon: ' . $e->getMessage());
-            return redirect()->back()->with('error', 'Gagal menghapus kasbon: ' . $e->getMessage());
-        }
-    }
-
-    public function createPegawai()
-    {
-        $employees = Employee::select('id', 'name', 'position', 'salary')->get()->map(function ($employee) {
-            return [
-                'id' => $employee->id,
-                'label' => "{$employee->name} - {$employee->position}",
-                'salary' => $employee->salary,
-            ];
-        });
-
-        return Inertia::render("Kasbons/create_pegawai", [
-            'employees' => $employees,
-            'statuses' => ['belum ACC', 'diterima', 'ditolak'],
-        ]);
-    }
-
-    /**
-     * Store a newly created employee kasbon in storage.
-     */
-    public function storePegawai(Request $request)
-    {
-        $validated = $request->validate([
-            'employee_id' => 'required|exists:employees,id',
-            'kasbon' => 'required|numeric|min:0',
-            'status' => 'required|string|in:belum ACC,diterima,ditolak',
-            'reason' => 'nullable|string|max:255',
-        ]);
-
-        $employee = Employee::findOrFail($validated['employee_id']);
-
-        // Maksimal kasbon adalah gaji pokok pegawai
-        if ($validated['kasbon'] > $employee->salary) {
-            return redirect()->back()->with('error', 'Jumlah kasbon tidak boleh melebihi gaji pokok.')->withInput();
-        }
-
-        DB::beginTransaction();
-        try {
-            // Simpan menggunakan relasi polimorfik
-            $kasbon = new Kasbon([
-                'kasbon' => $validated['kasbon'],
-                'status' => $validated['status'],
-                'reason' => $validated['reason'],
-                'gaji' => $employee->salary, // Gaji di sini adalah gaji pokok
-            ]);
-
-            $employee->kasbons()->save($kasbon);
-
-            DB::commit();
-            return redirect()->route('kasbons.index')->with('message', 'Kasbon pegawai berhasil dibuat.');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error('Error creating employee kasbon: ' . $e->getMessage());
-            return redirect()->back()->with('error', 'Gagal membuat kasbon. Silakan coba lagi.')->withInput();
-        }
     }
 }
-

@@ -59,6 +59,16 @@ class PermissionSeeder extends Seeder
             'kasbons.edit',
             'kasbons.delete',
             
+            'pegawai.view',
+            'pegawai.create',
+            'pegawai.edit',
+            'pegawai.delete',
+            
+            'payroll.view',
+            'payroll.create',
+            'payroll.edit',
+            'payroll.delete',
+            
         ];
 
         foreach ($permissions as $key => $value) {

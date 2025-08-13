@@ -10,6 +10,8 @@ use App\Http\Controllers\UserManagementController;
 use App\Http\Controllers\IncisorController;
 use App\Http\Controllers\IncisedController;
 use App\Http\Controllers\KasbonController;
+use App\Http\Controllers\PegawaiController;
+use App\Http\Controllers\PayrollController;
 
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -69,6 +71,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     route::delete('/usermanagements/{user}', [UserManagementController::class, 'destroy'])->name('usermanagements.destroy')
         ->middleware("permission:usermanagements.create|usermanagements.edit|usermanagements.delete|usermanagements.view");
     
+    // ~~~~~~~~~~~~~ PEGAWAI ~~~~~~~~~~~~~
+    Route::resource('pegawai', PegawaiController::class)
+        ->middleware("permission:pegawai.create|pegawai.edit|pegawai.delete|pegawai.view");
+
+    // ~~~~~~~~~~~~~ PAYROLL (PENGGAJIAN) ~~~~~~~~~~~~~
+    Route::resource('payroll', PayrollController::class)
+        ->middleware("permission:payroll.create|payroll.edit|payroll.delete|payroll.view");
+
     // ~~~~~~~~~~~~~ REQUEST ~~~~~~~~~~~~~
     route::get('/requests', [RequestController::class, 'index'])->name('requests.index')
         ->middleware("permission:requests.create|requests.edit|requests.delete|requests.view");

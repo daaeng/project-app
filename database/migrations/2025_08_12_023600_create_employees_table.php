@@ -14,9 +14,8 @@ return new class extends Migration
         Schema::create('employees', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('position'); // Jabatan
-            $table->decimal('salary', 15, 2); // Gaji Pokok
-            $table->string('employee_id')->unique()->nullable(); // NIP atau ID unik
+            $table->string('position');
+            $table->decimal('salary', 15, 2)->default(0);
             $table->timestamps();
         });
     }

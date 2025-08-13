@@ -1,6 +1,6 @@
 import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -8,8 +8,8 @@ import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, useForm } from '@inertiajs/react';
-import { Undo2, Loader2, FileSignature, Wallet, Info, User } from 'lucide-react';
-import { useState } from 'react';
+import { Undo2, Loader2, FileSignature, Info } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { cn } from '@/lib/utils';
 
@@ -54,30 +54,49 @@ export default function CreateKasbonPegawai({ employees, statuses, flash, errors
     const { data, setData, post, processing, errors, reset } = useForm({
         employee_id: '',
         kasbon: 0,
-        status: 'belum ACC',
+        status: 'Pending', // Default status sesuai backend
         reason: '',
     });
 
     const [selectedEmployee, setSelectedEmployee] = useState<EmployeeOption | null>(null);
+
+    useEffect(() => {
+        // Reset form errors when flash messages are present
+        if (flash.message || flash.error) {
+            reset();
+        }
+    }, [flash]);
 
     const handleEmployeeChange = (employeeId: string) => {
         const employee = employees.find(e => String(e.id) === employeeId) || null;
         setSelectedEmployee(employee);
         setData('employee_id', employeeId);
         if (employee) {
-            setData('kasbon', employee.salary); // Set default kasbon ke gaji maksimal
+            // Set default kasbon amount to 0 or a logical value
+            setData('kasbon', 0);
+        } else {
+            setData('kasbon', 0);
         }
     };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        
+        // Logika validasi frontend
         if (selectedEmployee && data.kasbon > selectedEmployee.salary) {
-            // Ini hanya sebagai fallback, validasi utama ada di backend
             alert('Jumlah kasbon tidak boleh melebihi gaji pokok.');
             return;
         }
+
         post(route('kasbons.store_pegawai'), {
-            onSuccess: () => reset(),
+            onSuccess: () => {
+                // reset form and selected employee on success
+                reset();
+                setSelectedEmployee(null);
+            },
+            onError: (errors) => {
+                console.error('Errors:', errors);
+            },
             preserveScroll: true,
         });
     };
@@ -85,7 +104,7 @@ export default function CreateKasbonPegawai({ employees, statuses, flash, errors
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Tambah Kasbon Pegawai" />
-            <div className="max-w-4xl mx-auto space-y-6">
+            <div className="max-w-4xl mx-auto space-y-6 p-4">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <Heading title="Buat Kasbon Pegawai" description="Isi formulir untuk membuat pengajuan kasbon baru untuk pegawai." />
                     <Link href={route('kasbons.index')}>
@@ -96,11 +115,20 @@ export default function CreateKasbonPegawai({ employees, statuses, flash, errors
                     </Link>
                 </div>
 
-                {flash.error && (
+                {(flash.error || pageErrors.kasbon || pageErrors.employee_id) && (
                     <Alert variant="destructive">
                         <Info className="h-4 w-4" />
                         <AlertTitle>Terjadi Kesalahan</AlertTitle>
-                        <AlertDescription>{flash.error}</AlertDescription>
+                        <AlertDescription>
+                            {flash.error || pageErrors.kasbon || pageErrors.employee_id}
+                        </AlertDescription>
+                    </Alert>
+                )}
+                {flash.message && (
+                    <Alert variant="default" className="bg-green-50 border-green-200 text-green-800">
+                        <Info className="h-4 w-4" />
+                        <AlertTitle>Berhasil</AlertTitle>
+                        <AlertDescription>{flash.message}</AlertDescription>
                     </Alert>
                 )}
 
@@ -138,6 +166,19 @@ export default function CreateKasbonPegawai({ employees, statuses, flash, errors
                                     {errors.kasbon && <p className="text-sm text-destructive mt-1">{errors.kasbon}</p>}
                                 </div>
 
+                                <div>
+                                    <Label htmlFor="status">Status</Label>
+                                    <Select onValueChange={(value) => setData('status', value)} value={data.status}>
+                                        <SelectTrigger><SelectValue placeholder="Pilih Status..." /></SelectTrigger>
+                                        <SelectContent>
+                                            {statuses.map((status) => (
+                                                <SelectItem key={status} value={status}>{status}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    {errors.status && <p className="text-sm text-destructive mt-1">{errors.status}</p>}
+                                </div>
+
                                 <div className={cn(!data.employee_id && "opacity-50 pointer-events-none")}>
                                     <Label htmlFor="reason">Alasan (Opsional)</Label>
                                     <Textarea
@@ -146,6 +187,7 @@ export default function CreateKasbonPegawai({ employees, statuses, flash, errors
                                         value={data.reason || ''}
                                         onChange={(e) => setData('reason', e.target.value)}
                                     />
+                                    {errors.reason && <p className="text-sm text-destructive mt-1">{errors.reason}</p>}
                                 </div>
                             </CardContent>
                         </Card>
@@ -154,7 +196,7 @@ export default function CreateKasbonPegawai({ employees, statuses, flash, errors
                     {/* Right Column: Information */}
                     <div className="lg:col-span-1">
                         <div className="sticky top-24 space-y-4">
-                             <Card className="bg-slate-800 text-white">
+                            <Card className="bg-slate-800 text-white">
                                 <CardHeader>
                                     <CardTitle className="text-white">Informasi Gaji</CardTitle>
                                 </CardHeader>
@@ -168,7 +210,7 @@ export default function CreateKasbonPegawai({ employees, statuses, flash, errors
                                     </div>
                                 </CardContent>
                             </Card>
-                             <Button type="submit" disabled={processing || !data.employee_id} className="w-full text-lg py-6">
+                            <Button type="submit" disabled={processing || !data.employee_id} className="w-full text-lg py-6">
                                 {processing ? <Loader2 className="animate-spin mr-2" /> : <FileSignature className="mr-2" />}
                                 {processing ? 'Menyimpan...' : 'Ajukan Kasbon'}
                             </Button>
