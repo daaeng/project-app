@@ -152,7 +152,7 @@ export default function CreateKasbon({ incisors, monthsYears, flash, errors: pag
             <Head title="Tambah Kasbon Baru" />
             <div className="space-y-6 p-4">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                    <Heading title="Buat Pengajuan Kasbon Penoreh" description="Isi formulir untuk membuat pengajuan kasbon baru." />
+                    <Heading title="Buat Pengajuan Kasbon" description="Isi formulir untuk membuat pengajuan kasbon baru." />
                     <Link href={route('kasbons.index')}>
                         <Button variant="outline">
                             <Undo2 className="w-4 h-4 mr-2" />
