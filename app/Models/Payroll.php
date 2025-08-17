@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Payroll extends Model
 {
@@ -18,12 +19,11 @@ class Payroll extends Model
     protected $fillable = [
         'employee_id',
         'payroll_period',
-        'base_salary',
-        'total_allowance',
-        'total_deduction',
-        'net_salary',
-        'payment_date',
+        'total_pendapatan',
+        'total_potongan',
+        'gaji_bersih',
         'status',
+        'tanggal_pembayaran',
     ];
 
     /**
@@ -32,5 +32,13 @@ class Payroll extends Model
     public function employee(): BelongsTo
     {
         return $this->belongsTo(Employee::class);
+    }
+
+    /**
+     * Mendapatkan rincian item dari payroll ini.
+     */
+    public function items(): HasMany
+    {
+        return $this->hasMany(PayrollItem::class);
     }
 }

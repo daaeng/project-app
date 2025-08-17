@@ -1,27 +1,25 @@
 import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
-import Tag from '@/components/ui/tag';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types'; 
 import { Head, Link } from '@inertiajs/react';
-import { Undo2 } from 'lucide-react';
+import { Undo2, User, HardHat, FileText, Wallet, CalendarDays, Pencil, CheckCircle2, XCircle, Clock } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Kasbon', href: '/kasbons' },
-    { title: 'Detail Kasbon', href: '#' },
-];
-
+// --- INTERFACES ---
 interface Kasbon {
     id: number;
-    incisor_name: string;
-    incisor_no_invoice: string; // Menambahkan ini untuk kode penoreh
+    owner_type: 'Pegawai' | 'Penoreh';
+    owner: {
+        name: string;
+        identifier_label: string; // 'NIP' atau 'Kode Penoreh'
+        identifier_value: string;
+    };
     gaji: number;
     kasbon: number;
-    status: 'Pending' | 'Approved' | 'Rejected' | 'belum ACC' | 'ditolak' | 'diterima';
+    status: 'Pending' | 'Approved' | 'Rejected';
     reason: string | null;
-    total_toreh_bulan_ini_raw: number; // Nama properti yang diubah sesuai backend
     created_at: string;
     updated_at: string;
 }
@@ -30,10 +28,10 @@ interface PageProps {
     kasbon: Kasbon;
 }
 
+// --- HELPER FUNCTIONS ---
 const formatCurrency = (value: number) => {
-    // Pastikan nilai adalah angka sebelum diformat
-    if (isNaN(value) || value === null || value === undefined) { // Menambahkan undefined check
-        return "Rp0"; 
+    if (isNaN(value) || value === null || value === undefined) {
+        return "Rp 0"; 
     }
     return new Intl.NumberFormat('id-ID', {
         style: 'currency',
@@ -42,21 +40,77 @@ const formatCurrency = (value: number) => {
     }).format(value);
 };
 
+const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('id-ID', {
+        day: '2-digit',
+        month: 'long',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    }) + ' WIB';
+}
+
+// --- STYLED COMPONENTS ---
+interface StatusPillProps {
+    status: 'Pending' | 'Approved' | 'Rejected';
+}
+
+const StatusPill: React.FC<StatusPillProps> = ({ status }) => {
+    const statusMap = {
+        'Approved': { text: 'Disetujui', className: 'bg-green-100 text-green-800 border-green-200', icon: CheckCircle2 },
+        'Pending': { text: 'Pending', className: 'bg-yellow-100 text-yellow-800 border-yellow-200', icon: Clock },
+        'Rejected': { text: 'Ditolak', className: 'bg-red-100 text-red-800 border-red-200', icon: XCircle },
+    };
+    const currentStatus = statusMap[status] || { text: 'Unknown', className: 'bg-gray-100 text-gray-800 border-gray-200', icon: Clock };
+    const Icon = currentStatus.icon;
+
+    return (
+        <div className={cn('px-4 py-3 rounded-lg inline-flex items-center gap-3 border', currentStatus.className)}>
+            <Icon className="h-5 w-5" />
+            <span className="text-base font-semibold">{currentStatus.text}</span>
+        </div>
+    );
+};
+
+interface InfoItemProps {
+    icon: React.ElementType;
+    label: string;
+    value: string | React.ReactNode;
+    iconBgClass?: string;
+}
+
+const InfoItem: React.FC<InfoItemProps> = ({ icon: Icon, label, value, iconBgClass = 'bg-gray-100' }) => (
+    <div className="flex items-start gap-4">
+        <div className={cn("flex-shrink-0 w-12 h-12 rounded-lg flex items-center justify-center", iconBgClass)}>
+            <Icon className="h-6 w-6 text-gray-600" />
+        </div>
+        <div>
+            <p className="text-sm text-muted-foreground">{label}</p>
+            <p className="text-lg font-semibold text-gray-800 dark:text-gray-200">{value}</p>
+        </div>
+    </div>
+);
+
+
+// --- MAIN COMPONENT ---
 export default function ShowKasbon({ kasbon } : PageProps) {
 
-    // Update breadcrumbs dynamically
-    const dynamicBreadcrumbs = [
-        ...breadcrumbs.slice(0, 1),
-        { title: `Detail Kasbon (Kode Penoreh: ${kasbon.incisor_no_invoice})`, href: route('kasbons.show', kasbon.id) },
+    const dynamicBreadcrumbs: BreadcrumbItem[] = [
+        { title: 'Kasbon', href: route('kasbons.index') },
+        { title: `Detail: ${kasbon.owner.name}`, href: '#' },
     ];
+
+    const ownerIcon = kasbon.owner_type === 'Pegawai' ? User : HardHat;
+    const ownerIconBg = kasbon.owner_type === 'Pegawai' ? 'bg-emerald-100 dark:bg-emerald-900/50' : 'bg-purple-100 dark:bg-purple-900/50';
 
     return (
         <AppLayout breadcrumbs={dynamicBreadcrumbs}>
-            <Head title={`Detail Kasbon - ${kasbon.incisor_no_invoice}`} />
+            <Head title={`Detail Kasbon - ${kasbon.owner.name}`} />
 
-            <div className="h-full flex-col rounded-xl p-4 bg-gray-50 dark:bg-black">
-                <Heading title={`Detail Kasbon (Kode Penoreh: ${kasbon.incisor_no_invoice})`} />
-                <div className="mb-4">
+            <div className="space-y-6 p-4 md:p-6">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <Heading title={`Detail Kasbon ${kasbon.owner_type}`} description={`Informasi lengkap untuk kasbon #${kasbon.id}`} />
                     <Link href={route('kasbons.index')}>
                         <Button variant="outline" className="flex items-center gap-2">
                             <Undo2 className="h-4 w-4" /> Kembali
@@ -64,62 +118,60 @@ export default function ShowKasbon({ kasbon } : PageProps) {
                     </Link>
                 </div>
 
-                {/* Card sekarang mengambil lebar yang lebih besar dan berpusat */}
-                <Card className="w-full md:max-w-3xl mx-auto shadow-md">
-                    <CardHeader>
-                        <CardTitle>Detail Kasbon</CardTitle>
-                    </CardHeader>
-                    {/* Content diatur dalam grid 2 kolom untuk tampilan landscape */}
-                    <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
-                        {/* Kolom 1 */}
-                        <div>
-                            <div>
-                                <Label className="block text-sm font-medium text-gray-700">Kode Penoreh</Label>
-                                <p className="mt-1 text-lg font-semibold text-gray-900">{kasbon.incisor_no_invoice}</p>
-                            </div>
-                            <div className="mt-4"> {/* Menambahkan margin atas untuk pemisah */}
-                                <Label className="block text-sm font-medium text-gray-700">Nama Penoreh</Label>
-                                <p className="mt-1 text-lg font-semibold text-gray-900">{kasbon.incisor_name}</p>
-                            </div>
-                            
-                            <div className="mt-4">
-                                <Label className="block text-sm font-medium text-gray-700">Total Toreh Bulan Ini</Label>
-                                <p className="mt-1 text-lg font-semibold text-gray-900">{formatCurrency(kasbon.total_toreh_bulan_ini_raw)}</p>
-                            </div>
-                            <div className="mt-4">
-                                <Label className="block text-sm font-medium text-gray-700">Gaji (50% dari Total Toreh Bulan Ini)</Label>
-                                <p className="mt-1 text-lg font-semibold text-gray-900">{formatCurrency(kasbon.gaji)}</p>
-                            </div>
-                        </div>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+                    {/* --- Kolom Kiri: Detail Utama --- */}
+                    <div className="lg:col-span-2">
+                        <Card className="shadow-sm">
+                            <CardHeader>
+                                <CardTitle>Rincian Pengajuan Kasbon</CardTitle>
+                                <CardDescription>
+                                    Diajukan oleh <span className="font-semibold">{kasbon.owner.name}</span> pada tanggal {formatDate(kasbon.created_at).split(' ')[0]}
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-8 p-6">
+                                <InfoItem icon={ownerIcon} label={`Nama ${kasbon.owner_type}`} value={kasbon.owner.name} iconBgClass={ownerIconBg} />
+                                <InfoItem icon={FileText} label={kasbon.owner.identifier_label} value={kasbon.owner.identifier_value} iconBgClass="bg-sky-100 dark:bg-sky-900/50" />
+                                <InfoItem 
+                                    icon={Wallet} 
+                                    label={kasbon.owner_type === 'Penoreh' ? 'Pendapatan Penoreh' : 'Gaji Pokok'}
+                                    value={formatCurrency(kasbon.gaji)} 
+                                    iconBgClass="bg-rose-100 dark:bg-rose-900/50"
+                                />
+                                <InfoItem 
+                                    icon={Wallet} 
+                                    label="Jumlah Kasbon Diajukan"
+                                    value={<span className="text-green-600 dark:text-green-400">{formatCurrency(kasbon.kasbon)}</span>}
+                                    iconBgClass="bg-green-100 dark:bg-green-900/50"
+                                />
+                                <InfoItem icon={CalendarDays} label="Tanggal Pengajuan" value={formatDate(kasbon.created_at)} iconBgClass="bg-blue-100 dark:bg-blue-900/50" />
+                                <InfoItem icon={Pencil} label="Terakhir Diperbarui" value={formatDate(kasbon.updated_at)} iconBgClass="bg-orange-100 dark:bg-orange-900/50" />
+                            </CardContent>
+                        </Card>
+                    </div>
 
-                        {/* Kolom 2 */}
-                        <div>
-                            <div>
-                                <Label className="block text-sm font-medium text-gray-700">Jumlah Kasbon</Label>
-                                <p className="mt-1 text-lg font-semibold text-gray-900">{formatCurrency(kasbon.kasbon)}</p>
-                            </div>
-                            <div className="mt-4">
-                                <Label className="block text-sm font-medium text-gray-700">Status</Label>
-                                {/* Menggunakan komponen Tag */}
-                                <Tag status={kasbon.status === 'Pending' ? 'belum ACC' : (kasbon.status === 'Approved' ? 'diterima' : 'ditolak')} />
-                            </div>
-                            {kasbon.reason && (
-                                <div className="mt-4">
-                                    <Label className="block text-sm font-medium text-gray-700">Alasan</Label>
-                                    <p className="mt-1 text-gray-900">{kasbon.reason}</p>
-                                </div>
-                            )}
-                            <div className="mt-4">
-                                <Label className="block text-sm font-medium text-gray-700">Dibuat Pada</Label>
-                                <p className="mt-1 text-lg font-semibold text-gray-900">{kasbon.created_at}</p>
-                            </div>
-                            <div className="mt-4">
-                                <Label className="block text-sm font-medium text-gray-700">Diperbarui Pada</Label>
-                                <p className="mt-1 text-lg font-semibold text-gray-900">{kasbon.updated_at}</p>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
+                    {/* --- Kolom Kanan: Status & Alasan --- */}
+                    <div className="lg:col-span-1 space-y-6">
+                         <Card className="shadow-sm">
+                            <CardHeader>
+                                <CardTitle>Status Persetujuan</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <StatusPill status={kasbon.status} />
+                            </CardContent>
+                        </Card>
+
+                        {kasbon.reason && (
+                            <Card className="shadow-sm">
+                                <CardHeader>
+                                    <CardTitle>Alasan / Catatan</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <p className="text-base text-gray-700 dark:text-gray-300 italic">"{kasbon.reason}"</p>
+                                </CardContent>
+                            </Card>
+                        )}
+                    </div>
+                </div>
             </div>
         </AppLayout>
     );

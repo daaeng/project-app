@@ -13,9 +13,12 @@ return new class extends Migration
     {
         Schema::create('employees', function (Blueprint $table) {
             $table->id();
+            // --- PERBAIKAN DI SINI ---
+            // Menambahkan kolom employee_id yang unik untuk NIP
+            $table->string('employee_id')->unique();
             $table->string('name');
             $table->string('position');
-            $table->decimal('salary', 15, 2)->default(0);
+            $table->decimal('salary', 16, 2)->default(0);
             $table->timestamps();
         });
     }

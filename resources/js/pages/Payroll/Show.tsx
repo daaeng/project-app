@@ -1,30 +1,42 @@
 import React from 'react';
-import { Head } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 
-// Definisikan tipe data sesuai dengan yang dikirim dari controller
+interface PayrollItem {
+    id: number;
+    deskripsi: string;
+    tipe: 'pendapatan' | 'potongan';
+    jumlah: number;
+}
+
 interface PayrollData {
     id: number;
     payroll_period: string;
-    base_salary: number;
-    total_deduction: number;
-    net_salary: number;
+    total_pendapatan: number;
+    total_potongan: number;
+    gaji_bersih: number;
+    status: string;
     employee: {
         name: string;
         employee_id: string;
         position: string;
     };
+    items: PayrollItem[]; // Rincian item gaji
 }
 
 export default function Show({ payroll }: { payroll: PayrollData }) {
     
-    const formatCurrency = (value: number) => {
-        return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(value);
-    };
+    const formatCurrency = (value: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(value);
     
-    const handlePrint = () => {
-        window.print();
+    const formatPeriod = (period: string) => {
+        const [year, month] = period.split('-');
+        return new Date(parseInt(year), parseInt(month) - 1).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
     };
+
+    const handlePrint = () => window.print();
+
+    const pendapatanItems = payroll.items.filter(item => item.tipe === 'pendapatan');
+    const potonganItems = payroll.items.filter(item => item.tipe === 'potongan');
 
     return (
         <AppLayout>
@@ -33,14 +45,14 @@ export default function Show({ payroll }: { payroll: PayrollData }) {
             <div className="max-w-2xl mx-auto bg-white p-8 rounded-lg shadow-lg print:shadow-none">
                 <div className="text-center border-b pb-4 mb-4">
                     <h1 className="text-2xl font-bold">SLIP GAJI</h1>
-                    <p className="text-gray-600">Periode: {payroll.payroll_period}</p>
+                    <p className="text-gray-600">Periode: {formatPeriod(payroll.payroll_period)}</p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4 mb-6">
                     <div>
                         <p className="font-semibold">{payroll.employee.name}</p>
                         <p className="text-sm text-gray-500">{payroll.employee.position}</p>
-                        <p className="text-sm text-gray-500">ID: {payroll.employee.employee_id}</p>
+                        <p className="text-sm text-gray-500">NIP: {payroll.employee.employee_id}</p>
                     </div>
                     <div className="text-right">
                         <p className="text-sm text-gray-500">Tanggal Cetak</p>
@@ -52,18 +64,30 @@ export default function Show({ payroll }: { payroll: PayrollData }) {
                     {/* Pendapatan */}
                     <div>
                         <h3 className="font-semibold border-b mb-2 pb-1">Pendapatan</h3>
-                        <div className="flex justify-between">
-                            <p>Gaji Pokok</p>
-                            <p>{formatCurrency(payroll.base_salary)}</p>
+                        {pendapatanItems.map(item => (
+                            <div key={item.id} className="flex justify-between text-sm">
+                                <p>{item.deskripsi}</p>
+                                <p>{formatCurrency(item.jumlah)}</p>
+                            </div>
+                        ))}
+                        <div className="flex justify-between font-semibold border-t mt-2 pt-1">
+                            <p>Total Pendapatan</p>
+                            <p>{formatCurrency(payroll.total_pendapatan)}</p>
                         </div>
                     </div>
 
                     {/* Potongan */}
                     <div>
                         <h3 className="font-semibold border-b mb-2 pb-1">Potongan</h3>
-                        <div className="flex justify-between">
-                            <p>Kasbon</p>
-                            <p>- {formatCurrency(payroll.total_deduction)}</p>
+                        {potonganItems.map(item => (
+                             <div key={item.id} className="flex justify-between text-sm">
+                                <p>{item.deskripsi}</p>
+                                <p className="text-red-600">- {formatCurrency(item.jumlah)}</p>
+                            </div>
+                        ))}
+                        <div className="flex justify-between font-semibold border-t mt-2 pt-1">
+                            <p>Total Potongan</p>
+                            <p className="text-red-600">- {formatCurrency(payroll.total_potongan)}</p>
                         </div>
                     </div>
 
@@ -71,7 +95,7 @@ export default function Show({ payroll }: { payroll: PayrollData }) {
                     <div className="border-t-2 pt-4 mt-4">
                         <div className="flex justify-between font-bold text-lg">
                             <p>GAJI BERSIH (Take Home Pay)</p>
-                            <p>{formatCurrency(payroll.net_salary)}</p>
+                            <p>{formatCurrency(payroll.gaji_bersih)}</p>
                         </div>
                     </div>
                 </div>

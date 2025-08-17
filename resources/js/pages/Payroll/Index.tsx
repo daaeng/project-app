@@ -41,7 +41,7 @@ export default function Index({ payrolls }: { payrolls: PaginatedPayrolls }) {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Riwayat Penggajian" />
 
-            <div className="flex flex-col rounded-xl bg-white p-6 shadow-sm">
+            <div className="flex flex-col p-4 shadow-sm">
                 <div className="flex items-center justify-between mb-6">
                     <div>
                         <Heading title="Riwayat Penggajian" />

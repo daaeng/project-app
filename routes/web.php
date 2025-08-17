@@ -76,8 +76,40 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware("permission:pegawai.create|pegawai.edit|pegawai.delete|pegawai.view");
 
     // ~~~~~~~~~~~~~ PAYROLL (PENGGAJIAN) ~~~~~~~~~~~~~
-    Route::resource('payroll', PayrollController::class)
+    // Route::resource('payroll', PayrollController::class)
+    //     ->middleware("permission:payroll.create|payroll.edit|payroll.delete|payroll.view");
+
+    Route::get('/payroll', [PayrollController::class, 'index'])->name('payroll.index')
         ->middleware("permission:payroll.create|payroll.edit|payroll.delete|payroll.view");
+
+    Route::get('/payroll/create', [PayrollController::class, 'create'])->name('payroll.create')
+        ->middleware("permission:payroll.create|payroll.edit|payroll.delete|payroll.view");
+        
+    Route::get('/payroll/generate', [PayrollController::class, 'generate'])->name('payroll.generate')
+        ->middleware("permission:payroll.create|payroll.edit|payroll.delete|payroll.view");
+
+    Route::post('/payroll', [PayrollController::class, 'store'])->name('payroll.store')
+        ->middleware("permission:payroll.create|payroll.edit|payroll.delete|payroll.view");
+
+    Route::get('/payroll/{payroll}', [PayrollController::class, 'show'])->name('payroll.show')
+        ->middleware("permission:payroll.create|payroll.edit|payroll.delete|payroll.view");
+
+
+    // Route::get('/payroll', [PayrollController::class, 'index'])->name('payroll.index')
+    //     ->middleware("permission:payroll.create|payroll.edit|payroll.delete|payroll.view");
+
+    // Route::get('/payroll/create', [PayrollController::class, 'create'])->name('payroll.create')
+    //     ->middleware("permission:payroll.create|payroll.edit|payroll.delete|payroll.view");
+        
+    // Route::get('/payroll/generate', [PayrollController::class, 'generate'])->name('payroll.generate')
+    //     ->middleware("permission:payroll.create|payroll.edit|payroll.delete|payroll.view");
+
+    // Route::post('/payroll', [PayrollController::class, 'store'])->name('payroll.store')
+    //     ->middleware("permission:payroll.create|payroll.edit|payroll.delete|payroll.view");
+
+    // Route::get('/payroll/{payroll}', [PayrollController::class, 'show'])->name('payroll.show')
+    //     ->middleware("permission:payroll.create|payroll.edit|payroll.delete|payroll.view");
+    
 
     // ~~~~~~~~~~~~~ REQUEST ~~~~~~~~~~~~~
     route::get('/requests', [RequestController::class, 'index'])->name('requests.index')
@@ -175,15 +207,24 @@ Route::middleware(['auth', 'verified'])->group(function () {
     route::delete('/inciseds/{incised}', [IncisedController::class, 'destroy'])->name('inciseds.destroy')
         ->middleware("permission:incised.create|incised.edit|incised.delete|incised.view");
     
-    // ~~~~~~~~~~~~~ KASBON ~~~~~~~~~~~~~
-    Route::post('/kasbons/get-incisor-data', [KasbonController::class, 'getIncisorData'])->name('kasbons.getIncisorData')
-        ->middleware("permission:kasbons.create|kasbons.edit|kasbons.delete|kasbons.view");
-    Route::resource('kasbons', KasbonController::class)
-        ->middleware("permission:kasbons.create|kasbons.edit|kasbons.delete|kasbons.view");
-    Route::get('/kasbons-pegawai/create', [KasbonController::class, 'createPegawai'])->name('kasbons.create_pegawai')
-        ->middleware("permission:kasbons.create|kasbons.edit|kasbons.delete|kasbons.view");
-    Route::post('/kasbons-pegawai', [KasbonController::class, 'storePegawai'])->name('kasbons.store_pegawai')
-        ->middleware("permission:kasbons.create|kasbons.edit|kasbons.delete|kasbons.view");
+   // ~~~~~~~~~~~~~ KASBON / UTANG ~~~~~~~~~~~~~
+Route::post('/kasbons/get-incisor-data', [KasbonController::class, 'getIncisorData'])
+    ->name('kasbons.getIncisorData')
+    ->middleware("permission:kasbons.create|kasbons.edit|kasbons.delete|kasbons.view");
+
+// Halaman utama kasbon/utang
+Route::resource('kasbons', KasbonController::class)
+    ->middleware("permission:kasbons.create|kasbons.edit|kasbons.delete|kasbons.view");
+
+// Form pengajuan kasbon pegawai
+Route::get('/kasbons-pegawai/create', [KasbonController::class, 'createPegawai'])
+    ->name('kasbons.create_pegawai')
+    ->middleware("permission:kasbons.create|kasbons.edit|kasbons.delete|kasbons.view");
+
+// Proses simpan kasbon pegawai
+Route::post('/kasbons-pegawai', [KasbonController::class, 'storePegawai'])
+    ->name('kasbons.store_pegawai')
+    ->middleware("permission:kasbons.create|kasbons.edit|kasbons.delete|kasbons.view");
 
 });
 

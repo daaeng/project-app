@@ -32,6 +32,14 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Pegawai', href: route('pegawai.index') },
 ];
 
+const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        minimumFractionDigits: 0,
+    }).format(value);
+};
+
 export default function Index({ pegawai }: { pegawai: Pegawai[] }) {
     const { props } = usePage();
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -150,7 +158,7 @@ export default function Index({ pegawai }: { pegawai: Pegawai[] }) {
                             <div className="border-t border-gray-200 dark:border-gray-700 px-5 py-3">
                                 <div className="flex justify-between items-center text-sm">
                                     <span className="text-gray-500 dark:text-gray-400">Gaji:</span>
-                                    <span className="font-semibold text-green-600 dark:text-green-400">Rp {item.salary.toLocaleString('id-ID')}</span>
+                                    <span className="font-semibold text-green-600 dark:text-green-400">{formatCurrency(item.salary)}</span>
                                 </div>
                             </div>
                             <div className="bg-gray-50 dark:bg-gray-900/50 px-5 py-3 flex justify-end space-x-2">

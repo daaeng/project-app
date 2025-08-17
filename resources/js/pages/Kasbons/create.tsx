@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, useForm } from '@inertiajs/react';
-import { Undo2, Loader2, FileSignature, TrendingUp, PiggyBank, CircleDollarSign, Receipt, User, Calendar, Info } from 'lucide-react';
+import { Undo2, Loader2, FileSignature, Info } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { cn } from '@/lib/utils';
@@ -19,7 +19,6 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Tambah Kasbon Baru', href: '/kasbons/create' },
 ];
 
-// --- INTERFACES ---
 interface IncisorOption {
     id: number;
     label: string;
@@ -49,7 +48,6 @@ interface PageProps {
     };
 }
 
-// --- HELPER FUNCTIONS ---
 const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('id-ID', {
         style: 'currency',
@@ -58,7 +56,6 @@ const formatCurrency = (value: number) => {
     }).format(value);
 };
 
-// --- STYLED COMPONENTS ---
 const SummaryRow: React.FC<{ label: string; value: string; isLoading: boolean; className?: string }> = ({ label, value, isLoading, className }) => (
     <div className="flex items-center justify-between">
         <p className="text-sm text-slate-400">{label}</p>
@@ -70,14 +67,13 @@ const SummaryRow: React.FC<{ label: string; value: string; isLoading: boolean; c
     </div>
 );
 
-// --- MAIN COMPONENT ---
 export default function CreateKasbon({ incisors, monthsYears, flash, errors: pageErrors }: PageProps) {
     const { data, setData, post, processing, errors, reset } = useForm({
         incisor_id: '',
         month: '',
         year: '',
         kasbon: 0,
-        status: 'Pending', // Default status
+        status: 'Pending',
         reason: '',
     });
 
@@ -170,7 +166,7 @@ export default function CreateKasbon({ incisors, monthsYears, flash, errors: pag
                 )}
 
                 <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-                    {/* Left Column: Form Inputs */}
+
                     <div className="lg:col-span-2 space-y-6">
                         <Card>
                             <CardHeader>
@@ -236,7 +232,6 @@ export default function CreateKasbon({ incisors, monthsYears, flash, errors: pag
                         </Card>
                     </div>
 
-                    {/* Right Column: Information */}
                     <div className="lg:col-span-1">
                         <div className="sticky top-24 space-y-4">
                              <Card className="bg-slate-800 text-white">
@@ -244,7 +239,6 @@ export default function CreateKasbon({ incisors, monthsYears, flash, errors: pag
                                     <CardTitle className="text-white">Ringkasan Kalkulasi</CardTitle>
                                 </CardHeader>
                                 <CardContent className="space-y-3">
-                                    {/* --- PERUBAHAN: Menambahkan baris Total Torehan --- */}
                                     <SummaryRow label="Total Torehan (Gaji Kotor)" value={formatCurrency(incisorDetails.total_toreh_bulan_ini)} isLoading={isLoadingData} />
                                     <SummaryRow label="Total Gaji (50%)" value={formatCurrency(incisorDetails.gaji_bulan_ini)} isLoading={isLoadingData} />
                                     <SummaryRow label="Kasbon Diambil" value={formatCurrency(data.kasbon)} isLoading={isLoadingData} className="text-yellow-400" />
