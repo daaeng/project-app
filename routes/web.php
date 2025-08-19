@@ -76,24 +76,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware("permission:pegawai.create|pegawai.edit|pegawai.delete|pegawai.view");
 
     // ~~~~~~~~~~~~~ PAYROLL (PENGGAJIAN) ~~~~~~~~~~~~~
-    // Route::resource('payroll', PayrollController::class)
-    //     ->middleware("permission:payroll.create|payroll.edit|payroll.delete|payroll.view");
 
-    Route::get('/payroll', [PayrollController::class, 'index'])->name('payroll.index')
-        ->middleware("permission:payroll.create|payroll.edit|payroll.delete|payroll.view");
+    Route::get('/payroll/generate', [PayrollController::class, 'generate'])->name('payroll.generate');
+    Route::resource('/payroll', PayrollController::class)->except(['destroy']);
 
-    Route::get('/payroll/create', [PayrollController::class, 'create'])->name('payroll.create')
-        ->middleware("permission:payroll.create|payroll.edit|payroll.delete|payroll.view");
-        
-    Route::get('/payroll/generate', [PayrollController::class, 'generate'])->name('payroll.generate')
-        ->middleware("permission:payroll.create|payroll.edit|payroll.delete|payroll.view");
-
-    Route::post('/payroll', [PayrollController::class, 'store'])->name('payroll.store')
-        ->middleware("permission:payroll.create|payroll.edit|payroll.delete|payroll.view");
-
-    Route::get('/payroll/{payroll}', [PayrollController::class, 'show'])->name('payroll.show')
-        ->middleware("permission:payroll.create|payroll.edit|payroll.delete|payroll.view");
-
+    // Route::get('/payroll/generate', [PayrollController::class, 'generate'])->name('payroll.generate');
+    // Route::resource('/payroll', PayrollController::class)->except(['edit', 'update', 'destroy']);
 
     // Route::get('/payroll', [PayrollController::class, 'index'])->name('payroll.index')
     //     ->middleware("permission:payroll.create|payroll.edit|payroll.delete|payroll.view");
@@ -109,6 +97,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Route::get('/payroll/{payroll}', [PayrollController::class, 'show'])->name('payroll.show')
     //     ->middleware("permission:payroll.create|payroll.edit|payroll.delete|payroll.view");
+
     
 
     // ~~~~~~~~~~~~~ REQUEST ~~~~~~~~~~~~~

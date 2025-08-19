@@ -8,7 +8,6 @@ use Illuminate\Database\Eloquent\Model;
 class PayrollSetting extends Model
 {
     use HasFactory;
-
     protected $fillable = [
         'setting_key',
         'setting_value',

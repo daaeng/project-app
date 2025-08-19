@@ -9,13 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class SalaryHistory extends Model
 {
     use HasFactory;
-
-    protected $fillable = [
-        'employee_id',
-        'gaji_pokok',
-        'tanggal_mulai',
-        'tanggal_selesai',
-    ];
+    protected $fillable = ['employee_id', 'gaji_pokok', 'tanggal_mulai', 'tanggal_selesai'];
 
     public function employee(): BelongsTo
     {

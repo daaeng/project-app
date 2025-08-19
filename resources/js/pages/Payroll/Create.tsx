@@ -1,14 +1,13 @@
 import React from 'react';
-import { Head, useForm, Link } from '@inertiajs/react';
+import { Head, useForm } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
-import Heading from '@/components/heading';
+// import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 
 export default function Create() {
-    // Gunakan 'get' karena kita akan pindah halaman dengan parameter
     const { data, setData, get, processing, errors } = useForm({
         period_month: new Date().getMonth() + 1,
         period_year: new Date().getFullYear(),
@@ -16,7 +15,6 @@ export default function Create() {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        // Arahkan ke route 'payroll.generate' dengan membawa data bulan dan tahun
         get(route('payroll.generate'));
     };
 
@@ -30,14 +28,14 @@ export default function Create() {
     return (
         <AppLayout>
             <Head title="Generate Gaji Baru" />
-            <div className="flex justify-center items-center min-h-[calc(100vh-150px)]">
-                <Card className="w-full max-w-2xl">
+            <div className="flex justify-center items-center min-h-[calc(100vh-200px)] p-4">
+                <Card className="w-full max-w-lg">
                     <form onSubmit={handleSubmit}>
                         <CardHeader>
                             <CardTitle>Generate Penggajian</CardTitle>
-                            <CardDescription>Pilih periode untuk menghitung gaji semua pegawai aktif.</CardDescription>
+                            <CardDescription>Pilih periode bulan dan tahun untuk memulai proses perhitungan gaji.</CardDescription>
                         </CardHeader>
-                        <CardContent className="space-y-6 mb-2">
+                        <CardContent className="space-y-6">
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                 <div>
                                     <Label htmlFor="period_month">Bulan</Label>
@@ -45,7 +43,7 @@ export default function Create() {
                                         value={String(data.period_month)}
                                         onValueChange={(value) => setData('period_month', parseInt(value))}
                                     >
-                                        <SelectTrigger>
+                                        <SelectTrigger id="period_month">
                                             <SelectValue placeholder="Pilih Bulan" />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -62,7 +60,7 @@ export default function Create() {
                                         value={String(data.period_year)}
                                         onValueChange={(value) => setData('period_year', parseInt(value))}
                                     >
-                                        <SelectTrigger>
+                                        <SelectTrigger id="period_year">
                                             <SelectValue placeholder="Pilih Tahun" />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -75,9 +73,9 @@ export default function Create() {
                                 </div>
                             </div>
                         </CardContent>
-                        <CardFooter className="flex justify-end">
+                        <CardFooter className="flex justify-end mt-2">
                              <Button type="submit" disabled={processing}>
-                                {processing ? 'Memproses...' : 'Lanjutkan'}
+                                {processing ? 'Memproses...' : 'Lanjutkan ke Perhitungan'}
                             </Button>
                         </CardFooter>
                     </form>

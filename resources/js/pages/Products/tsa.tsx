@@ -472,7 +472,7 @@ export default function TsaPage({
                         </Button>
                     </Link>
                     {can('products.create') && (
-                        <Link href={route('products.gka')}>
+                        <Link href={route('products.s_gka')}>
                             <Button className="flex items-center bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-full shadow-lg transition-all duration-300 transform hover:scale-105 px-6 py-3">
                                 <Building2 size={18} className="mr-2" />
                                 Kirim ke GKA
@@ -481,7 +481,7 @@ export default function TsaPage({
                     )}
                 </div>
                 
-                <div className="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-4 p-4 rounded-xl bg-white border border-gray-200 shadow-sm">
+                <div className="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-4 p-4 rounded-xl  border border-gray-200 shadow-sm">
                     <Select value={timePeriod} onValueChange={handleTimePeriodChange}>
                         <SelectTrigger className="w-full sm:w-[180px]">
                             <SelectValue placeholder="Select time period" />
@@ -552,7 +552,7 @@ export default function TsaPage({
                         </h2>
                         <div className="overflow-x-auto">
                             <Table>
-                                <TableHeader className="bg-gray-50 text-gray-600 rounded-lg">
+                                <TableHeader className="bg-gray-50 dark:bg-gray-400 text-gray-600 rounded-lg">
                                     <TableRow>
                                         <TableHead className="p-4 font-semibold">Tanggal</TableHead>
                                         <TableHead className="p-4 font-semibold">Supplier</TableHead>
@@ -644,7 +644,7 @@ export default function TsaPage({
                         </h2>
                         <div className="overflow-x-auto">
                             <Table>
-                                <TableHeader className="bg-gray-50 text-gray-600 rounded-lg">
+                                <TableHeader className="bg-gray-50 dark:bg-gray-400 text-gray-600 rounded-lg">
                                     <TableRow>
                                         <TableHead className="p-4 font-semibold">Tanggal</TableHead>
                                         <TableHead className="p-4 font-semibold">Supplier</TableHead>

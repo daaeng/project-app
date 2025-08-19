@@ -11,8 +11,8 @@ return new class extends Migration
     {
         Schema::create('salary_histories', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('employee_id')->constrained('employees')->onDelete('cascade');
-            $table->unsignedInteger('gaji_pokok');
+            $table->foreignId('employee_id')->constrained()->onDelete('cascade');
+            $table->decimal('gaji_pokok', 15, 2);
             $table->date('tanggal_mulai');
             $table->date('tanggal_selesai')->nullable();
             $table->timestamps();

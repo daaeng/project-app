@@ -11,10 +11,10 @@ return new class extends Migration
     {
         Schema::create('payroll_items', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('payroll_id')->constrained('payrolls')->onDelete('cascade');
-            $table->string('deskripsi'); // Contoh: "Gaji Pokok", "Uang Makan (22 hari)", "Insentif Kinerja"
+            $table->foreignId('payroll_id')->constrained()->onDelete('cascade');
+            $table->string('deskripsi');
             $table->enum('tipe', ['pendapatan', 'potongan']);
-            $table->unsignedInteger('jumlah');
+            $table->decimal('jumlah', 15, 2);
             $table->timestamps();
         });
     }

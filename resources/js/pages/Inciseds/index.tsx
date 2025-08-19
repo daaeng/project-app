@@ -215,7 +215,7 @@ export default function Admin({ inciseds, flash, filter, totalKebunA, totalKebun
                             />
                         </div>
 
-                        <div className="border h-auto p-3 rounded-lg bg-white">
+                        <div className="border h-auto p-3 rounded-lg">
                             <div className="w-full mb-2 justify-end h-auto flex gap-2">
                                 {can('incised.create') && (
                                     <Link href={route('inciseds.create')}>

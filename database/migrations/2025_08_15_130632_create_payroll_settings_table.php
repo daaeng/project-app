@@ -11,7 +11,7 @@ return new class extends Migration
     {
         Schema::create('payroll_settings', function (Blueprint $table) {
             $table->id();
-            $table->string('setting_key')->unique(); // Contoh: 'uang_makan_harian'
+            $table->string('setting_key')->unique();
             $table->string('setting_value');
             $table->string('deskripsi')->nullable();
             $table->timestamps();

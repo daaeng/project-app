@@ -14,10 +14,26 @@ class Employee extends Model
         'name',
         'position',
         'salary',
+        'status',
     ];
 
-    public function kasbons()
+    // public function kasbons()
+    // {
+    //     return $this->morphMany(Kasbon::class, 'kasbonable');
+    // }
+
+    public function salaryHistories(): HasMany
     {
-        return $this->morphMany(Kasbon::class, 'kasbonable');
+        return $this->hasMany(SalaryHistory::class);
+    }
+
+    public function kasbons(): HasMany
+    {
+        return $this->hasMany(Kasbon::class);
+    }
+
+    public function payrolls(): HasMany
+    {
+        return $this->hasMany(Payroll::class);
     }
 }

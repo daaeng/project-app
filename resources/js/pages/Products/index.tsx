@@ -55,7 +55,7 @@ export default function index() {
             {can('products.view') && (
                 <>
                     {/* Container utama dengan latar belakang abu-abu terang dan padding */}
-                    <div className="h-full flex-col rounded-xl p-6 space-y-6 bg-gray-50 dark:bg-gray-900">
+                    <div className="h-full flex-col rounded-xl p-6 space-y-6 bg-gray-50 dark:bg-black">
                         <Heading title='Product Information' />
 
                         {/* Bagian kartu produk */}
