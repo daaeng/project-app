@@ -42,10 +42,14 @@ export default function Show({ payroll }: { payroll: PayrollData }) {
         <AppLayout>
             <Head title={`Slip Gaji - ${payroll.employee.name}`} />
 
-            <div className="max-w-2xl mx-auto bg-white p-8 rounded-lg shadow-lg print:shadow-none">
-                <div className="text-center border-b pb-4 mb-4">
-                    <h1 className="text-2xl font-bold">SLIP GAJI</h1>
-                    <p className="text-gray-600">Periode: {formatPeriod(payroll.payroll_period)}</p>
+            <div className="mt-2 max-w-2xl mx-auto bg-white dark:bg-transparent dark:border-2 p-8 rounded-lg shadow-lg print:shadow-none">
+                <div className='grid grid-cols-4 border-b pb-4 mb-4'>
+                    <img src="/assets/GKA_no_Tag.png" alt="GKA Logo" className="w-25 h-25 object-contain" />
+                    <div className="text-center col-span-3">
+                        <h1 className="text-2xl font-bold">SLIP GAJI</h1>
+                        <h2>PT. Garuda Karya Amanat</h2>
+                        <p className="text-gray-600">Periode: {formatPeriod(payroll.payroll_period)}</p>
+                    </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4 mb-6">

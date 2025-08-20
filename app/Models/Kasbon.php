@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class Kasbon extends Model
@@ -13,39 +14,24 @@ class Kasbon extends Model
 
     protected $table = 'kasbons';
 
-    protected $primaryKey = 'id';
-
     protected $fillable = [
-        'incisor_id',
-        'gaji',
-        'kasbon',
-        'status',
-        'reason',
-        'month',
-        'year',
-        'kasbonable_type',
-        'kasbonable_id',
+        'incisor_id', 'gaji', 'kasbon', 'status', 'reason', 'month', 'year',
+        'kasbonable_type', 'kasbonable_id', 'payment_status', 'paid_at',
     ];
-
-    public $timestamps = true;
 
     public function kasbonable(): MorphTo
     {
         return $this->morphTo();
     }
 
-    public function employee(): BelongsTo
+    // Relasi baru ke tabel pembayaran
+    public function payments(): HasMany
     {
-        return $this->belongsTo(Employee::class);
+        return $this->hasMany(KasbonPayment::class);
     }
 
-    public function incisor(): BelongsTo
-    {
-        return $this->belongsTo(Incisor::class, 'incisor_id');
-    }
-
-    public function incised(): BelongsTo
-    {
-        return $this->belongsTo(Incised::class, 'incised_id');
-    }
+    // (Sisa relasi lainnya tidak berubah)
+    public function employee(): BelongsTo { return $this->belongsTo(Employee::class); }
+    public function incisor(): BelongsTo { return $this->belongsTo(Incisor::class, 'incisor_id'); }
+    public function incised(): BelongsTo { return $this->belongsTo(Incised::class, 'incised_id'); }
 }

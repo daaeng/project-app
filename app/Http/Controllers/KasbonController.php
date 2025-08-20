@@ -24,7 +24,7 @@ class KasbonController extends Controller
         $statusFilter = $request->input('status');
 
         $kasbons = Kasbon::query()
-            ->with(['kasbonable'])
+            ->with(['kasbonable', 'payments'])
             ->when($searchTerm, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
                     $q->orWhereHasMorph('kasbonable', [Incisor::class], function ($incisorQuery) use ($search) {
@@ -38,6 +38,9 @@ class KasbonController extends Controller
                 });
             })
             ->when($statusFilter && $statusFilter !== 'all', function ($query) use ($statusFilter) {
+                if (in_array($statusFilter, ['paid', 'unpaid', 'partial'])) {
+                    return $query->where('payment_status', $statusFilter);
+                }
                 $backendStatus = ucfirst($statusFilter);
                 if (in_array($backendStatus, $this->statuses)) {
                     return $query->where('status', $backendStatus);
@@ -62,35 +65,93 @@ class KasbonController extends Controller
                         $kasbonType = 'Penoreh';
                     }
                 }
+                
+                $totalPaid = $kasbon->payments->sum('amount');
+                $remaining = $kasbon->kasbon - $totalPaid;
 
                 return [
                     'id' => $kasbon->id,
                     'owner_name' => $ownerName,
                     'owner_identifier' => $ownerIdentifier,
                     'kasbon_type' => $kasbonType,
-                    'gaji' => $kasbon->gaji,
                     'kasbon' => $kasbon->kasbon,
                     'status' => $kasbon->status,
-                    'reason' => $kasbon->reason,
+                    'payment_status' => $kasbon->payment_status,
                     'created_at' => $kasbon->created_at->format('Y-m-d H:i:s'),
+                    'total_paid' => $totalPaid,
+                    'remaining' => $remaining,
                 ];
             })
             ->withQueryString();
 
         $totalPendingKasbon = Kasbon::where('status', 'Pending')->count();
-        $totalApprovedKasbon = Kasbon::where('status', 'Approved')->count();
-        $sumApprovedKasbonAmount = Kasbon::where('status', 'Approved')->sum('kasbon');
+        $approvedKasbons = Kasbon::with('payments')->where('status', 'Approved')->whereIn('payment_status', ['unpaid', 'partial'])->get();
+        
+        $totalApprovedKasbon = $approvedKasbons->count();
+        $sumRemainingAmount = $approvedKasbons->reduce(function ($carry, $kasbon) {
+            $paid = $kasbon->payments->sum('amount');
+            $remaining = $kasbon->kasbon - $paid;
+            return $carry + $remaining;
+        }, 0);
 
         return Inertia::render("Kasbons/index", [
             'kasbons' => $kasbons,
             'filter' => $request->only('search', 'status'),
-            'statuses' => $this->statuses,
             'totalPendingKasbon' => $totalPendingKasbon,
             'totalApprovedKasbon' => $totalApprovedKasbon,
-            'sumApprovedKasbonAmount' => $sumApprovedKasbonAmount,
+            'sumApprovedKasbonAmount' => $sumRemainingAmount,
         ]);
     }
 
+    public function pay(Request $request, Kasbon $kasbon)
+    {
+        $validated = $request->validate([
+            'amount' => 'required|numeric|min:1',
+            'notes' => 'nullable|string|max:255',
+        ]);
+
+        if ($kasbon->status !== 'Approved') {
+            return redirect()->back()->with('error', 'Kasbon ini belum disetujui dan tidak dapat dibayar.');
+        }
+
+        $totalPaid = $kasbon->payments()->sum('amount');
+        $remaining = $kasbon->kasbon - $totalPaid;
+
+        // Gunakan toleransi kecil untuk perbandingan angka desimal
+        if ($validated['amount'] > ($remaining + 0.001)) {
+            return redirect()->back()->with('error', 'Jumlah pembayaran melebihi sisa kasbon. Sisa: ' . number_format($remaining, 0, ',', '.'));
+        }
+
+        DB::beginTransaction();
+        try {
+            $kasbon->payments()->create([
+                'amount' => $validated['amount'],
+                'payment_date' => now(),
+                'notes' => $validated['notes'],
+            ]);
+
+            $newTotalPaid = $totalPaid + $validated['amount'];
+            
+            $newPaymentStatus = 'partial';
+            if (bccomp((string)$newTotalPaid, (string)$kasbon->kasbon, 2) >= 0) {
+                $newPaymentStatus = 'paid';
+            }
+
+            $kasbon->update([
+                'payment_status' => $newPaymentStatus,
+                'paid_at' => ($newPaymentStatus === 'paid') ? now() : null,
+            ]);
+
+            DB::commit();
+            return redirect()->route('kasbons.index')->with('message', 'Pembayaran cicilan berhasil dicatat.');
+        } catch (Throwable $e) {
+            DB::rollBack();
+            Log::error("Gagal memproses pembayaran kasbon.", ['kasbon_id' => $kasbon->id, 'error' => $e->getMessage()]);
+            return redirect()->back()->with('error', 'Terjadi kesalahan server saat memproses pembayaran.');
+        }
+    }
+
+    // ... (sisa fungsi lainnya)
     public function createPegawai()
     {
         $employees = Employee::select('id', 'name', 'salary', 'employee_id')->get()->map(fn ($e) => [
@@ -189,21 +250,17 @@ class KasbonController extends Controller
 
     public function show(Kasbon $kasbon)
     {
-        // Eager load relasi polimorfik 'kasbonable'
         $kasbon->load('kasbonable');
 
-        // Tentukan tipe pemilik (Penoreh atau Pegawai)
         $isEmployee = $kasbon->kasbonable_type === Employee::class;
         $ownerType = $isEmployee ? 'Pegawai' : 'Penoreh';
 
-        // Siapkan data pemilik dengan nama field yang konsisten
         $ownerData = [
             'name' => $kasbon->kasbonable->name ?? 'Data Tidak Ditemukan',
             'identifier_label' => $isEmployee ? 'NIP' : 'Kode Penoreh',
             'identifier_value' => $isEmployee ? $kasbon->kasbonable->employee_id : $kasbon->kasbonable->no_invoice,
         ];
 
-        // Format data kasbon untuk dikirim ke frontend
         $formattedKasbon = [
             'id' => $kasbon->id,
             'owner_type' => $ownerType,
@@ -214,6 +271,8 @@ class KasbonController extends Controller
             'reason' => $kasbon->reason,
             'created_at' => $kasbon->created_at->toDateTimeString(),
             'updated_at' => $kasbon->updated_at->toDateTimeString(),
+            'payment_status' => $kasbon->payment_status,
+            'paid_at' => $kasbon->paid_at,
         ];
 
         return Inertia::render('Kasbons/show', [
@@ -221,9 +280,6 @@ class KasbonController extends Controller
         ]);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(Kasbon $kasbon)
     {
         $kasbon->load('kasbonable');
@@ -246,7 +302,6 @@ class KasbonController extends Controller
         ];
 
         if ($isEmployee) {
-            // --- LOGIKA BARU UNTUK PEGAWAI ---
             $props['employees'] = Employee::select('id', 'name', 'salary', 'employee_id')->get()->map(fn ($e) => [
                 'id' => $e->id,
                 'label' => "{$e->employee_id} - {$e->name}",
@@ -255,7 +310,6 @@ class KasbonController extends Controller
             return Inertia::render('Kasbons/edit_pegawai', $props);
         }
         
-        // --- LOGIKA LAMA UNTUK PENOREH ---
         $props['incisors'] = Incisor::select('id', 'no_invoice', 'name')->get()->map(fn ($i) => [
             'id' => $i->id, 
             'label' => "{$i->no_invoice} - {$i->name}"
@@ -270,16 +324,12 @@ class KasbonController extends Controller
         return Inertia::render('Kasbons/edit', $props);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, Kasbon $kasbon)
     {
         $isEmployee = $kasbon->kasbonable_type === Employee::class;
 
         try {
             if ($isEmployee) {
-                // --- LOGIKA UPDATE UNTUK PEGAWAI ---
                 $validated = $request->validate([
                     'employee_id' => 'required|exists:employees,id',
                     'kasbon'      => 'required|numeric|min:0',
@@ -288,9 +338,9 @@ class KasbonController extends Controller
                 ]);
 
                 $employee = Employee::findOrFail($validated['employee_id']);
-                if ($validated['kasbon'] > $employee->salary) {
-                    return redirect()->back()->with('error', "Jumlah kasbon tidak boleh melebihi gaji pokok pegawai (" . number_format($employee->salary, 0, ',', '.') . ").")->withInput();
-                }
+                // if ($validated['kasbon'] > $employee->salary) {
+                //     return redirect()->back()->with('error', "Jumlah kasbon tidak boleh melebihi gaji pokok pegawai (" . number_format($employee->salary, 0, ',', '.') . ").")->withInput();
+                // }
 
                 $kasbon->update([
                     'kasbonable_id'   => $validated['employee_id'],
@@ -298,11 +348,10 @@ class KasbonController extends Controller
                     'kasbon'          => $validated['kasbon'],
                     'status'          => $validated['status'],
                     'reason'          => $validated['reason'],
-                    'gaji'            => $employee->salary, // Gaji di sini adalah gaji pokok
+                    'gaji'            => $employee->salary,
                 ]);
 
             } else {
-                // --- LOGIKA UPDATE UNTUK PENOREH ---
                 $validated = $request->validate([
                     'incisor_id' => 'required|exists:incisors,id',
                     'month'      => 'required|integer|between:1,12',
@@ -375,6 +424,62 @@ class KasbonController extends Controller
             'total_toreh_bulan_ini' => $totalAmount,
             'gaji_bulan_ini' => $gaji,
             'max_kasbon_amount' => $gaji,
+        ]);
+    }
+
+    public function print(Request $request)
+    {
+        $searchTerm = $request->input('search');
+        $statusFilter = $request->input('status');
+
+        $kasbons = Kasbon::query()
+            ->with(['kasbonable', 'payments'])
+            ->when($searchTerm, function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                     $q->orWhereHasMorph('kasbonable', [Incisor::class], function ($incisorQuery) use ($search) {
+                        $incisorQuery->where('name', 'like', "%{$search}%")->orWhere('no_invoice', 'like', "%{$search}%");
+                    })
+                    ->orWhereHasMorph('kasbonable', [Employee::class], function ($employeeQuery) use ($search) {
+                        $employeeQuery->where('name', 'like', "%{$search}%")->orWhere('employee_id', 'like', "%{$search}%");
+                    });
+                });
+            })
+            ->when($statusFilter && $statusFilter !== 'all', function ($query) use ($statusFilter) {
+                if (in_array($statusFilter, ['paid', 'unpaid', 'partial'])) {
+                    return $query->where('payment_status', $statusFilter);
+                }
+                $backendStatus = ucfirst($statusFilter);
+                if (in_array($backendStatus, $this->statuses)) {
+                    return $query->where('status', $backendStatus);
+                }
+            })
+            ->orderBy('created_at', 'DESC')
+            ->get() // Mengambil SEMUA data, bukan paginate
+            ->map(function ($kasbon) {
+                // Logika transformasi data sama seperti di index
+                $ownerName = 'N/A';
+                $kasbonType = 'Tidak Diketahui';
+                if ($kasbon->kasbonable) {
+                    $kasbonType = $kasbon->kasbonable_type === Employee::class ? 'Pegawai' : 'Penoreh';
+                    $ownerName = $kasbon->kasbonable->name;
+                }
+                $totalPaid = $kasbon->payments->sum('amount');
+                $remaining = $kasbon->kasbon - $totalPaid;
+                return [
+                    'owner_name' => $ownerName,
+                    'kasbon_type' => $kasbonType,
+                    'kasbon' => $kasbon->kasbon,
+                    'total_paid' => $totalPaid,
+                    'remaining' => $remaining,
+                    'payment_status' => $kasbon->payment_status,
+                    'status' => $kasbon->status,
+                ];
+            });
+
+        return Inertia::render("Kasbons/Print", [
+            'kasbons' => $kasbons,
+            'filters' => $request->only(['search', 'status']),
+            'printDate' => now()->translatedFormat('d F Y'),
         ]);
     }
 }

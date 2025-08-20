@@ -10,27 +10,62 @@ use App\Models\SalaryHistory;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Carbon\Carbon;
 
 class PayrollController extends Controller
 {
-    // ... (fungsi index, create, generate, store, show tidak berubah) ...
-    public function index()
+    /**
+     * --- FUNGSI INDEX DIPERBARUI ---
+     * Menambahkan logika untuk filter berdasarkan periode (bulan & tahun).
+     */
+    public function index(Request $request)
     {
-        $payrolls = Payroll::with('employee')
+        // Validasi input filter
+        $request->validate([
+            'period' => 'nullable|date_format:Y-m',
+        ]);
+
+        // Query data penggajian dengan filter
+        $payrolls = Payroll::query()
+            ->with('employee')
+            ->when($request->input('period'), function ($query, $period) {
+                // Terapkan filter HANYA jika 'period' ada di request
+                return $query->where('payroll_period', $period);
+            })
             ->orderBy('payroll_period', 'desc')
-            ->orderBy('id', 'asc') 
-            ->paginate(15);
+            ->orderBy('id', 'asc')
+            ->paginate(15)
+            ->withQueryString(); // Agar pagination tetap membawa parameter filter
+
+        // Ambil semua periode unik yang ada di database untuk dropdown filter
+        $availablePeriods = DB::table('payrolls')
+            ->select('payroll_period')
+            ->distinct()
+            ->orderBy('payroll_period', 'desc')
+            ->get()
+            ->map(function ($item) {
+                // Ubah format 'YYYY-MM' menjadi 'Nama Bulan YYYY'
+                $date = Carbon::createFromFormat('Y-m', $item->payroll_period);
+                return [
+                    'value' => $item->payroll_period, // e.g., "2025-08"
+                    'label' => $date->translatedFormat('F Y'), // e.g., "Agustus 2025"
+                ];
+            });
 
         return Inertia::render('Payroll/Index', [
-            'payrolls' => $payrolls
+            'payrolls' => $payrolls,
+            'availablePeriods' => $availablePeriods, // Kirim data periode ke frontend
+            'filters' => $request->only(['period']), // Kirim nilai filter saat ini
         ]);
     }
+
     public function create()
     {
         return Inertia::render('Payroll/Create');
     }
+
     public function generate(Request $request)
     {
         $request->validate([
@@ -57,7 +92,7 @@ class PayrollController extends Controller
                 'employee_id' => $employee->id,
                 'name' => $employee->name,
                 'gaji_pokok' => $salary->gaji_pokok ?? 0,
-                'hari_hadir' => 22,
+                'hari_hadir' => 0,
                 'insentif' => 0,
                 'potongan_kasbon' => 0,
             ];
@@ -70,6 +105,7 @@ class PayrollController extends Controller
             'uang_makan_harian' => (int)$uangMakanHarian,
         ]);
     }
+
     public function store(Request $request)
     {
         $request->validate([
@@ -114,35 +150,31 @@ class PayrollController extends Controller
         }
         return redirect()->route('payroll.index')->with('message', 'Penggajian periode ' . $request->period_string . ' berhasil disimpan.');
     }
+
     public function show(Payroll $payroll)
     {
         $payroll->load(['employee', 'items']);
         return Inertia::render('Payroll/Show', ['payroll' => $payroll]);
     }
 
-
-    /**
-     * --- FUNGSI EDIT DIPERBARUI ---
-     * Mengambil semua rincian gaji untuk dikirim ke halaman edit.
-     */
     public function edit(Payroll $payroll)
     {
-        $payroll->load('items'); // Memuat relasi items
+        $payroll->load('items', 'employee');
 
-        // Mengambil nilai default dari item-item yang ada
         $gajiPokok = $payroll->items->where('deskripsi', 'Gaji Pokok')->first()->jumlah ?? 0;
         $insentif = $payroll->items->where('deskripsi', 'Insentif')->first()->jumlah ?? 0;
         $potonganKasbon = $payroll->items->where('deskripsi', 'Potongan Kasbon')->first()->jumlah ?? 0;
         
-        $uangMakanItem = $payroll->items->where('deskripsi', 'like', 'Uang Makan%')->first();
+        $uangMakanItem = $payroll->items->first(function ($item) {
+            return str_starts_with($item->deskripsi, 'Uang Makan');
+        });
+
         $hariHadir = 0;
         if ($uangMakanItem) {
-            // Mengekstrak jumlah hari dari deskripsi, contoh: "Uang Makan (22 hari)"
             preg_match('/\((\d+)\s*hari\)/', $uangMakanItem->deskripsi, $matches);
             $hariHadir = $matches[1] ?? 0;
         }
 
-        // Ambil pengaturan uang makan harian
         $uangMakanHarian = PayrollSetting::where('setting_key', 'uang_makan_harian')->first()->setting_value ?? 20000;
 
         return Inertia::render('Payroll/Edit', [
@@ -150,8 +182,7 @@ class PayrollController extends Controller
                 'id' => $payroll->id,
                 'status' => $payroll->status,
                 'payroll_period' => $payroll->payroll_period,
-                'employee' => $payroll->employee,
-                // Data komponen gaji
+                'employee_name' => $payroll->employee->name,
                 'gaji_pokok' => $gajiPokok,
                 'hari_hadir' => (int)$hariHadir,
                 'insentif' => $insentif,
@@ -161,10 +192,6 @@ class PayrollController extends Controller
         ]);
     }
 
-    /**
-     * --- FUNGSI UPDATE DIPERBARUI ---
-     * Menghitung ulang dan menyimpan semua komponen gaji.
-     */
     public function update(Request $request, Payroll $payroll)
     {
         $request->validate([
@@ -178,7 +205,6 @@ class PayrollController extends Controller
 
         DB::beginTransaction();
         try {
-            // Hitung ulang total
             $gajiPokok = $request->gaji_pokok;
             $insentif = $request->insentif;
             $uangMakan = $request->hari_hadir * $request->uang_makan_harian;
@@ -188,7 +214,6 @@ class PayrollController extends Controller
             $totalPotongan = $potonganKasbon;
             $gajiBersih = $totalPendapatan - $totalPotongan;
 
-            // Update tabel payroll utama
             $payroll->update([
                 'total_pendapatan' => $totalPendapatan,
                 'total_potongan' => $totalPotongan,
@@ -197,28 +222,25 @@ class PayrollController extends Controller
                 'tanggal_pembayaran' => $request->status === 'paid' ? now() : null,
             ]);
 
-            // Update atau buat rincian di payroll_items
-            PayrollItem::updateOrCreate(
-                ['payroll_id' => $payroll->id, 'deskripsi' => 'Gaji Pokok'],
-                ['tipe' => 'pendapatan', 'jumlah' => $gajiPokok]
-            );
-            PayrollItem::updateOrCreate(
-                ['payroll_id' => $payroll->id, 'deskripsi' => 'like', 'Uang Makan%'],
-                ['deskripsi' => "Uang Makan ({$request->hari_hadir} hari)", 'tipe' => 'pendapatan', 'jumlah' => $uangMakan]
-            );
-            PayrollItem::updateOrCreate(
-                ['payroll_id' => $payroll->id, 'deskripsi' => 'Insentif'],
-                ['tipe' => 'pendapatan', 'jumlah' => $insentif]
-            );
-            PayrollItem::updateOrCreate(
-                ['payroll_id' => $payroll->id, 'deskripsi' => 'Potongan Kasbon'],
-                ['tipe' => 'potongan', 'jumlah' => $potonganKasbon]
-            );
+            $payroll->items()->delete();
+
+            PayrollItem::create(['payroll_id' => $payroll->id, 'deskripsi' => 'Gaji Pokok', 'tipe' => 'pendapatan', 'jumlah' => $gajiPokok]);
+
+            if ($uangMakan > 0) {
+                PayrollItem::create(['payroll_id' => $payroll->id, 'deskripsi' => "Uang Makan ({$request->hari_hadir} hari)", 'tipe' => 'pendapatan', 'jumlah' => $uangMakan]);
+            }
+            if ($insentif > 0) {
+                PayrollItem::create(['payroll_id' => $payroll->id, 'deskripsi' => 'Insentif', 'tipe' => 'pendapatan', 'jumlah' => $insentif]);
+            }
+            if ($potonganKasbon > 0) {
+                PayrollItem::create(['payroll_id' => $payroll->id, 'deskripsi' => 'Potongan Kasbon', 'tipe' => 'potongan', 'jumlah' => $potonganKasbon]);
+            }
 
             DB::commit();
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+            Log::error('Payroll Update Failed: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Terjadi kesalahan saat memperbarui data: ' . $e->getMessage());
         }
 
         return redirect()->route('payroll.index')->with('message', 'Data penggajian berhasil diperbarui.');

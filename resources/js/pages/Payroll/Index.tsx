@@ -1,18 +1,24 @@
-import React from 'react';
-import { Head, Link } from '@inertiajs/react';
+import React, { useEffect } from 'react';
+import { Head, Link, router, useForm } from '@inertiajs/react';
+import { cn } from '@/lib/utils';
+
+// Layout & Tipe Data
 import AppLayout from '@/layouts/app-layout';
-import Heading from '@/components/heading';
 import { type BreadcrumbItem } from '@/types';
+
+// Komponen UI dari ShadCN
+import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, User, Wallet, Eye, PlusCircle, Pencil } from 'lucide-react'; // <-- Tambahkan ikon Pencil
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
-// ... (Interface dan konstanta lainnya tidak berubah) ...
-interface PaginationLink {
-    url: string | null;
-    label: string;
-    active: boolean;
-}
+// Ikon dari Lucide React
+import { Calendar, PlusCircle, Pencil, MoreHorizontal, Eye } from 'lucide-react';
+
+// --- INTERFACES & TIPE DATA ---
 interface Payroll {
     id: number;
     payroll_period: string;
@@ -23,35 +29,80 @@ interface Payroll {
         name: string;
     };
 }
+
 interface PaginatedPayrolls {
     data: Payroll[];
-    links: PaginationLink[];
+    links: { url: string | null; label: string; active: boolean; }[];
     from: number;
     to: number;
     total: number;
 }
+
+interface Period {
+    value: string; // e.g., "2025-08"
+    label: string; // e.g., "Agustus 2025"
+}
+
+interface PageProps {
+    payrolls: PaginatedPayrolls;
+    availablePeriods: Period[];
+    filters: {
+        period?: string;
+    };
+}
+
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: route('dashboard') },
     { title: 'Penggajian', href: route('payroll.index') },
 ];
-const formatCurrency = (value: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(value);
-const Pagination = ({ links }: { links: PaginationLink[] }) => (
-    <nav className="flex items-center justify-center mt-6">
-        {links.map((link, index) => (
-            <Link
-                key={`pagination-${index}`}
-                href={link.url || '#'}
-                className={`pagination-link-light ${link.active ? 'active' : ''} ${!link.url ? 'disabled' : ''}`}
-                dangerouslySetInnerHTML={{ __html: link.label }}
-                as="button"
-                disabled={!link.url}
-            />
-        ))}
-    </nav>
-);
-// ...
 
-export default function Index({ payrolls }: { payrolls: PaginatedPayrolls }) {
+// --- FUNGSI BANTUAN & KOMPONEN KECIL ---
+const formatCurrency = (value: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(value);
+
+const Pagination: React.FC<{ links: PageProps['payrolls']['links'] }> = ({ links }) => (
+    <div className="flex items-center justify-center px-6 py-3">
+        <nav className="flex items-center space-x-1">
+            {links.map((link, index) => (
+                <Link
+                    key={index}
+                    href={link.url || '#'}
+                    className={cn(
+                        'px-3 py-1.5 text-sm rounded-md transition-colors',
+                        link.active ? 'bg-primary text-primary-foreground' : 'hover:bg-accent',
+                        !link.url && 'text-muted-foreground cursor-not-allowed'
+                    )}
+                    dangerouslySetInnerHTML={{ __html: link.label }}
+                    as="button"
+                    disabled={!link.url}
+                />
+            ))}
+        </nav>
+    </div>
+);
+
+const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
+    const statusMap = {
+        paid: { text: 'Dibayar', className: 'bg-green-100 text-green-800' },
+        final: { text: 'Final', className: 'bg-blue-100 text-blue-800' },
+        draft: { text: 'Draft', className: 'bg-yellow-100 text-yellow-800' },
+    };
+    const current = statusMap[status as keyof typeof statusMap] || { text: 'Unknown', className: 'bg-gray-100 text-gray-800' };
+    return <Badge className={cn('font-medium', current.className)}>{current.text}</Badge>;
+};
+
+// --- KOMPONEN UTAMA ---
+export default function Index({ payrolls, availablePeriods, filters }: PageProps) {
+    const { data, setData } = useForm({
+        period: filters.period || 'all',
+    });
+
+    useEffect(() => {
+        router.get(route('payroll.index'), { period: data.period === 'all' ? undefined : data.period }, {
+            preserveState: true,
+            replace: true,
+        });
+    }, [data.period]);
+
     const formatPeriod = (period: string) => {
         const [year, month] = period.split('-');
         return new Date(parseInt(year), parseInt(month) - 1).toLocaleDateString('id-ID', {
@@ -60,88 +111,94 @@ export default function Index({ payrolls }: { payrolls: PaginatedPayrolls }) {
         });
     };
 
-    const getStatusBadge = (status: string) => {
-        switch (status) {
-            case 'paid':
-                return <Badge className="status-badge-light paid">Dibayar</Badge>;
-            case 'final':
-                return <Badge className="status-badge-light final">Final</Badge>;
-            case 'draft':
-                return <Badge className="status-badge-light draft">Draft</Badge>;
-            default:
-                return <Badge className="status-badge-light unknown">Unknown</Badge>;
-        }
-    };
-
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Riwayat Penggajian" />
 
-            <div className="payroll-container-light space-y-6 p-4">
+            <div className="space-y-6 p-4 sm:p-6 lg:p-8">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                    <Heading title="Riwayat Penggajian" description={`Menampilkan ${payrolls.from}-${payrolls.to} dari ${payrolls.total} data penggajian.`} />
-                    <Link href={route('payroll.create')}>
-                        <Button>
-                            <PlusCircle className="w-4 h-4 mr-2" />
-                            Generate Gaji Baru
-                        </Button>
-                    </Link>
+                    <Heading title="Riwayat Penggajian" description={`Menampilkan ${payrolls.from || 0}-${payrolls.to || 0} dari ${payrolls.total} data penggajian.`} />
+                    
+                    <div className="flex items-center gap-4">
+                        <Select value={data.period} onValueChange={(value) => setData('period', value)}>
+                            <SelectTrigger className="w-[200px] bg-white dark:bg-transparent">
+                                <SelectValue placeholder="Filter Periode" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">Semua Periode</SelectItem>
+                                {availablePeriods.map((p) => (
+                                    <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+
+                        <Link href={route('payroll.create')}>
+                            <Button>
+                                <PlusCircle className="w-4 h-4 mr-2" />
+                                Generate Gaji Baru
+                            </Button>
+                        </Link>
+                    </div>
                 </div>
 
-                {payrolls.data.length > 0 ? (
-                    <>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                            {payrolls.data.map((payroll) => (
-                                <div key={payroll.id} className="payroll-card-light group bg-gray-300 rounded-xl">
-                                    <div className="p-5 flex flex-col h-full">
-                                        <div className="flex justify-between items-start mb-3">
-                                            <div className="flex items-center text-xs text-gray-500 font-medium">
-                                                <Calendar className="w-4 h-4 mr-2 text-gray-400" />
-                                                <span>{formatPeriod(payroll.payroll_period)}</span>
-                                            </div>
-                                            {getStatusBadge(payroll.status)}
-                                        </div>
-
-                                        <div className="mb-4 flex-grow">
-                                            <p className="text-lg font-semibold text-gray-800 mb-2">{payroll.employee.name}</p>
-                                            <div className="flex items-end">
-                                                <p className="text-2xl font-bold text-indigo-600 tracking-tight">{formatCurrency(payroll.gaji_bersih)}</p>
-                                            </div>
-                                        </div>
-                                        
-                                        <div className="border-t pt-4 mt-auto flex justify-between items-center">
-                                           <span className="text-xs text-gray-400">
-                                                Dibuat: {new Date(payroll.created_at).toLocaleDateString('id-ID')}
-                                           </span>
-                                           {/* --- PERBAIKAN: Tambahkan Tombol Edit --- */}
-                                           <div className="flex items-center gap-2">
-                                                <Link href={route('payroll.edit', payroll.id)}>
-                                                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                                                        <Pencil className="w-4 h-4 text-gray-500" />
-                                                    </Button>
-                                                </Link>
-                                                <Link href={route('payroll.show', payroll.id)}>
-                                                    <Button variant="outline" size="sm">
-                                                        Lihat Slip
-                                                    </Button>
-                                                </Link>
-                                           </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                        
-                        {payrolls.links.length > 3 && (
-                            <Pagination links={payrolls.links} />
-                        )}
-                    </>
-                ) : (
-                    <div className="text-center py-20 text-gray-500 bg-white rounded-lg border shadow-sm">
-                        <p className="font-medium">Tidak ada data penggajian untuk ditampilkan.</p>
-                        <p className="text-sm mt-1">Silakan generate gaji baru untuk memulai.</p>
-                    </div>
-                )}
+                <Card className="shadow-sm">
+                    <CardContent className="p-0">
+                        <Table>
+                            <TableHeader>
+                                <TableRow className="bg-slate-100 dark:bg-transparent hover:bg-slate-100">
+                                    <TableHead className="pl-6">Nama Karyawan</TableHead>
+                                    <TableHead>Periode Gaji</TableHead>
+                                    <TableHead>Status</TableHead>
+                                    <TableHead className="text-right">Gaji Bersih</TableHead>
+                                    <TableHead className="text-center pr-6">Aksi</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {payrolls.data.length > 0 ? (
+                                    payrolls.data.map((payroll) => (
+                                        <TableRow key={payroll.id} className="hover:bg-slate-50/50 transition-colors">
+                                            <TableCell className="pl-6 font-medium text-gray-800 dark:text-white">{payroll.employee.name}</TableCell>
+                                            <TableCell className="text-muted-foreground">{formatPeriod(payroll.payroll_period)}</TableCell>
+                                            <TableCell>
+                                                <StatusBadge status={payroll.status} />
+                                            </TableCell>
+                                            <TableCell className="text-right font-semibold text-indigo-600 tracking-tight">{formatCurrency(payroll.gaji_bersih)}</TableCell>
+                                            <TableCell className="text-center pr-6">
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <Button variant="ghost" className="h-8 w-8 p-0">
+                                                            <MoreHorizontal className="h-4 w-4" />
+                                                        </Button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent align="end">
+                                                        <DropdownMenuItem onSelect={() => router.get(route('payroll.show', payroll.id))}>
+                                                            <Eye className="mr-2 h-4 w-4" />
+                                                            <span>Lihat Slip</span>
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuItem onSelect={() => router.get(route('payroll.edit', payroll.id))}>
+                                                            <Pencil className="mr-2 h-4 w-4" />
+                                                            <span>Edit</span>
+                                                        </DropdownMenuItem>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))
+                                ) : (
+                                    <TableRow>
+                                        <TableCell colSpan={5} className="h-48 text-center text-muted-foreground">
+                                            <p className="font-medium">Tidak ada data penggajian untuk ditampilkan.</p>
+                                            <p className="text-sm mt-1">Coba pilih periode lain atau generate gaji baru.</p>
+                                        </TableCell>
+                                    </TableRow>
+                                )}
+                            </TableBody>
+                        </Table>
+                    </CardContent>
+                    {payrolls.links.length > 3 && (
+                        <Pagination links={payrolls.links} />
+                    )}
+                </Card>
             </div>
         </AppLayout>
     );

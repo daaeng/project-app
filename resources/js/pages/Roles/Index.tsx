@@ -88,7 +88,7 @@ export default function Index({ roles, flash }: PageProps) {
                                 <div className="relative z-10 flex flex-col h-full p-6">
                                     {/* Header Kartu */}
                                     <div className="flex items-start justify-between mb-4">
-                                        <h3 className="text-2xl font-light text-gray-100 uppercase tracking-widest">
+                                        <h3 className="text-2xl font-light text-gray-500 dark:text-white uppercase tracking-widest">
                                             {name}
                                         </h3>
                                         <ShieldCheck className="w-7 h-7 text-gray-500 group-hover:text-cyan-300 transition-colors duration-300" />
