@@ -72,7 +72,7 @@ export default function CreateKasbon({ incisors, monthsYears, flash, errors: pag
         incisor_id: '',
         month: '',
         year: '',
-        kasbon: 0,
+        kasbon: 1500000,
         status: 'Pending',
         reason: '',
     });
@@ -81,7 +81,7 @@ export default function CreateKasbon({ incisors, monthsYears, flash, errors: pag
         name: '',
         total_toreh_bulan_ini: 0,
         gaji_bulan_ini: 0,
-        max_kasbon_amount: 0,
+        max_kasbon_amount: 1500000,
     });
 
     const [isLoadingData, setIsLoadingData] = useState(false);
@@ -131,10 +131,10 @@ export default function CreateKasbon({ incisors, monthsYears, flash, errors: pag
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (data.kasbon > incisorDetails.max_kasbon_amount) {
-            setDataFetchError(`Jumlah kasbon tidak boleh melebihi ${formatCurrency(incisorDetails.max_kasbon_amount)}.`);
-            return;
-        }
+        // if (data.kasbon > incisorDetails.max_kasbon_amount) {
+        //     setDataFetchError(`Jumlah kasbon tidak boleh melebihi ${formatCurrency(incisorDetails.max_kasbon_amount)}.`);
+        //     return;
+        // }
         post(route('kasbons.store'), {
             onSuccess: () => reset(),
             preserveScroll: true,
@@ -142,6 +142,7 @@ export default function CreateKasbon({ incisors, monthsYears, flash, errors: pag
     };
 
     const sisaGaji = incisorDetails.gaji_bulan_ini - data.kasbon;
+    // const sisaGaji = incisorDetails.gaji_bulan_ini - data.kasbon;
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -240,7 +241,7 @@ export default function CreateKasbon({ incisors, monthsYears, flash, errors: pag
                                 </CardHeader>
                                 <CardContent className="space-y-3">
                                     <SummaryRow label="Total Torehan (Gaji Kotor)" value={formatCurrency(incisorDetails.total_toreh_bulan_ini)} isLoading={isLoadingData} />
-                                    <SummaryRow label="Total Gaji (50%)" value={formatCurrency(incisorDetails.gaji_bulan_ini)} isLoading={isLoadingData} />
+                                    {/* <SummaryRow label="Total Gaji (50%)" value={formatCurrency(incisorDetails.gaji_bulan_ini)} isLoading={isLoadingData} /> */}
                                     <SummaryRow label="Kasbon Diambil" value={formatCurrency(data.kasbon)} isLoading={isLoadingData} className="text-yellow-400" />
                                     <hr className="border-slate-700" />
                                     <div className="flex items-center justify-between pt-2">

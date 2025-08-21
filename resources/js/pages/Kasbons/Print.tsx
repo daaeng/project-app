@@ -6,7 +6,7 @@ import { Printer, ArrowLeft } from 'lucide-react';
 // --- INTERFACES ---
 interface KasbonPrint {
     owner_name: string;
-    kasbon_type: string;
+    location: string; // [PERUBAHAN] Ganti kasbon_type menjadi location
     kasbon: number;
     total_paid: number;
     remaining: number;
@@ -36,7 +36,6 @@ const getStatusText = (status: string, paymentStatus: string) => {
 // --- KOMPONEN HALAMAN CETAK ---
 export default function Print({ kasbons, filters, printDate }: PrintPageProps) {
     
-    // Fungsi untuk memicu dialog print browser
     const handlePrint = () => {
         window.print();
     };
@@ -47,31 +46,18 @@ export default function Print({ kasbons, filters, printDate }: PrintPageProps) {
     return (
         <>
             <Head title="Cetak Laporan Kasbon" />
-            {/* CSS Khusus untuk Halaman Cetak */}
             <style>
                 {`
                     @media print {
-                        .no-print {
-                            display: none !important;
-                        }
-                        @page {
-                            size: A4 portrait;
-                            margin: 1.5cm;
-                        }
-                        body {
-                            -webkit-print-color-adjust: exact;
-                            background-color: #fff;
-                        }
-                        .print-container {
-                            box-shadow: none;
-                            border: none;
-                        }
+                        .no-print { display: none !important; }
+                        @page { size: A4 portrait; margin: 1.5cm; }
+                        body { -webkit-print-color-adjust: exact; background-color: #fff; }
+                        .print-container { box-shadow: none; border: none; }
                     }
                 `}
             </style>
 
-            <div className="bg-white min-h-screen p-4 sm:p-8">
-                {/* Tombol Aksi (Tidak akan tercetak) */}
+            <div className="bg-gray-100 min-h-screen p-4 sm:p-8">
                 <div className="no-print max-w-4xl mx-auto mb-6 flex justify-between items-center">
                     <Button variant="outline" onClick={() => window.history.back()}>
                         <ArrowLeft className="w-4 h-4 mr-2" />
@@ -84,22 +70,18 @@ export default function Print({ kasbons, filters, printDate }: PrintPageProps) {
                     </Button>
                 </div>
 
-                {/* Konten yang Akan Dicetak */}
                 <div className="print-container max-w-4xl mx-auto bg-white p-8 rounded-lg shadow-lg border">
                     <header className="flex justify-between items-center pb-6 border-b-2 border-gray-800">
-                        <div className='grid grid-cols-7 w-full'>
-                            <div className='flex justify-center'>
-                                <img src="/assets/GKA_no_Tag.png" alt="GKA Logo" className="w-20 h-15 object-contain" />
-                            </div>
-                            <div className='col-span-4'>
-                                {/* Ganti dengan logo perusahaan Anda jika ada */}
+                        <div className='flex items-center gap-4'>
+                             <img src="/assets/GKA_no_Tag.png" alt="GKA Logo" className="w-20 h-auto object-contain" />
+                             <div>
                                 <h1 className="text-3xl font-bold text-gray-800">PT. Garuda Karya Amanat</h1>
                                 <p className="text-gray-500">Laporan Data Kasbon</p>
-                            </div>
-                            <div className="text-right col-span-2 ">
-                                <p className="text-sm text-gray-600">Tanggal Cetak</p>
-                                <p className="font-semibold text-gray-800">{printDate}</p>
-                            </div>
+                             </div>
+                        </div>
+                        <div className="text-right">
+                            <p className="text-sm text-gray-600">Tanggal Cetak</p>
+                            <p className="font-semibold text-gray-800">{printDate}</p>
                         </div>
                     </header>
 
@@ -109,7 +91,8 @@ export default function Print({ kasbons, filters, printDate }: PrintPageProps) {
                                 <tr>
                                     <th className="p-3 text-left font-semibold text-gray-700 border">No.</th>
                                     <th className="p-3 text-left font-semibold text-gray-700 border">Nama</th>
-                                    <th className="p-3 text-left font-semibold text-gray-700 border">Tipe</th>
+                                    {/* [PERUBAHAN] Ganti header kolom */}
+                                    <th className="p-3 text-left font-semibold text-gray-700 border">Lokasi</th>
                                     <th className="p-3 text-right font-semibold text-gray-700 border">Total Kasbon</th>
                                     <th className="p-3 text-right font-semibold text-gray-700 border">Sisa Utang</th>
                                     <th className="p-3 text-center font-semibold text-gray-700 border">Status</th>
@@ -120,7 +103,8 @@ export default function Print({ kasbons, filters, printDate }: PrintPageProps) {
                                     <tr key={index} className="border-b">
                                         <td className="p-3 border-x">{index + 1}</td>
                                         <td className="p-3 border-x">{kasbon.owner_name}</td>
-                                        <td className="p-3 border-x">{kasbon.kasbon_type}</td>
+                                        {/* [PERUBAHAN] Tampilkan data lokasi */}
+                                        <td className="p-3 border-x">{kasbon.location}</td>
                                         <td className="p-3 text-right border-x">{formatCurrency(kasbon.kasbon)}</td>
                                         <td className="p-3 text-right border-x font-medium text-red-600">{formatCurrency(kasbon.remaining)}</td>
                                         <td className="p-3 text-center border-x">{getStatusText(kasbon.status, kasbon.payment_status)}</td>

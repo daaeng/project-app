@@ -257,7 +257,7 @@ export default function Index({ requests, flash, filter, totalPending, totalAppr
                                                     <TableCell>{request.devisi}</TableCell>
                                                     <TableCell>{request.j_pengajuan}</TableCell>
                                                     <TableCell>{request.mengetahui}</TableCell>
-                                                    <TableCell>{request.dana}</TableCell>
+                                                    <TableCell>{formatCurrency(request.dana)}</TableCell>
                                                     <TableCell>
                                                         <Tag status={request.status} />
                                                     </TableCell>

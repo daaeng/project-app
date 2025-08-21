@@ -20,7 +20,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Textarea } from '@/components/ui/textarea';
 
 // Ikon dari Lucide React
-import { Search, Clock, CheckCircle2, Wallet, MoreHorizontal, Megaphone, XCircle, User, HardHat, Banknote, BadgeCheck, ReceiptText, Printer } from 'lucide-react';
+import { Search, Clock, CheckCircle2, Wallet, MoreHorizontal, Megaphone, XCircle, User, HardHat, Banknote, BadgeCheck, ReceiptText, Printer, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 // Konfigurasi breadcrumb untuk navigasi di atas halaman
 const breadcrumbs: BreadcrumbItem[] = [
@@ -33,18 +34,25 @@ interface Kasbon {
     owner_name: string;
     owner_identifier: string;
     kasbon_type: 'Pegawai' | 'Penoreh' | 'Tidak Diketahui';
-    kasbon: number; // Jumlah total pinjaman
-    status: 'Pending' | 'Approved' | 'Rejected'; // Status persetujuan
-    payment_status: 'unpaid' | 'partial' | 'paid'; // Status pembayaran (belum, dicicil, lunas)
+    kasbon: number;
+    status: 'Pending' | 'Approved' | 'Rejected';
+    payment_status: 'unpaid' | 'partial' | 'paid';
     created_at: string;
-    total_paid: number; // Total yang sudah dibayar
-    remaining: number;  // Sisa utang
+    total_paid: number;
+    remaining: number;
+}
+
+// [PERUBAHAN] Interface untuk link paginasi
+interface PaginationLink {
+    url: string | null;
+    label: string;
+    active: boolean;
 }
 
 interface PageProps {
     kasbons: {
         data: Kasbon[];
-        links: any[];
+        links: PaginationLink[]; // Menggunakan interface PaginationLink
         meta: any;
     };
     flash: {
@@ -54,6 +62,9 @@ interface PageProps {
     filter: {
         search?: string;
         status?: string;
+        time_filter?: string;
+        month?: string;
+        year?: string;
     };
     totalPendingKasbon: number;
     totalApprovedKasbon: number;
@@ -62,10 +73,8 @@ interface PageProps {
 
 // --- FUNGSI BANTUAN & KOMPONEN KECIL ---
 
-// Fungsi untuk memformat angka menjadi format mata uang Rupiah
 const formatCurrency = (value: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(value);
 
-// Komponen untuk kartu statistik di dashboard
 const StatCard: React.FC<{ icon: React.ElementType; title: string; value: string | number; description: string; className?: string; }> = ({ icon: Icon, title, value, description, className }) => (
     <Card className={cn("border-0 shadow-lg text-white overflow-hidden", className)}>
         <CardContent className="p-5 relative">
@@ -82,7 +91,6 @@ const StatCard: React.FC<{ icon: React.ElementType; title: string; value: string
     </Card>
 );
 
-// Komponen untuk menampilkan label status dengan warna dan ikon yang berbeda
 const StatusTag: React.FC<{ status: Kasbon['status']; paymentStatus: Kasbon['payment_status'] }> = ({ status, paymentStatus }) => {
     if (paymentStatus === 'paid') {
         return <span className="px-2.5 py-1 text-xs font-semibold rounded-full inline-flex items-center bg-teal-100 text-teal-800"><BadgeCheck className="w-3.5 h-3.5 mr-1.5" />Lunas</span>;
@@ -99,7 +107,6 @@ const StatusTag: React.FC<{ status: Kasbon['status']; paymentStatus: Kasbon['pay
     return <span className={cn('px-2.5 py-1 text-xs font-semibold rounded-full', current.className)}>{current.text}</span>;
 };
 
-// --- [PERUBAHAN] Komponen baru untuk menampilkan nama dengan ikon ---
 const OwnerCell: React.FC<{ kasbon: Kasbon }> = ({ kasbon }) => {
     const isPegawai = kasbon.kasbon_type === 'Pegawai';
     
@@ -115,6 +122,39 @@ const OwnerCell: React.FC<{ kasbon: Kasbon }> = ({ kasbon }) => {
                 <span className="font-medium text-gray-800">{kasbon.owner_name}</span>
                 <p className="text-xs text-muted-foreground">{kasbon.owner_identifier}</p>
             </div>
+        </div>
+    );
+};
+
+// --- [KOMPONEN BARU] Komponen Paginasi ---
+const Pagination: React.FC<{ links: PaginationLink[] }> = ({ links }) => {
+    if (links.length <= 3) return null;
+
+    return (
+        <div className="flex items-center justify-center gap-1 mt-4">
+            {links.map((link, index) => {
+                // Membersihkan label dari HTML entities
+                const cleanLabel = link.label.replace(/&laquo;|&raquo;/g, '').trim();
+
+                // Menentukan ikon untuk "Previous" dan "Next"
+                const icon = cleanLabel === 'Previous' ? <ChevronLeft size={18} /> : cleanLabel === 'Next' ? <ChevronRight size={18} /> : null;
+                
+                return (
+                    <Link
+                        key={index}
+                        href={link.url || '#'}
+                        preserveScroll
+                        className={cn(
+                            "flex items-center justify-center h-9 min-w-[2.25rem] px-3 text-sm font-medium rounded-md transition-colors",
+                            link.active ? "bg-primary text-primary-foreground shadow-md" : "bg-background text-foreground hover:bg-accent",
+                            !link.url && "text-muted-foreground cursor-not-allowed opacity-50"
+                        )}
+                        dangerouslySetInnerHTML={!icon ? { __html: cleanLabel } : undefined}
+                    >
+                        {icon && <span>{icon}</span>}
+                    </Link>
+                );
+            })}
         </div>
     );
 };
@@ -187,6 +227,50 @@ export default function KasbonIndex({ kasbons, flash, filter, totalPendingKasbon
             });
         }
     };
+
+    const [filters, setFilters] = useState({
+        search: filter.search || '',
+        status: filter.status || 'all',
+        time_filter: filter.time_filter || 'this_month',
+        month: filter.month || new Date().getMonth() + 1,
+        year: filter.year || new Date().getFullYear(),
+    });
+
+    const timeFilterOptions = [
+        { value: 'all_time', label: 'Semua Waktu' },
+        { value: 'this_year', label: 'Tahun Ini' },
+        { value: 'this_month', label: 'Bulan Ini' },
+        { value: 'last_month', label: 'Bulan Lalu' },
+        { value: 'this_week', label: 'Minggu Ini' },
+        { value: 'today', label: 'Hari Ini' },
+        { value: 'custom', label: 'Pilih Bulan & Tahun' },
+    ];
+
+    const months = Array.from({ length: 12 }, (_, i) => ({ value: i + 1, label: new Date(0, i).toLocaleString('id-ID', { month: 'long' }) }));
+    const currentYear = new Date().getFullYear();
+    const years = Array.from({ length: 10 }, (_, i) => ({ value: currentYear - i, label: (currentYear - i).toString() }));
+
+    const applyFilters = () => {
+        router.get(route('kasbons.index'), filters as any, {
+            preserveState: true,
+            preserveScroll: true,
+            replace: true,
+        });
+    };
+
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            if (filters.time_filter !== 'custom' || (filters.month && filters.year)) {
+                applyFilters();
+            }
+        }, 500);
+
+        return () => clearTimeout(handler);
+    }, [filters]);
+
+    const handleFilterChange = (key: keyof typeof filters, value: string | number) => {
+        setFilters(prev => ({ ...prev, [key]: value }));
+    };
     
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -194,11 +278,51 @@ export default function KasbonIndex({ kasbons, flash, filter, totalPendingKasbon
             <div className="space-y-6 p-4">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <Heading title="Dashboard Kasbon" description="Analitik dan manajemen data kasbon." />
-                     <div className="flex items-center gap-3">
+
+                    <div className="flex items-center gap-3">
+                        <>
+                            <Label htmlFor="time_filter" className="text-sm font-medium whitespace-nowrap">Filter Waktu:</Label>
+                            <Select value={filters.time_filter} onValueChange={(value) => handleFilterChange('time_filter', value)}>
+                                <SelectTrigger className="w-[180px]">
+                                    <SelectValue placeholder="Pilih periode" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {timeFilterOptions.map(option => (
+                                        <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+
+                            {filters.time_filter === 'custom' && (
+                                <>
+                                    <Select value={filters.month.toString()} onValueChange={(value) => handleFilterChange('month', parseInt(value))}>
+                                        <SelectTrigger className="w-[140px]">
+                                            <SelectValue placeholder="Bulan" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {months.map(month => (
+                                                <SelectItem key={month.value} value={month.value.toString()}>{month.label}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    <Select value={filters.year.toString()} onValueChange={(value) => handleFilterChange('year', parseInt(value))}>
+                                        <SelectTrigger className="w-[100px]">
+                                            <SelectValue placeholder="Tahun" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {years.map(year => (
+                                                <SelectItem key={year.value} value={year.value.toString()}>{year.label}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </>
+                            )}
+                        </>
+
                         <Link 
                             href={route('kasbons.print')} 
-                            data={{ status: activeTab, search: searchValue }} // Kirim filter saat ini
-                            target="_blank" // Buka di tab baru
+                            data={{ status: activeTab, search: searchValue }}
+                            target="_blank"
                         >
                             <Button variant="outline">
                                 <Printer className="w-4 h-4 mr-2" />
@@ -290,7 +414,6 @@ export default function KasbonIndex({ kasbons, flash, filter, totalPendingKasbon
                                     kasbons.data.map((kasbon) => (
                                     <TableRow key={kasbon.id}>
                                         <TableCell className="pl-6">
-                                            {/* --- [PERUBAHAN] Menggunakan komponen OwnerCell --- */}
                                             <OwnerCell kasbon={kasbon} />
                                         </TableCell>
                                         <TableCell>{formatCurrency(kasbon.kasbon)}</TableCell>
@@ -328,6 +451,9 @@ export default function KasbonIndex({ kasbons, flash, filter, totalPendingKasbon
                         </Table>
                     </CardContent>
                 </Card>
+
+                {/* --- [PERUBAHAN] Menambahkan komponen Paginasi di sini --- */}
+                <Pagination links={kasbons.links} />
 
                 <AlertDialog open={!!selectedKasbon} onOpenChange={closeDialog}>
                     <AlertDialogContent>
