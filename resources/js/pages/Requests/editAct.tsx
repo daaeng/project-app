@@ -1,346 +1,160 @@
 import Heading from '@/components/heading';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, useForm } from '@inertiajs/react';
-import { CircleAlert, Image, Undo2 } from 'lucide-react';
-
+import { AlertTriangle, ArrowLeft, Info, Save } from 'lucide-react';
 
 const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Administrasis',
-        href: '/Administrasis',
-    },
+    { title: 'Administrasi', href: route('administrasis.index') },
+    { title: 'Update Status Pengajuan' },
 ];
 
-interface Requested{
-    id: number,
-    name: string,
-    date: string,
-    devisi: string,
-    j_pengajuan: string,
-    mengetahui: string,
-    desk: string,
-    dana: number,
-    file: string,
-    status: string,
-    reason: string,
+interface Requested {
+    id: number;
+    name: string;
+    date: string;
+    devisi: string;
+    j_pengajuan: string;
+    mengetahui: string;
+    desk: string;
+    dana: number;
+    file: string;
+    status: 'belum ACC' | 'ditolak' | 'diterima';
+    reason: string;
 }
 
-interface props{
-    requests : Requested
+interface Props {
+    requests: Requested;
 }
 
-export default function index({requests} : props) {
-
-    const {data, setData, put, processing, errors } = useForm({
-
-        name: requests.name || '',
-        date: requests.date || '',
-        devisi: requests.devisi || '',
-        j_pengajuan: requests.j_pengajuan || '',
-        mengetahui: requests.mengetahui || '',
-        desk: requests.desk || '',
-        dana: requests.dana || '',
-        file: requests.file || '',
-        status: requests.status || '',
+export default function EditAct({ requests }: Props) {
+    const { data, setData, put, processing, errors } = useForm({
+        status: requests.status || 'belum ACC',
         reason: requests.reason || '',
-    })
+    });
 
-    const handleSubmit = (e: React.FormEvent) =>{
+    const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        put(route('requests.updateAct', requests.id));
-    }
+        put(route('requests.updateAct', requests.id), {
+            preserveScroll: true,
+        });
+    };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Edit Request" />
-
-            <div className="h-full flex-col rounded-xl p-4 bg-gray-50 dark:bg-black">
-            
-                <Heading title='Edit Pengajuan'/>
-
-                <Link href={route('administrasis.index')}>
-                    <Button className='bg-auto w-25 hover:bg-accent hover:text-black'>
-                        <Undo2 />
-                        Back
-                    </Button>
-                </Link>
-
-                <div className='w-full p-4'>
-
-                    {Object.keys(errors). length > 0 && (
-                        <Alert>
-                            <CircleAlert className='h-4 w-4'/>
-                            <AlertTitle className='text-red-600'>
-                                Errors...!
-                            </AlertTitle>
-                            <AlertDescription>
-                                <ul>
-                                    {Object.entries(errors).map(([key, message]) =>
-                                        <li key={key}>
-                                            {message as string  }
-                                        </li>
-                                    )}
-                                </ul>
-                            </AlertDescription>
-                        </Alert>
-                    )}
-
-                    <form onSubmit={handleSubmit} className='space-y-3 w-auto grid grid-cols-2 gap-2'>
-
-                        <div className='space-y-2'>
-                            <div className='gap-2'>
-                                <Label htmlFor='Name'> Name </Label>
-                                <Input placeholder='Yang mengajukan' value={data.name} onChange={(e) => setData('name', e.target.value)}/>
-                            </div>
-                            <div className='gap-2'>
-                                <Label htmlFor='Tanggal'> Tanggal </Label>
-                                <Input type='date' placeholder='Tanggal' value={data.date} onChange={(e) => setData('date', e.target.value)}/>
-                            </div>
-                            <div className='gap-2'>
-                                <Label htmlFor='Devisi'> Devisi </Label>
-                                <Input placeholder='Devisi' value={data.devisi} onChange={(e) => setData('devisi', e.target.value)}/>
-                            </div>
-                            <div className='gap-2'>
-                                <Label htmlFor='Jenis Pengajuan'> Jenis Pengajuan </Label>
-                                <Input placeholder='Jenis Pengajuan' value={data.j_pengajuan} onChange={(e) => setData('j_pengajuan', e.target.value)}/>
-                            </div>
-                            <div className='gap-2'>
-                                <Label htmlFor='Mengetahui'> Mengetahui </Label>
-                                <Input placeholder='Mengetahui' value={data.mengetahui} onChange={(e) => setData('mengetahui', e.target.value)}/>
-                            </div>                        
-                            <div className='gap-2'>
-                                <Label htmlFor='Description'> Description </Label>
-                                <Textarea placeholder='Description' value={data.desk} onChange={(e) => setData('desk', e.target.value)}/>
-                            </div>
-                            <div className='gap-2'>
-                                <Label htmlFor='Status'> Status </Label>                                
-                                <select value={data.status} onChange={(e) => setData('status', e.target.value)} className='w-full border p-1 rounded-md text-destructive-foreground' required>
-                                    <option value="" disabled selected>Info Status</option>
-                                    <option value="belum ACC" >Process</option>
-                                    <option value="ditolak" >Rejected</option>
-                                    <option value="diterima" >Accepted</option>
-                                </select>
-                            </div>
-                            <div className='gap-2'>
-                                <Label htmlFor='Reason'> Reason </Label>
-                                <Input placeholder='Reason' value={data.reason} onChange={(e) => setData('reason', e.target.value)} />
-                            </div>   
-                            <div className='gap-2'>
-                                <Label htmlFor='Dana'> Dana </Label>
-                                <div className='flex'>
-                                    <div className='mt-1'>
-                                        Rp.     
-                                    </div>
-                                    <Input placeholder='Dana' value={data.dana} onChange={(e) => setData('dana', e.target.value)}/>
-                                </div>
-                            </div>                  
-
-                        </div>
-
-                        <div className='gap-2'>
-                            <Label htmlFor='Foto Nota'> Screan Shot (SS) </Label>
-                            <div>
-                                <div className='flex'>
-                                    <Image className='p-1'/> 
-                                    Tidak Dapat Ubah Gambar
-                                </div>
-
-                                {data.file && (
-                                    <a 
-                                        href={`/storage/${data.file.replace('storage/', '')}`} 
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                    >
-                                        <img 
-                                            src={`/storage/${data.file.replace('storage/', '')}`} 
-                                            alt={data.name || 'Nota'}
-                                            className="h-100 object-contain"
-                                        />
-                                    </a>
-                                )}
-{/*                                 
-                                <img 
-                                src={`/storage/${data.file.replace('storage/', '')}`} 
-                                alt={data.name || 'Nota'}
-                                className="h-100 object-contain"
-                                /> */}
-                            </div>
-                        </div> 
-
-                        <div className=''>
-                            <Button type='submit' disabled={processing} className='bg-green-600 hover:bg-green-500'>
-                                Update
-                            </Button>
-                        </div>
-
-                    </form>
-                    
+            <Head title={`Update Status #${requests.id}`} />
+            <div className="p-4 md:p-6 min-h-screen">
+                <div className="flex justify-between items-center mb-6">
+                    <Heading title="Update Status Pengajuan" description={`Review dan perbarui status untuk pengajuan dari ${requests.name}.`} />
+                    <Link href={route('administrasis.index')}>
+                        <Button variant="outline" className="bg-transparent border-slate-600 hover:bg-slate-800 hover:text-white">
+                            <ArrowLeft className="mr-2 h-4 w-4" />
+                            Kembali
+                        </Button>
+                    </Link>
                 </div>
 
-                
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    {/* Kolom Kiri & Tengah: Info & Gambar */}
+                    <div className="lg:col-span-2 space-y-8">
+                        {/* Detail Pengajuan */}
+                        <div className="backdrop-blur-sm border border-slate-700 p-6 rounded-2xl shadow-lg">
+                            <h3 className="text-lg font-bold text-cyan-500 border-b border-slate-700 pb-2 mb-4">Detail Pengajuan</h3>
+                            <div className="space-y-4">
+                                <div>
+                                    <Label className="text-slate-400">Nama Pengaju</Label>
+                                    <p className="text-lg font-semibold mt-1">{requests.name}</p>
+                                </div>
+                                <div>
+                                    <Label className="text-slate-400">Tanggal</Label>
+                                    <p className="text-lg font-semibold mt-1">{requests.date}</p>
+                                </div>
+                                <div>
+                                    <Label className="text-slate-400 flex items-center"><Info className="w-4 h-4 mr-2" /> Deskripsi</Label>
+                                    <p className=" mt-1">{requests.desk || '-'}</p>
+                                </div>
+                            </div>
+                        </div>
 
+                        {/* Lampiran */}
+                        <div className="backdrop-blur-sm border border-slate-700 p-6 rounded-2xl shadow-lg">
+                            <h3 className="text-lg font-bold text-cyan-400 mb-4">Lampiran Bukti</h3>
+                            <div className="mt-2 p-2 border border-slate-700 rounded-lg flex items-center justify-center  min-h-[300px]">
+                                {requests.file ? (
+                                    <a href={`/storage/${requests.file}`} target="_blank" rel="noopener noreferrer" title="Klik untuk melihat gambar penuh">
+                                        <img
+                                            src={`/storage/${requests.file}`}
+                                            alt={`Bukti untuk ${requests.name}`}
+                                            className="max-w-full max-h-[400px] object-contain rounded-md"
+                                        />
+                                    </a>
+                                ) : (
+                                    <p className="">Tidak ada lampiran.</p>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Kolom Kanan: Form Update Status */}
+                    <div className="lg:col-span-1">
+                        <div className="backdrop-blur-sm border border-slate-700 p-6 rounded-2xl shadow-lg sticky top-6">
+                            <h3 className="text-lg font-bold text-cyan-400 border-b border-slate-700 pb-2 mb-6">Aksi</h3>
+                            {Object.keys(errors).length > 0 && (
+                                <Alert variant="destructive" className="mb-6 bg-red-500/10 border-red-500 text-red-300">
+                                    <AlertTriangle className="h-4 w-4" />
+                                    <AlertTitle>Terjadi Kesalahan</AlertTitle>
+                                    <AlertDescription>
+                                        <ul className="list-disc pl-5">
+                                            {Object.values(errors).map((message, index) => (
+                                                <li key={index}>{message}</li>
+                                            ))}
+                                        </ul>
+                                    </AlertDescription>
+                                </Alert>
+                            )}
+                            <form onSubmit={handleSubmit} className="space-y-6">
+                                <div>
+                                    <Label htmlFor="status" className="text-slate-400">Ubah Status</Label>
+                                    <Select
+                                        value={data.status}
+                                        onValueChange={(value: 'belum ACC' | 'ditolak' | 'diterima') => setData('status', value)}
+                                    >
+                                        <SelectTrigger className="w-full mt-2  border-slate-700 focus:border-cyan-500 focus:ring-cyan-500">
+                                            <SelectValue placeholder="Pilih status..." />
+                                        </SelectTrigger>
+                                        <SelectContent className=" border-slate-700">
+                                            <SelectItem value="belum ACC">Belum ACC</SelectItem>
+                                            <SelectItem value="diterima">Diterima</SelectItem>
+                                            <SelectItem value="ditolak">Ditolak</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div>
+                                    <Label htmlFor="reason" className="text-slate-400">Alasan (jika ditolak)</Label>
+                                    <Textarea
+                                        id="reason"
+                                        value={data.reason}
+                                        onChange={(e) => setData('reason', e.target.value)}
+                                        className="mt-2"
+                                        placeholder="Berikan alasan jika pengajuan ditolak..."
+                                    />
+                                </div>
+                                <div className="flex justify-end pt-4">
+                                    <Button type="submit" disabled={processing} className="w-full bg-cyan-500 hover:bg-cyan-600 text-white font-bold shadow-lg shadow-cyan-500/20 transition-all duration-300 transform hover:scale-105 py-3">
+                                        <Save className="w-5 h-5 mr-2" />
+                                        {processing ? 'Menyimpan...' : 'Simpan Perubahan'}
+                                    </Button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
             </div>
-
-
         </AppLayout>
     );
 }
-
-
-// import Heading from '@/components/heading';
-// import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-// import { Button } from '@/components/ui/button';
-// import { Input } from '@/components/ui/input';
-// import { Label } from '@/components/ui/label';
-// import { Textarea } from '@/components/ui/textarea';
-// import AppLayout from '@/layouts/app-layout';
-// import { type BreadcrumbItem } from '@/types';
-// import { Head, Link, useForm } from '@inertiajs/react';
-// import { CircleAlert, Image, Undo2 } from 'lucide-react';
-// import { useState } from 'react';
-
-
-// const breadcrumbs: BreadcrumbItem[] = [
-//     {
-//         title: 'Edit Form',
-//         href: '/requests?',
-//     },
-// ];
-
-
-
-// export default function index({requested} : props) {
-
-//     const {data, setData, put, errors } = useForm({
-    
-//         name: requested.name || '',
-//         date: requested.date || '',
-//         devisi: requested.devisi || '',
-//         j_pengajuan: requested.j_pengajuan || '',
-//         mengetahui: requested.mengetahui || '',
-//         desk: requested.desk || '',
-//         file: requested.file || '',
-
-//     })
-
-//     const [isSubmitting, setIsSubmitting] = useState(false);
-
-//     const handleSubmit = (e: React.FormEvent) => {
-//         e.preventDefault();
-//         setIsSubmitting(true);
-        
-//         put(route('requests.update', requested.id), {
-//             onFinish: () => setIsSubmitting(false),
-//             // preserveScroll: true
-//         });
-//     };
-
-//     return (
-//         <AppLayout breadcrumbs={breadcrumbs}>
-//             <Head title="Edit Form" />
-
-//             <div className="h-full flex-col rounded-xl p-4">
-            
-//                 <Heading title='Ubah Form'/>
-
-//                 <Link href={route('requests.index')}>
-//                     <Button className='bg-auto w-25 hover:bg-accent hover:text-black'>
-//                         <Undo2 />
-//                         Back
-//                     </Button>
-//                 </Link>
-
-//                 <div className='w-full p-4'>
-
-//                     {Object.keys(errors). length > 0 && (
-//                         <Alert>
-//                             <CircleAlert className='h-4 w-4'/>
-//                             <AlertTitle className='text-red-600'>
-//                                 Errors...!
-//                             </AlertTitle>
-//                             <AlertDescription>
-//                                 <ul>
-//                                     {Object.entries(errors).map(([key, message]) =>
-//                                         <li key={key}>
-//                                             {message as string  }
-//                                         </li>
-//                                     )}
-//                                 </ul>
-//                             </AlertDescription>
-//                         </Alert>
-//                     )}
-
-//                     <form onSubmit={handleSubmit} className='space-y-3 w-full gap-2 grid grid-cols-2'>
-
-//                         <div className='space-y-2'>
-//                             <div className='gap-2'>
-//                                 <Label htmlFor='Name'> Name </Label>
-//                                 <Input placeholder='Yang mengajukan' value={data.name} onChange={(e) => setData('name', e.target.value)}/>
-//                             </div>
-//                             <div className='gap-2'>
-//                                 <Label htmlFor='Tanggal'> Tanggal </Label>
-//                                 <Input type='date' placeholder='Tanggal' value={data.date} onChange={(e) => setData('date', e.target.value)}/>
-//                             </div>
-//                             <div className='gap-2'>
-//                                 <Label htmlFor='Devisi'> Devisi </Label>
-//                                 <Input placeholder='Devisi' value={data.devisi} onChange={(e) => setData('devisi', e.target.value)} />
-//                             </div>
-//                             <div className='gap-2'>
-//                                 <Label htmlFor='Jenis Pengajuan'> Jenis Pengajuan </Label>
-//                                 <Input placeholder='Jenis Pengajuan' value={data.j_pengajuan} onChange={(e) => setData('j_pengajuan', e.target.value)}/>
-//                             </div>
-//                             <div className='gap-2'>
-//                                 <Label htmlFor='Mengetahui'> Mengetahui </Label>
-//                                 <Input placeholder='Mengetahui'  value={data.mengetahui} onChange={(e) => setData('mengetahui', e.target.value)}/>
-//                             </div>                        
-//                             <div className='gap-2'>
-//                                 <Label htmlFor='Description'> Description </Label>
-//                                 <Textarea placeholder='Description' value={data.desk} onChange={(e) => setData('desk', e.target.value)}/>
-//                             </div>
-                            
-
-//                         </div>
-
-//                         <div className='gap-2'>
-//                             <Label htmlFor='Foto Requests'> Foto Form </Label>
-//                             <div>
-//                                 <div className='flex'>
-//                                     <Image className='p-1'/> 
-//                                     Tidak Dapat Ubah Gambar
-//                                 </div>
-//                                 <img 
-//                                 src={`/storage/${data.file.replace('storage/', '')}`} 
-//                                 alt={data.name || 'Reqeusts'}
-//                                 className="h-100 object-contain"
-//                                 />
-//                             </div>
-//                         </div>                        
-
-//                         <div className=''>
-//                             <Button 
-//                                 type="submit" 
-//                                 disabled={isSubmitting}
-//                                 className={isSubmitting ? 'opacity-50' : ''} 
-//                             >
-//                                 Upload Form
-//                             </Button>
-//                         </div>
-
-//                     </form>
-                    
-//                 </div>
-
-                
-
-//             </div>
-
-
-//         </AppLayout>
-//     );
-// }

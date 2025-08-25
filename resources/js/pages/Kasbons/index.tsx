@@ -42,7 +42,6 @@ interface Kasbon {
     remaining: number;
 }
 
-// [PERUBAHAN] Interface untuk link paginasi
 interface PaginationLink {
     url: string | null;
     label: string;
@@ -52,7 +51,7 @@ interface PaginationLink {
 interface PageProps {
     kasbons: {
         data: Kasbon[];
-        links: PaginationLink[]; // Menggunakan interface PaginationLink
+        links: PaginationLink[];
         meta: any;
     };
     flash: {
@@ -144,6 +143,7 @@ const Pagination: React.FC<{ links: PaginationLink[] }> = ({ links }) => {
                         key={index}
                         href={link.url || '#'}
                         preserveScroll
+                        preserveState // <-- [PERBAIKAN UTAMA] Menambahkan ini untuk menjaga state filter saat paginasi
                         className={cn(
                             "flex items-center justify-center h-9 min-w-[2.25rem] px-3 text-sm font-medium rounded-md transition-colors",
                             link.active ? "bg-primary text-primary-foreground shadow-md" : "bg-background text-foreground hover:bg-accent",
@@ -165,10 +165,17 @@ export default function KasbonIndex({ kasbons, flash, filter, totalPendingKasbon
     const { delete: destroy } = useForm();
     const { data, setData, post, processing, errors, reset } = useForm({ amount: '', notes: '' });
     const [selectedKasbon, setSelectedKasbon] = useState<Kasbon | null>(null);
-    const [searchValue, setSearchValue] = useState(filter?.search || '');
-    const [activeTab, setActiveTab] = useState(filter?.status || 'all');
     const [showSuccessAlert, setShowSuccessAlert] = useState(false);
     const [showErrorAlert, setShowErrorAlert] = useState(false);
+
+    // [PERBAIKAN] Menyatukan semua state filter ke dalam satu objek
+    const [filters, setFilters] = useState({
+        search: filter.search || '',
+        status: filter.status || 'all',
+        time_filter: filter.time_filter || 'this_month',
+        month: filter.month || new Date().getMonth() + 1,
+        year: filter.year || new Date().getFullYear(),
+    });
 
     useEffect(() => {
         if (flash.message) {
@@ -182,21 +189,6 @@ export default function KasbonIndex({ kasbons, flash, filter, totalPendingKasbon
             return () => clearTimeout(timer);
         }
     }, [flash]);
-
-    const handleTabChange = (tab: string) => {
-        setActiveTab(tab);
-        router.get(route('kasbons.index'), { search: searchValue, status: tab }, { preserveState: true, replace: true });
-    }
-
-    const performSearch = () => {
-        handleTabChange(activeTab);
-    };
-
-    const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === 'Enter') {
-            performSearch();
-        }
-    };
 
     const handlePaySubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -228,14 +220,6 @@ export default function KasbonIndex({ kasbons, flash, filter, totalPendingKasbon
         }
     };
 
-    const [filters, setFilters] = useState({
-        search: filter.search || '',
-        status: filter.status || 'all',
-        time_filter: filter.time_filter || 'this_month',
-        month: filter.month || new Date().getMonth() + 1,
-        year: filter.year || new Date().getFullYear(),
-    });
-
     const timeFilterOptions = [
         { value: 'all_time', label: 'Semua Waktu' },
         { value: 'this_year', label: 'Tahun Ini' },
@@ -258,6 +242,8 @@ export default function KasbonIndex({ kasbons, flash, filter, totalPendingKasbon
         });
     };
 
+    // useEffect ini berfungsi sebagai debouncer, yang akan menjalankan applyFilters
+    // setelah pengguna berhenti mengetik atau mengubah filter selama 500ms.
     useEffect(() => {
         const handler = setTimeout(() => {
             if (filters.time_filter !== 'custom' || (filters.month && filters.year)) {
@@ -321,7 +307,7 @@ export default function KasbonIndex({ kasbons, flash, filter, totalPendingKasbon
 
                         <Link 
                             href={route('kasbons.print')} 
-                            data={{ status: activeTab, search: searchValue }}
+                            data={{ status: filters.status, search: filters.search }}
                             target="_blank"
                         >
                             <Button variant="outline">
@@ -374,10 +360,10 @@ export default function KasbonIndex({ kasbons, flash, filter, totalPendingKasbon
                                 {tabs.map(tab => (
                                     <button
                                         key={tab.key}
-                                        onClick={() => handleTabChange(tab.key)}
+                                        onClick={() => handleFilterChange('status', tab.key)}
                                         className={cn(
                                             "px-4 py-2 text-sm font-medium transition-colors -mb-px",
-                                            activeTab === tab.key
+                                            filters.status === tab.key
                                                 ? "border-b-2 border-primary text-primary"
                                                 : "text-muted-foreground hover:text-primary border-b-2 border-transparent"
                                         )}
@@ -390,9 +376,8 @@ export default function KasbonIndex({ kasbons, flash, filter, totalPendingKasbon
                                 <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
                                 <Input
                                     placeholder="Cari nama, NIP, atau No. Invoice..."
-                                    value={searchValue}
-                                    onChange={(e) => setSearchValue(e.target.value)}
-                                    onKeyPress={handleKeyPress}
+                                    value={filters.search}
+                                    onChange={(e) => handleFilterChange('search', e.target.value)}
                                     className="pl-10 w-full"
                                 />
                             </div>
@@ -452,7 +437,7 @@ export default function KasbonIndex({ kasbons, flash, filter, totalPendingKasbon
                     </CardContent>
                 </Card>
 
-                {/* --- [PERUBAHAN] Menambahkan komponen Paginasi di sini --- */}
+                {/* --- Menambahkan komponen Paginasi di sini --- */}
                 <Pagination links={kasbons.links} />
 
                 <AlertDialog open={!!selectedKasbon} onOpenChange={closeDialog}>

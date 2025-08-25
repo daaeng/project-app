@@ -16,48 +16,55 @@ use Carbon\Carbon;
 
 class PayrollController extends Controller
 {
-    /**
-     * --- FUNGSI INDEX DIPERBARUI ---
-     * Menambahkan logika untuk filter berdasarkan periode (bulan & tahun).
-     */
     public function index(Request $request)
     {
-        // Validasi input filter
         $request->validate([
             'period' => 'nullable|date_format:Y-m',
         ]);
 
-        // Query data penggajian dengan filter
-        $payrolls = Payroll::query()
+        $selectedPeriod = $request->input('period');
+
+        $payrollsQuery = Payroll::query()
             ->with('employee')
-            ->when($request->input('period'), function ($query, $period) {
-                // Terapkan filter HANYA jika 'period' ada di request
+            ->when($selectedPeriod, function ($query, $period) {
                 return $query->where('payroll_period', $period);
-            })
+            });
+
+        $statsQuery = clone $payrollsQuery;
+        $totalGajiPeriod = $statsQuery->sum('gaji_bersih');
+        $jumlahKaryawan = $statsQuery->count();
+        
+        $periodeAktif = 'Semua Periode';
+        if ($selectedPeriod) {
+            $periodeAktif = Carbon::createFromFormat('Y-m', $selectedPeriod)->translatedFormat('F Y');
+        }
+
+        $payrolls = $payrollsQuery
             ->orderBy('payroll_period', 'desc')
             ->orderBy('id', 'asc')
             ->paginate(15)
-            ->withQueryString(); // Agar pagination tetap membawa parameter filter
+            ->withQueryString();
 
-        // Ambil semua periode unik yang ada di database untuk dropdown filter
         $availablePeriods = DB::table('payrolls')
             ->select('payroll_period')
             ->distinct()
             ->orderBy('payroll_period', 'desc')
             ->get()
             ->map(function ($item) {
-                // Ubah format 'YYYY-MM' menjadi 'Nama Bulan YYYY'
                 $date = Carbon::createFromFormat('Y-m', $item->payroll_period);
                 return [
-                    'value' => $item->payroll_period, // e.g., "2025-08"
-                    'label' => $date->translatedFormat('F Y'), // e.g., "Agustus 2025"
+                    'value' => $item->payroll_period,
+                    'label' => $date->translatedFormat('F Y'),
                 ];
             });
 
         return Inertia::render('Payroll/Index', [
             'payrolls' => $payrolls,
-            'availablePeriods' => $availablePeriods, // Kirim data periode ke frontend
-            'filters' => $request->only(['period']), // Kirim nilai filter saat ini
+            'availablePeriods' => $availablePeriods,
+            'filters' => $request->only(['period']),
+            'totalGajiPeriod' => $totalGajiPeriod,
+            'jumlahKaryawan' => $jumlahKaryawan,
+            'periodeAktif' => $periodeAktif,
         ]);
     }
 

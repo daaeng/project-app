@@ -80,25 +80,29 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('/payroll', PayrollController::class)->except(['destroy']);
     
     // ~~~~~~~~~~~~~ REQUEST ~~~~~~~~~~~~~
-    route::get('/requests', [RequestController::class, 'index'])->name('requests.index')
+    Route::get('/requests', [RequestController::class, 'index'])->name('requests.index')
         ->middleware("permission:requests.create|requests.edit|requests.delete|requests.view");
-    route::post('/requests', [RequestController::class, 'surat'])->name('requests.surat')
+    Route::post('/requests', [RequestController::class, 'surat'])->name('requests.surat')
         ->middleware("permission:requests.create|requests.edit|requests.delete|requests.view");
-    route::get('/requests/create', [RequestController::class, 'create'])->name('requests.create')
+    Route::get('/requests/create', [RequestController::class, 'create'])->name('requests.create')
         ->middleware("permission:requests.create|requests.edit|requests.delete|requests.view");
-    route::get('/requests/{requested}/edit', [RequestController::class, 'edit'])->name('requests.edit')
+    Route::get('/requests/{requested}/edit', [RequestController::class, 'edit'])->name('requests.edit')
         ->middleware("permission:requests.create|requests.edit|requests.delete|requests.view");
-    route::put('/requests/{requested}', [RequestController::class, 'update'])->name('requests.update')
+    Route::put('/requests/{requested}', [RequestController::class, 'update'])->name('requests.update')
         ->middleware("permission:requests.create|requests.edit|requests.delete|requests.view");
-    route::get('/requests/{requested}/show', [RequestController::class, 'show'])->name('requests.show')
+    Route::get('/requests/{requested}/show', [RequestController::class, 'show'])->name('requests.show')
         ->middleware("permission:requests.create|requests.edit|requests.delete|requests.view");
-    route::delete('/requests/{requested}', [RequestController::class, 'destroy'])->name('requests.destroy')
+    Route::delete('/requests/{requested}', [RequestController::class, 'destroy'])->name('requests.destroy')
         ->middleware("permission:requests.create|requests.edit|requests.delete|requests.view");
-    route::get('/requests/{requested}/editAct', [RequestController::class, 'editAct'])->name('requests.editAct')
+
+    // --- [PERBAIKAN] ---
+    // Route untuk Action (Approval, dll) dipisahkan URL-nya
+    Route::get('/requests/{requested}/editAct', [RequestController::class, 'editAct'])->name('requests.editAct')
         ->middleware("permission:requests.create|requests.edit|requests.delete|requests.view");
-    route::put('/requests/{requested}', [RequestController::class, 'updateAct'])->name('requests.updateAct')
+    // Mengubah URL agar tidak konflik dengan route 'requests.update'
+    Route::put('/requests/{requested}/act', [RequestController::class, 'updateAct'])->name('requests.updateAct')
         ->middleware("permission:requests.create|requests.edit|requests.delete|requests.view");
-    route::get('/requests/{requested}/showAct', [RequestController::class, 'showAct'])->name('requests.showAct')
+    Route::get('/requests/{requested}/showAct', [RequestController::class, 'showAct'])->name('requests.showAct')
         ->middleware("permission:requests.create|requests.edit|requests.delete|requests.view");
     
     // ~~~~~~~~~~~~~ Invoice ~~~~~~~~~~~~~

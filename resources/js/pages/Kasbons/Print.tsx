@@ -127,7 +127,7 @@ export default function Print({ kasbons, filters, printDate }: PrintPageProps) {
                         </table>
                     </main>
 
-                    <footer className="mt-12 pt-6 border-t text-center text-xs text-gray-400">
+                    <footer className="mt-3 pt-6 border-t text-center text-xs text-gray-400">
                         <p>Dokumen ini dibuat secara otomatis oleh sistem.</p>
                     </footer>
                 </div>

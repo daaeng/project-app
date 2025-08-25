@@ -38,17 +38,17 @@ const mainNavItems: NavItem[] = [
         href: '/incisors',
         icon: UsersRound,
     },
-
-    {
-        title: 'Product',
-        href: '/products',
-        icon: PackageIcon,
-    },
     
     {
         title: 'Incised Data',
         href: '/inciseds',
         icon: PackageOpen,
+    },
+
+    {
+        title: 'Product',
+        href: '/products',
+        icon: PackageIcon,
     },
     
     {

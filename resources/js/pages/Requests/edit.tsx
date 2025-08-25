@@ -9,322 +9,150 @@ import { type BreadcrumbItem } from '@/types';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { CircleAlert, Image, Undo2 } from 'lucide-react';
 
-
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Edit Request',
-        href: '/requests?edit',
+        title: 'Requests',
+        href: route('requests.index'),
     },
+    
+    {
+        title: 'Edit Request',
+    }
 ];
 
-interface Requested{
-    id: number,
-    name: string,
-    date: string,
-    devisi: string,
-    j_pengajuan: string,
-    mengetahui: string,
-    desk: string,
-    dana: number,
-    file: string,
+interface Requested {
+    id: number;
+    name: string;
+    date: string;
+    devisi: string;
+    j_pengajuan: string;
+    mengetahui: string;
+    desk: string;
+    dana: number;
+    file: string;
 }
 
-interface props{
-    requests : Requested
+interface Props {
+    requests: Requested;
 }
 
-export default function index({requests} : props) {
-
-    const {data, setData, put, processing, errors } = useForm({
-
+export default function Edit({ requests }: Props) {
+    const { data, setData, put, processing, errors } = useForm({
         name: requests.name || '',
         date: requests.date || '',
         devisi: requests.devisi || '',
         j_pengajuan: requests.j_pengajuan || '',
         mengetahui: requests.mengetahui || '',
         desk: requests.desk || '',
-        dana: requests.dana || '',
-        file: requests.file || '',
+        dana: requests.dana || 0,
+        // File is not included as it cannot be changed in this form
+    });
 
-    })
-
-    const handleSubmit = (e: React.FormEvent) =>{
+    const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        put(route('requests.update', requests.id));
-    }
+        put(route('requests.update', requests.id), {
+            preserveScroll: true,
+        });
+    };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Edit Request" />
 
             <div className="h-full flex-col rounded-xl p-4 bg-gray-50 dark:bg-black">
-            
-                <Heading title='Edit Pengajuan'/>
+                <div className="flex justify-between items-center mb-4">
+                    <Heading title="Edit Pengajuan" />
+                    <Link href={route('requests.index')}>
+                        <Button variant="outline">
+                            <Undo2 className="mr-2 h-4 w-4" />
+                            Kembali
+                        </Button>
+                    </Link>
+                </div>
 
-                <Link href={route('requests.index')}>
-                    <Button className='bg-auto w-25 hover:bg-accent hover:text-black'>
-                        <Undo2 />
-                        Back
-                    </Button>
-                </Link>
-
-                <div className='w-full p-4'>
-
-                    {Object.keys(errors). length > 0 && (
-                        <Alert>
-                            <CircleAlert className='h-4 w-4'/>
-                            <AlertTitle className='text-red-600'>
-                                Errors...!
-                            </AlertTitle>
+                <div className="w-full p-4 border rounded-lg">
+                    {Object.keys(errors).length > 0 && (
+                        <Alert variant="destructive" className="mb-4">
+                            <CircleAlert className="h-4 w-4" />
+                            <AlertTitle>Error!</AlertTitle>
                             <AlertDescription>
                                 <ul>
-                                    {Object.entries(errors).map(([key, message]) =>
-                                        <li key={key}>
-                                            {message as string  }
-                                        </li>
-                                    )}
+                                    {Object.values(errors).map((message, index) => (
+                                        <li key={index}>{message}</li>
+                                    ))}
                                 </ul>
                             </AlertDescription>
                         </Alert>
                     )}
 
-                    <form onSubmit={handleSubmit} className='space-y-3 w-auto grid grid-cols-2 gap-2'>
-
-                        <div className='space-y-2'>
-                            <div className='gap-2'>
-                                <Label htmlFor='Name'> Name </Label>
-                                <Input placeholder='Yang mengajukan' value={data.name} onChange={(e) => setData('name', e.target.value)}/>
+                    <form onSubmit={handleSubmit} className="space-y-3 w-auto grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Left Column: Form Inputs */}
+                        <div className="space-y-4">
+                            <div>
+                                <Label htmlFor="name">Nama Pengaju</Label>
+                                <Input id="name" value={data.name} onChange={(e) => setData('name', e.target.value)} className="mt-1" />
                             </div>
-                            <div className='gap-2'>
-                                <Label htmlFor='Tanggal'> Tanggal </Label>
-                                <Input type='date' placeholder='Tanggal' value={data.date} onChange={(e) => setData('date', e.target.value)}/>
+                            <div>
+                                <Label htmlFor="date">Tanggal</Label>
+                                <Input id="date" type="date" value={data.date} onChange={(e) => setData('date', e.target.value)} className="mt-1" />
                             </div>
-                            <div className='gap-2'>
-                                <Label htmlFor='Devisi'> Devisi </Label>
-                                <Input placeholder='Devisi' value={data.devisi} onChange={(e) => setData('devisi', e.target.value)}/>
+                            <div>
+                                <Label htmlFor="devisi">Divisi</Label>
+                                <Input id="devisi" value={data.devisi} onChange={(e) => setData('devisi', e.target.value)} className="mt-1" />
                             </div>
-                            <div className='gap-2'>
-                                <Label htmlFor='Jenis Pengajuan'> Jenis Pengajuan </Label>
-                                <Input placeholder='Jenis Pengajuan' value={data.j_pengajuan} onChange={(e) => setData('j_pengajuan', e.target.value)}/>
+                             <div>
+                                <Label htmlFor="j_pengajuan">Jenis Pengajuan</Label>
+                                <Input id="j_pengajuan" value={data.j_pengajuan} onChange={(e) => setData('j_pengajuan', e.target.value)} className="mt-1" />
                             </div>
-                            <div className='gap-2'>
-                                <Label htmlFor='Mengetahui'> Mengetahui </Label>
-                                <Input placeholder='Mengetahui' value={data.mengetahui} onChange={(e) => setData('mengetahui', e.target.value)}/>
-                            </div>                        
-                            <div className='gap-2'>
-                                <Label htmlFor='Description'> Description </Label>
-                                <Textarea placeholder='Description' value={data.desk} onChange={(e) => setData('desk', e.target.value)}/>
-                            </div>   
-                            <div className='gap-2'>
-                                <Label htmlFor='Dana'> Dana </Label>
-                                <div className='flex'>
-                                    <div className='mt-1'>
-                                        Rp.     
-                                    </div>
-                                    <Input placeholder='Dana' value={data.dana} onChange={(e) => setData('dana', e.target.value)}/>
+                            <div>
+                                <Label htmlFor="mengetahui">Diketahui oleh</Label>
+                                <Input id="mengetahui" value={data.mengetahui} onChange={(e) => setData('mengetahui', e.target.value)} className="mt-1" />
+                            </div>
+                            <div>
+                                <Label htmlFor="desk">Deskripsi</Label>
+                                <Textarea id="desk" value={data.desk} onChange={(e) => setData('desk', e.target.value)} className="mt-1" />
+                            </div>
+                            <div>
+                                <Label htmlFor="dana">Total Dana</Label>
+                                <div className="relative mt-1">
+                                    <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">Rp</span>
+                                    <Input id="dana" type="number" value={data.dana} onChange={(e) => setData('dana', parseFloat(e.target.value) || 0)} className="pl-8" />
                                 </div>
-                            </div>                  
-
+                            </div>
                         </div>
 
-                        <div className='gap-2'>
-                            <Label htmlFor='Foto Nota'> Screan Shot (SS) </Label>
-                            <div>
-                                <div className='flex'>
-                                    <Image className='p-1'/> 
-                                    Tidak Dapat Ubah Gambar
+                        {/* Right Column: Image */}
+                        <div>
+                            <Label htmlFor="foto-nota">Bukti / Lampiran (Screenshot)</Label>
+                            <div className="mt-2 p-2 border rounded-lg flex flex-col items-center justify-center bg-gray-100 dark:bg-gray-900 min-h-[300px]">
+                                <div className="text-sm text-yellow-600 mb-2 p-2 bg-yellow-100 rounded-md flex items-center">
+                                    <Image className="h-4 w-4 mr-2" />
+                                    Lampiran tidak dapat diubah pada halaman ini.
                                 </div>
-
-                                {data.file && (
-                                    <a 
-                                        href={`/storage/${data.file.replace('storage/', '')}`} 
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                    >
-                                        <img 
-                                            src={`/storage/${data.file.replace('storage/', '')}`} 
-                                            alt={data.name || 'Nota'}
-                                            className="h-100 object-contain"
+                                {requests.file ? (
+                                    <a href={`/storage/${requests.file}`} target="_blank" rel="noopener noreferrer" title="Klik untuk melihat gambar penuh">
+                                        <img
+                                            // CORRECTED: The image path is now much simpler
+                                            src={`/storage/${requests.file}`}
+                                            alt={`Bukti untuk ${requests.name}`}
+                                            className="max-w-full max-h-[450px] object-contain rounded-md"
                                         />
                                     </a>
+                                ) : (
+                                    <p className="text-gray-500">Tidak ada lampiran.</p>
                                 )}
-{/*                                 
-                                <img 
-                                src={`/storage/${data.file.replace('storage/', '')}`} 
-                                alt={data.name || 'Nota'}
-                                className="h-100 object-contain"
-                                /> */}
                             </div>
-                        </div> 
-
-                        <div className=''>
-                            <Button type='submit' disabled={processing} className='bg-green-600 hover:bg-green-500'>
-                                Update
-                            </Button>
                         </div>
 
+                        {/* Update Button at the bottom */}
+                        <div className="md:col-span-2 flex justify-end">
+                            <Button type="submit" disabled={processing} className="bg-green-600 hover:bg-green-500">
+                                {processing ? 'Memperbarui...' : 'Update Pengajuan'}
+                            </Button>
+                        </div>
                     </form>
-                    
                 </div>
-
-                
-
             </div>
-
-
         </AppLayout>
     );
 }
-
-
-// import Heading from '@/components/heading';
-// import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-// import { Button } from '@/components/ui/button';
-// import { Input } from '@/components/ui/input';
-// import { Label } from '@/components/ui/label';
-// import { Textarea } from '@/components/ui/textarea';
-// import AppLayout from '@/layouts/app-layout';
-// import { type BreadcrumbItem } from '@/types';
-// import { Head, Link, useForm } from '@inertiajs/react';
-// import { CircleAlert, Image, Undo2 } from 'lucide-react';
-// import { useState } from 'react';
-
-
-// const breadcrumbs: BreadcrumbItem[] = [
-//     {
-//         title: 'Edit Form',
-//         href: '/requests?',
-//     },
-// ];
-
-
-
-// export default function index({requested} : props) {
-
-//     const {data, setData, put, errors } = useForm({
-    
-//         name: requested.name || '',
-//         date: requested.date || '',
-//         devisi: requested.devisi || '',
-//         j_pengajuan: requested.j_pengajuan || '',
-//         mengetahui: requested.mengetahui || '',
-//         desk: requested.desk || '',
-//         file: requested.file || '',
-
-//     })
-
-//     const [isSubmitting, setIsSubmitting] = useState(false);
-
-//     const handleSubmit = (e: React.FormEvent) => {
-//         e.preventDefault();
-//         setIsSubmitting(true);
-        
-//         put(route('requests.update', requested.id), {
-//             onFinish: () => setIsSubmitting(false),
-//             // preserveScroll: true
-//         });
-//     };
-
-//     return (
-//         <AppLayout breadcrumbs={breadcrumbs}>
-//             <Head title="Edit Form" />
-
-//             <div className="h-full flex-col rounded-xl p-4">
-            
-//                 <Heading title='Ubah Form'/>
-
-//                 <Link href={route('requests.index')}>
-//                     <Button className='bg-auto w-25 hover:bg-accent hover:text-black'>
-//                         <Undo2 />
-//                         Back
-//                     </Button>
-//                 </Link>
-
-//                 <div className='w-full p-4'>
-
-//                     {Object.keys(errors). length > 0 && (
-//                         <Alert>
-//                             <CircleAlert className='h-4 w-4'/>
-//                             <AlertTitle className='text-red-600'>
-//                                 Errors...!
-//                             </AlertTitle>
-//                             <AlertDescription>
-//                                 <ul>
-//                                     {Object.entries(errors).map(([key, message]) =>
-//                                         <li key={key}>
-//                                             {message as string  }
-//                                         </li>
-//                                     )}
-//                                 </ul>
-//                             </AlertDescription>
-//                         </Alert>
-//                     )}
-
-//                     <form onSubmit={handleSubmit} className='space-y-3 w-full gap-2 grid grid-cols-2'>
-
-//                         <div className='space-y-2'>
-//                             <div className='gap-2'>
-//                                 <Label htmlFor='Name'> Name </Label>
-//                                 <Input placeholder='Yang mengajukan' value={data.name} onChange={(e) => setData('name', e.target.value)}/>
-//                             </div>
-//                             <div className='gap-2'>
-//                                 <Label htmlFor='Tanggal'> Tanggal </Label>
-//                                 <Input type='date' placeholder='Tanggal' value={data.date} onChange={(e) => setData('date', e.target.value)}/>
-//                             </div>
-//                             <div className='gap-2'>
-//                                 <Label htmlFor='Devisi'> Devisi </Label>
-//                                 <Input placeholder='Devisi' value={data.devisi} onChange={(e) => setData('devisi', e.target.value)} />
-//                             </div>
-//                             <div className='gap-2'>
-//                                 <Label htmlFor='Jenis Pengajuan'> Jenis Pengajuan </Label>
-//                                 <Input placeholder='Jenis Pengajuan' value={data.j_pengajuan} onChange={(e) => setData('j_pengajuan', e.target.value)}/>
-//                             </div>
-//                             <div className='gap-2'>
-//                                 <Label htmlFor='Mengetahui'> Mengetahui </Label>
-//                                 <Input placeholder='Mengetahui'  value={data.mengetahui} onChange={(e) => setData('mengetahui', e.target.value)}/>
-//                             </div>                        
-//                             <div className='gap-2'>
-//                                 <Label htmlFor='Description'> Description </Label>
-//                                 <Textarea placeholder='Description' value={data.desk} onChange={(e) => setData('desk', e.target.value)}/>
-//                             </div>
-                            
-
-//                         </div>
-
-//                         <div className='gap-2'>
-//                             <Label htmlFor='Foto Requests'> Foto Form </Label>
-//                             <div>
-//                                 <div className='flex'>
-//                                     <Image className='p-1'/> 
-//                                     Tidak Dapat Ubah Gambar
-//                                 </div>
-//                                 <img 
-//                                 src={`/storage/${data.file.replace('storage/', '')}`} 
-//                                 alt={data.name || 'Reqeusts'}
-//                                 className="h-100 object-contain"
-//                                 />
-//                             </div>
-//                         </div>                        
-
-//                         <div className=''>
-//                             <Button 
-//                                 type="submit" 
-//                                 disabled={isSubmitting}
-//                                 className={isSubmitting ? 'opacity-50' : ''} 
-//                             >
-//                                 Upload Form
-//                             </Button>
-//                         </div>
-
-//                     </form>
-                    
-//                 </div>
-
-                
-
-//             </div>
-
-
-//         </AppLayout>
-//     );
-// }

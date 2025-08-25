@@ -1,159 +1,101 @@
 import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import AppLayout from '@/layouts/app-layout';
-import { Head, Link, useForm } from '@inertiajs/react';
-import { Undo2 } from 'lucide-react';
-import { type BreadcrumbItem } from '@/types';
 import Tag from '@/components/ui/tag';
+import AppLayout from '@/layouts/app-layout';
+import { type BreadcrumbItem } from '@/types';
+import { Head, Link } from '@inertiajs/react';
+import { ArrowLeft, Calendar, DollarSign, FileText, Hash, Info, Layers, User, Users } from 'lucide-react';
 
 const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'nota Information',
-        href: '/notas',
-    },
+    { title: 'Notas', href: route('notas.index') },
+    { title: 'Detail Nota' },
 ];
 
-interface Nota{
-    name: string,
-    date: string,
-    devisi: string,
-    mengetahui: string,
-    desk: string,
-    dana: string,
-    file: string,
+interface Nota {
+    id: number;
+    name: string;
+    date: string;
+    devisi: string;
+    mengetahui: string;
+    desk: string;
+    dana: number;
+    status: string;
+    file: string;
 }
 
-interface props{
-    nota : Nota
+interface Props {
+    nota: Nota;
 }
 
 const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('id-ID', {
         style: 'currency',
         currency: 'IDR',
-        minimumFractionDigits: 2,
+        minimumFractionDigits: 0,
     }).format(value);
 };
 
-export default function edit({nota} : props) {
+const DetailItem = ({ icon, label, value }: { icon: React.ReactNode; label: string; value: string | React.ReactNode }) => (
+    <div>
+        <div className="flex items-center text-sm mb-1">
+            {icon}
+            <span className="ml-2">{label}</span>
+        </div>
+        <div className="text-lg font-semibold ">{value}</div>
+    </div>
+);
 
-    const {data } = useForm({
-
-        name: nota.name,
-        date: nota.date,
-        devisi: nota.devisi,
-        mengetahui: nota.mengetahui,
-        desk: nota.desk,
-        dana: nota.dana,
-        status: nota.status,
-        file: nota.file,
-
-    })
-
+export default function Show({ nota }: Props) {
     return (
-        
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="nota" />
-
-            <div className="h-full flex-col rounded-xl p-4 bg-gray-50 dark:bg-black">
-            
-                <Heading title='Show Data nota'/>
-
-                <Link href={route('notas.index')}>
-                    <Button className='bg-auto w-25 hover:bg-accent hover:text-black'>
-                        <Undo2 />
-                        Back
-                    </Button>
-                </Link>
-
-                <div className='w-5xl p-4'>
-
-                    <form className='space-y-3 grid lg:grid-cols-2 md:grid-cols-1 gap-8'>
-
-                        <div className='space-y-2'>
-                            <div className='gap-2'>
-                                <Label htmlFor='nota Name'> Name </Label>
-                                <Input placeholder='nota Name' value={data.name} readOnly />
-                            </div>
-                            <div className='gap-2'>
-                                <Label htmlFor='Tanggal'> Tanggal </Label>
-                                <Input type='date' placeholder='Tanggal' value={data.date} readOnly />
-                            </div>
-                            <div className='gap-2'>
-                                <Label htmlFor='Invoice'> Devisi </Label>
-                                <Input placeholder='Invoice' value={data.devisi} readOnly  />
-                            </div>
-                            <div className='gap-2'>
-                                <Label htmlFor='Name Supplier'> Mengetahui </Label>
-                                <Input placeholder='Name Supplier' value={data.mengetahui} readOnly />
-                            </div>
-                            <div className='gap-2'>
-                                <Label htmlFor='Description'> Description </Label>
-                                <Textarea placeholder='Description' value={data.desk} readOnly/>
-                            </div>
-                            
-                            <div className='gap-2'>
-                                <Label htmlFor='Description'> Status </Label>
-                                <div>
-                                    <Tag status={data.status} />
-                                </div>
-                            </div>
-                            <div className='gap-2'>
-                                <Label htmlFor='Name Supplier'> Mengetahui </Label>
-                                <Input placeholder='Name Supplier' value={data.mengetahui} readOnly />
-                            </div>
-
-                        </div>
-                        
-                        <div>
-                            <div>
-                                <div className='gap-2'>
-                                    <Label htmlFor='Dana'> Dana </Label>
-                                    <div className='flex'>
-                                        
-                                        <Input placeholder='Dana' value={formatCurrency(data.dana)} onChange={(e) => setData('dana', e.target.value)} readOnly />
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className='gap-2'>
-                                <Label htmlFor='Image'> Image </Label>
-                                {/* <Input placeholder='Jenis Barang' value={data.file} readOnly className='bg-gray-50'/> */}
-                                
-                                {data.file && (
-                                    <a 
-                                        href={`/storage/${data.file.replace('storage/', '')}`} 
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                    >
-                                        <img 
-                                            src={`/storage/${data.file.replace('storage/', '')}`} 
-                                            alt={data.name || 'Nota'}
-                                            className="h-100 object-contain"
-                                        />
-                                    </a>
-                                )}
-                                {/* <img 
-                                    src={`/storage/${data.file.replace('storage/', '')}`} 
-                                    alt={data.name || 'Nota'}
-                                    className="h-100 object-contain"
-                                    /> */}
-                            </div>                        
-                        </div>
-            
-
-                    </form>
-                    
+            <Head title={`Detail Nota #${nota.id}`} />
+            <div className="p-4 md:p-6 min-h-screen">
+                <div className="flex justify-between items-center mb-6">
+                    <Heading title="Detail Nota" description={`Informasi lengkap untuk nota #${nota.id}`} />
+                    <Link href={route('notas.index')}>
+                        <Button variant="outline" className="bg-transparent border-slate-600 hover:bg-slate-800 hover:text-white">
+                            <ArrowLeft className="mr-2 h-4 w-4" />
+                            Kembali
+                        </Button>
+                    </Link>
                 </div>
 
-                
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div className="lg:col-span-2 backdrop-blur-sm border border-slate-700 p-8 rounded-2xl shadow-lg space-y-8">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <DetailItem icon={<User />} label="Nama Pengaju" value={nota.name} />
+                            <DetailItem icon={<Calendar />} label="Tanggal" value={nota.date} />
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <DetailItem icon={<Layers />} label="Divisi" value={nota.devisi} />
+                            <DetailItem icon={<Users />} label="Diketahui oleh" value={nota.mengetahui} />
+                        </div>
+                        <DetailItem icon={<Info />} label="Deskripsi" value={<p className="text-base text-slate-300 font-normal">{nota.desk || '-'}</p>} />
+                        <hr className="border-slate-700" />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                            <DetailItem icon={<Hash />} label="Status" value={<Tag status={nota.status} />} />
+                            <DetailItem icon={<DollarSign />} label="Total Biaya" value={<span className="text-cyan-400">{formatCurrency(nota.dana)}</span>} />
+                        </div>
+                    </div>
 
+                    <div className="lg:col-span-1  backdrop-blur-sm border border-slate-700 p-6 rounded-2xl shadow-lg flex flex-col">
+                        <h3 className="text-lg font-bold mb-4">Lampiran Nota</h3>
+                        <div className="flex-grow mt-2 p-2 border border-slate-700 rounded-lg flex items-center justify-center  min-h-[300px]">
+                            {nota.file ? (
+                                <a href={`/storage/${nota.file.replace('storage/', '')}`}  target="_blank" rel="noopener noreferrer" title="Klik untuk melihat gambar penuh">
+                                    <img
+                                        src={`/storage/${nota.file.replace('storage/', '')}`} 
+                                        alt={`Nota untuk ${nota.name}`}
+                                        className="max-w-full max-h-[500px] object-contain rounded-md"
+                                    />
+                                </a>
+                            ) : (
+                                <p className="text-slate-500">Tidak ada lampiran.</p>
+                            )}
+                        </div>
+                    </div>
+                </div>
             </div>
-
-
         </AppLayout>
     );
 }
