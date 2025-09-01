@@ -125,17 +125,14 @@ const OwnerCell: React.FC<{ kasbon: Kasbon }> = ({ kasbon }) => {
     );
 };
 
-// --- [KOMPONEN BARU] Komponen Paginasi ---
+// --- Komponen Paginasi (Diperbaiki) ---
 const Pagination: React.FC<{ links: PaginationLink[] }> = ({ links }) => {
     if (links.length <= 3) return null;
 
     return (
         <div className="flex items-center justify-center gap-1 mt-4">
             {links.map((link, index) => {
-                // Membersihkan label dari HTML entities
                 const cleanLabel = link.label.replace(/&laquo;|&raquo;/g, '').trim();
-
-                // Menentukan ikon untuk "Previous" dan "Next"
                 const icon = cleanLabel === 'Previous' ? <ChevronLeft size={18} /> : cleanLabel === 'Next' ? <ChevronRight size={18} /> : null;
                 
                 return (
@@ -143,7 +140,7 @@ const Pagination: React.FC<{ links: PaginationLink[] }> = ({ links }) => {
                         key={index}
                         href={link.url || '#'}
                         preserveScroll
-                        preserveState // <-- [PERBAIKAN UTAMA] Menambahkan ini untuk menjaga state filter saat paginasi
+                        preserveState // <-- [PERBAIKAN UTAMA] Menjaga state filter
                         className={cn(
                             "flex items-center justify-center h-9 min-w-[2.25rem] px-3 text-sm font-medium rounded-md transition-colors",
                             link.active ? "bg-primary text-primary-foreground shadow-md" : "bg-background text-foreground hover:bg-accent",
@@ -168,11 +165,10 @@ export default function KasbonIndex({ kasbons, flash, filter, totalPendingKasbon
     const [showSuccessAlert, setShowSuccessAlert] = useState(false);
     const [showErrorAlert, setShowErrorAlert] = useState(false);
 
-    // [PERBAIKAN] Menyatukan semua state filter ke dalam satu objek
     const [filters, setFilters] = useState({
         search: filter.search || '',
         status: filter.status || 'all',
-        time_filter: filter.time_filter || 'this_month',
+        time_filter: filter.time_filter || 'all_time',
         month: filter.month || new Date().getMonth() + 1,
         year: filter.year || new Date().getFullYear(),
     });
@@ -242,8 +238,6 @@ export default function KasbonIndex({ kasbons, flash, filter, totalPendingKasbon
         });
     };
 
-    // useEffect ini berfungsi sebagai debouncer, yang akan menjalankan applyFilters
-    // setelah pengguna berhenti mengetik atau mengubah filter selama 500ms.
     useEffect(() => {
         const handler = setTimeout(() => {
             if (filters.time_filter !== 'custom' || (filters.month && filters.year)) {
@@ -437,7 +431,6 @@ export default function KasbonIndex({ kasbons, flash, filter, totalPendingKasbon
                     </CardContent>
                 </Card>
 
-                {/* --- Menambahkan komponen Paginasi di sini --- */}
                 <Pagination links={kasbons.links} />
 
                 <AlertDialog open={!!selectedKasbon} onOpenChange={closeDialog}>
@@ -487,3 +480,4 @@ export default function KasbonIndex({ kasbons, flash, filter, totalPendingKasbon
         </AppLayout>
     );
 }
+

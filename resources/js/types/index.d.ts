@@ -41,3 +41,24 @@ export interface User {
     updated_at: string;
     [key: string]: unknown; // This allows for additional properties...
 }
+
+export interface Inventory {
+    id: number;
+    name: string;
+    unit: string;
+    stock: number;
+    low_stock_threshold: number;
+    transactions?: InventoryTransaction[];
+}
+
+export interface InventoryTransaction {
+    id: number;
+    inventory_id: number;
+    type: 'in' | 'out';
+    quantity: number;
+    transaction_date: string; // Comes as string, can be converted to Date
+    source?: string;
+    user_id?: number;
+    description?: string;
+    user?: User; // User who took the item
+}

@@ -12,6 +12,7 @@ use App\Http\Controllers\IncisedController;
 use App\Http\Controllers\KasbonController;
 use App\Http\Controllers\PegawaiController;
 use App\Http\Controllers\PayrollController;
+use App\Http\Controllers\InventoryController;
 
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -206,32 +207,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('kasbons.store_pegawai')
         ->middleware("permission:kasbons.create|kasbons.edit|kasbons.delete|kasbons.view");
         
-        // // ~~~~~~~~~~~~~ KASBON / UTANG ~~~~~~~~~~~~~
-    // Route::post('/kasbons/get-incisor-data', [KasbonController::class, 'getIncisorData'])
-    //     ->name('kasbons.getIncisorData')
-    //     ->middleware("permission:kasbons.create|kasbons.edit|kasbons.delete|kasbons.view");
-
-    // // --- ROUTE BARU UNTUK PEMBAYARAN ---
-    // Route::post('/kasbons/{kasbon}/pay', [KasbonController::class, 'pay'])
-    //     ->name('kasbons.pay')
-    //     ->middleware("permission:kasbons.edit"); // Cukup permission edit untuk membayar
-
-    // // Halaman utama kasbon/utang
-    // Route::resource('kasbons', KasbonController::class)
-    //     ->middleware("permission:kasbons.create|kasbons.edit|kasbons.delete|kasbons.view");
-
-    // // Form pengajuan kasbon pegawai
-    // Route::get('/kasbons-pegawai/create', [KasbonController::class, 'createPegawai'])
-    //     ->name('kasbons.create_pegawai')
-    //     ->middleware("permission:kasbons.create|kasbons.edit|kasbons.delete|kasbons.view");
-
-    // // Proses simpan kasbon pegawai
-    // Route::post('/kasbons-pegawai', [KasbonController::class, 'storePegawai'])
-    //     ->name('kasbons.store_pegawai')
-    //     ->middleware("permission:kasbons.create|kasbons.edit|kasbons.delete|kasbons.view");
-
-    // Route::get('/kasbons/print', [KasbonController::class, 'print'])->name('kasbons.print')
-    //     ->middleware("permission:kasbons.view");
+    // ~~~~~~~~~~~~~ INVENTORY ~~~~~~~~~~~~~
+    Route::get('/inventories', [InventoryController::class, 'index'])->name('inventories.index');
+    Route::post('/inventories', [InventoryController::class, 'store'])->name('inventories.store');
+    Route::put('/inventories/{inventory}', [InventoryController::class, 'update'])->name('inventories.update');
+    Route::delete('/inventories/{inventory}', [InventoryController::class, 'destroy'])->name('inventories.destroy');
+    Route::get('/inventories/{inventory}', [InventoryController::class, 'show'])->name('inventories.show');
+    Route::post('/inventories/{inventory}/stock-in', [InventoryController::class, 'stockIn'])->name('inventories.stockIn');
+    Route::post('/inventories/{inventory}/stock-out', [InventoryController::class, 'stockOut'])->name('inventories.stockOut');
 
 });
 

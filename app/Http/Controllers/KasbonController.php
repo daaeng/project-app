@@ -23,7 +23,9 @@ class KasbonController extends Controller
         $perPage = 10;
         $searchTerm = $request->input('search');
         $statusFilter = $request->input('status');
-        $timeFilter = $request->input('time_filter', 'this_month'); // Default ke 'Bulan Ini'
+        // --- PERBAIKAN DI SINI ---
+        // Mengubah default filter waktu menjadi 'all_time'
+        $timeFilter = $request->input('time_filter', 'all_time'); 
         $month = $request->input('month');
         $year = $request->input('year');
 
@@ -137,6 +139,8 @@ class KasbonController extends Controller
         ]);
     }
 
+    // ... (sisa fungsi lainnya tetap sama)
+
     public function pay(Request $request, Kasbon $kasbon)
     {
         $validated = $request->validate([
@@ -185,7 +189,6 @@ class KasbonController extends Controller
         }
     }
 
-    // ... (sisa fungsi lainnya)
     public function createPegawai()
     {
         $employees = Employee::select('id', 'name', 'salary', 'employee_id')->get()->map(fn ($e) => [
@@ -259,10 +262,6 @@ class KasbonController extends Controller
             ->whereYear('date', $validated['year'])
             ->sum('amount');
         $gaji = $totalAmount ;
-
-        // if ($validated['kasbon'] > $gaji && $gaji > 0) {
-        //     return redirect()->back()->with('error', 'Jumlah kasbon tidak boleh melebihi gaji.')->withInput();
-        // }
 
         DB::beginTransaction();
         try {
@@ -372,9 +371,6 @@ class KasbonController extends Controller
                 ]);
 
                 $employee = Employee::findOrFail($validated['employee_id']);
-                // if ($validated['kasbon'] > $employee->salary) {
-                //     return redirect()->back()->with('error', "Jumlah kasbon tidak boleh melebihi gaji pokok pegawai (" . number_format($employee->salary, 0, ',', '.') . ").")->withInput();
-                // }
 
                 $kasbon->update([
                     'kasbonable_id'   => $validated['employee_id'],
@@ -401,10 +397,6 @@ class KasbonController extends Controller
                     ->whereYear('date', $validated['year'])
                     ->sum('amount');
                 $gaji = $totalAmount * 0.5;
-
-                // if ($validated['kasbon'] > $gaji) {
-                //     return redirect()->back()->with('error', "Jumlah kasbon tidak boleh melebihi gaji penoreh pada periode ini (" . number_format($gaji, 0, ',', '.') . ").")->withInput();
-                // }
                 
                 $kasbon->update([
                     'kasbonable_id'   => $validated['incisor_id'],
@@ -452,7 +444,6 @@ class KasbonController extends Controller
             ->sum('amount');
 
         $gaji = $totalAmount;
-        // $gaji = $totalAmount * 0.5;
 
         return response()->json([
             'incisor' => $incisor,
@@ -493,15 +484,13 @@ class KasbonController extends Controller
             ->get() // Mengambil SEMUA data, bukan paginate
             ->map(function ($kasbon) {
                 $ownerName = 'N/A';
-                $location = '-'; // [PERUBAHAN] Variabel baru untuk lokasi
+                $location = '-';
 
                 if ($kasbon->kasbonable) {
                     $ownerName = $kasbon->kasbonable->name;
-                    // [PERUBAHAN] Cek tipe dan ambil lokasi jika Penoreh
                     if ($kasbon->kasbonable_type === Incisor::class) {
                         $location = $kasbon->kasbonable->lok_toreh ?? '-';
                     } else {
-                        // Untuk Pegawai, lokasi bisa diisi strip atau sesuai data lain jika ada
                         $location = 'Kantor'; 
                     }
                 }
@@ -511,7 +500,7 @@ class KasbonController extends Controller
 
                 return [
                     'owner_name' => $ownerName,
-                    'location' => $location, // [PERUBAHAN] Ganti kasbon_type menjadi location
+                    'location' => $location,
                     'kasbon' => $kasbon->kasbon,
                     'total_paid' => $totalPaid,
                     'remaining' => $remaining,
@@ -527,3 +516,4 @@ class KasbonController extends Controller
         ]);
     }
 }
+

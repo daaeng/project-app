@@ -4,9 +4,9 @@ import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { LayoutDashboard, ChartArea, UserCog2, PackageIcon, BookText, ReceiptText, Notebook, HandCoins, UsersRound, PackageOpen, BookUser, Banknote} from 'lucide-react';
+// ADD Archive here
+import { LayoutDashboard, ChartArea, UserCog2, PackageIcon, BookText, ReceiptText, Notebook, HandCoins, UsersRound, PackageOpen, BookUser, Banknote, Archive } from 'lucide-react';
 import AppLogo from './app-logo';
-// import { FaHandHoldingDollar } from "react-icons/fa6";
 
 const mainNavItems: NavItem[] = [
     {
@@ -50,6 +50,14 @@ const mainNavItems: NavItem[] = [
         href: '/products',
         icon: PackageIcon,
     },
+
+    // --- NEW INVENTORY MENU ITEM ---
+    {
+        title: 'Inventory',
+        href: '/inventories',
+        icon: Archive,
+    },
+    // -----------------------------
     
     {
         title: 'Request Latter',
@@ -80,28 +88,10 @@ const mainNavItems: NavItem[] = [
         href: '/payroll',
         icon: Banknote,
     },
-    
-    /*{
-        title: 'catalog',
-        href: '/catalog',
-        icon: LayoutGrid,
-    },*/
-    
 ];
 
 const footerNavItems: NavItem[] = [
-/*
-    {
-        title: 'Repository',
-        href: 'https://github.com/laravel/react-starter-kit',
-        icon: Folder,
-    },
-    {
-        title: 'Documentation',
-        href: 'https://laravel.com/docs/starter-kits',
-        icon: BookOpen,
-    },
-*/
+    // ... your footer items
 ];
 
 export function AppSidebar() {
