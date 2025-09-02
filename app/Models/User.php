@@ -46,4 +46,10 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function employee()
+    {
+        return $this->hasOne(Employee::class); 
+        // atau sesuaikan dengan struktur Anda, misal: 'user_id' di tabel employees
+    }
 }

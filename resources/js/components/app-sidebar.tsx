@@ -5,7 +5,7 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, Sid
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
 // ADD Archive here
-import { LayoutDashboard, ChartArea, UserCog2, PackageIcon, BookText, ReceiptText, Notebook, HandCoins, UsersRound, PackageOpen, BookUser, Banknote, Archive } from 'lucide-react';
+import { LayoutDashboard, ChartArea, UserCog2, PackageIcon, BookText, ReceiptText, Notebook, HandCoins, UsersRound, PackageOpen, BookUser, Banknote, Archive, Clock } from 'lucide-react';
 import AppLogo from './app-logo';
 
 const mainNavItems: NavItem[] = [
@@ -87,6 +87,12 @@ const mainNavItems: NavItem[] = [
         title: 'Payroll',
         href: '/payroll',
         icon: Banknote,
+    },
+
+    {
+        title: 'Absensi',
+        href: '/attendances',
+        icon: Clock,
     },
 ];
 

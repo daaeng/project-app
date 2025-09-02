@@ -349,9 +349,9 @@ export default function Dashboard({ totalAmountOutKaret, hsl_tsa, hsl_beli, tota
 
                     <StatCard
                         icon={FaBoxOpen}
-                        title="Total Stok Karet"
+                        title="Total Kirim Karet"
                         value={stok_gka + ''}
-                        subtitle="di Gudang PT GKA"
+                        subtitle="PT. GKA ke Buyer"
                         gradient="from-yellow-400 to-yellow-600"
                     />
 

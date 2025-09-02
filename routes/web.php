@@ -13,6 +13,7 @@ use App\Http\Controllers\KasbonController;
 use App\Http\Controllers\PegawaiController;
 use App\Http\Controllers\PayrollController;
 use App\Http\Controllers\InventoryController;
+use App\Http\Controllers\AttendanceController;
 
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -215,6 +216,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/inventories/{inventory}', [InventoryController::class, 'show'])->name('inventories.show');
     Route::post('/inventories/{inventory}/stock-in', [InventoryController::class, 'stockIn'])->name('inventories.stockIn');
     Route::post('/inventories/{inventory}/stock-out', [InventoryController::class, 'stockOut'])->name('inventories.stockOut');
+
+    // ~~~~~~~~~~~~~ ATTENDANCE (ABSENSI) ~~~~~~~~~~~~~
+    Route::resource('attendances', AttendanceController::class);
+        // ->middleware('permission:attendances.view|attendances.create'); // Anda bisa tambahkan permission di sini
 
 });
 

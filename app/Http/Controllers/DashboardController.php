@@ -70,7 +70,8 @@ class DashboardController extends Controller
         
         $stok_gka_qty_kg = $productQueryFilteredByTime->clone()->where('status', 'gka')->where('product', 'karet')->sum('qty_kg');
         $stok_gka_qty_out = $productQueryFilteredByTime->clone()->where('status', 'gka')->where('product', 'karet')->sum('qty_out');
-        $stok_gka = $stok_gka_qty_kg > 0 ? $stok_gka_qty_kg : $stok_gka_qty_out;
+        $stok_gka = $productQueryFilteredByTime->clone()->where('status', 'buyer')->where('product', 'karet')->SUM('qty_out');
+        // $stok_gka = $stok_gka_qty_kg > 0 ? $stok_gka_qty_kg : $stok_gka_qty_out;
 
         $hsl_sebayar = $productQueryFilteredByTime->clone()->where('nm_supplier', 'Sebayar')->where('product', 'karet')->sum('amount');
         $hsl_temadu = $productQueryFilteredByTime->clone()->where('nm_supplier', 'Temadu')->where('product', 'karet')->sum('amount');
