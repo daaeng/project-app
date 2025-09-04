@@ -6,8 +6,14 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { BreadcrumbItem } from '@/types';
 
 export default function Create() {
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: 'Penggajian', href: route('payroll.index') },
+        { title: 'Generate', href: '#' },
+    ];
+
     const { data, setData, get, processing, errors } = useForm({
         period_month: new Date().getMonth() + 1,
         period_year: new Date().getFullYear(),
@@ -26,7 +32,7 @@ export default function Create() {
     const years = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i);
 
     return (
-        <AppLayout>
+        <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Generate Gaji Baru" />
             <div className="flex justify-center items-center min-h-[calc(100vh-200px)] p-4">
                 <Card className="w-full max-w-lg">

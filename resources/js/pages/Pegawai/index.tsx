@@ -28,7 +28,7 @@ interface Pegawai {
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Dashboard', href: route('dashboard') },
+    // { title: 'Dashboard', href: route('dashboard') },
     { title: 'Pegawai', href: route('pegawai.index') },
 ];
 

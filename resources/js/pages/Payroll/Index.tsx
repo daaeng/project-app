@@ -56,7 +56,7 @@ interface PageProps {
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Dashboard', href: route('dashboard') },
+    // { title: 'Dashboard', href: route('dashboard') },
     { title: 'Penggajian', href: route('payroll.index') },
 ];
 

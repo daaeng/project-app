@@ -5,15 +5,15 @@ import { CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head, Link, useForm, usePage, router } from '@inertiajs/react'; // Added 'router'
-import { CirclePlus, Eye, Megaphone, Pencil, Search, Trash } from 'lucide-react'; // Added 'Search' icon
+import { Head, Link, useForm, router } from '@inertiajs/react'; 
+import { CirclePlus, Eye, Megaphone, Pencil, Search, Trash } from 'lucide-react';
 import { can } from '@/lib/can';
-import { Input } from '@/components/ui/input'; // Added Input component
-import { useState, useEffect } from 'react'; // Added useState and useEffect
+import { Input } from '@/components/ui/input'; 
+import { useState, useEffect } from 'react'; 
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Incisor',
+        title: 'Penoreh',
         href: '/incisors',
     },
 ];
@@ -28,7 +28,7 @@ interface Incisor {
     no_invoice: string;
 }
 
-interface PaginationLink { // Added PaginationLink interface for consistency
+interface PaginationLink { 
     url: string | null;
     label: string;
     active: boolean;
@@ -39,8 +39,8 @@ interface PageProps {
         message?: string;
     };
     incisors: {
-        data: Incisor[]; // Data incisors
-        links: PaginationLink[]; // Changed to use PaginationLink interface
+        data: Incisor[]; 
+        links: PaginationLink[]; 
         meta: {
             current_page: number;
             last_page: number;
@@ -48,47 +48,45 @@ interface PageProps {
             total: number;
         };
     };
-    filter?: { search?: string }; // Added filter prop for search value
+    filter?: { search?: string };
 }
 
-// Function to format currency (if needed, though 'incisors' table doesn't display currency)
-const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('id-ID', { // Changed to 'id-ID' for Indonesian currency format
-        style: 'currency',
-        currency: 'IDR',
-        minimumFractionDigits: 0, // Changed to 0 for whole numbers
-    }).format(value);
-};
+// const formatCurrency = (value: number) => {
+//     return new Intl.NumberFormat('id-ID', {
+//         style: 'currency',
+//         currency: 'IDR',
+//         minimumFractionDigits: 0, 
+//     }).format(value);
+// };
 
-export default function Admin() { // Renamed to Admin (PascalCase for component names, consistent with filename)
-    const { incisors, flash, filter } = usePage().props as PageProps; // Destructure filter from props
+export default function Admin({ incisors, flash, filter } : PageProps ) {
     const { processing, delete: destroy } = useForm();
 
-    const [searchValue, setSearchValue] = useState(filter?.search || ''); // Initialize search value from filter prop
+    const [searchValue, setSearchValue] = useState(filter?.search || ''); 
 
     useEffect(() => {
-        setSearchValue(filter?.search || ''); // Update search value when filter prop changes
+        setSearchValue(filter?.search || ''); 
     }, [filter?.search]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setSearchValue(e.target.value); // Update search value as user types
+        setSearchValue(e.target.value); 
     };
 
     const performSearch = () => {
         router.get(
             route('incisors.index'),
-            { search: searchValue }, // Send the search term to the backend
+            { search: searchValue }, 
             {
                 preserveState: true,
                 replace: true,
-                only: ['incisors', 'filter'], // Only update 'incisors' and 'filter' props
+                only: ['incisors', 'filter'], 
             }
         );
     };
 
     const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'Enter') {
-            performSearch(); // Trigger search on Enter key press
+            performSearch();  
         }
     };
 
@@ -97,18 +95,16 @@ export default function Admin() { // Renamed to Admin (PascalCase for component 
             destroy(route('incisors.destroy', id), {
                 preserveState: true,
                 preserveScroll: true,
-                onSuccess: () => {
-                    // After successful deletion, refresh the data with the current search filter
+                onSuccess: () => { 
                     router.get(route('incisors.index'), { search: searchValue }, { preserveState: true });
                 },
             });
         }
     };
-
-    // Fungsi untuk render link paginasi
-    const renderPagination = (pagination: PageProps['incisors']) => { // Adjusted type for better type safety
+ 
+    const renderPagination = (pagination: PageProps['incisors']) => {  
         return (
-            <div className="flex justify-center items-center mt-6 space-x-1"> {/* Added styling for better layout */}
+            <div className="flex justify-center items-center mt-6 space-x-1">  
                 {pagination.links.map((link: PaginationLink, index: number) => (
                     link.url === null ? (
                         <div
@@ -125,7 +121,7 @@ export default function Admin() { // Renamed to Admin (PascalCase for component 
                                     ? 'bg-blue-600 text-white shadow-md'
                                     : 'bg-white text-gray-700 hover:bg-gray-100'
                             }`}
-                            preserveState // Maintain form state and scroll position
+                            preserveState  
                             preserveScroll
                         >
                             <span dangerouslySetInnerHTML={{ __html: link.label }} />
@@ -143,14 +139,14 @@ export default function Admin() { // Renamed to Admin (PascalCase for component 
             {can('incisor.view') && (
                 <>
                     <div className="h-full flex-col rounded-xl p-4 bg-gray-50 dark:bg-black">
-                        <Heading title="Penoreh" />
+                        <Heading title="Data Penoreh" />
 
                         <div className="border h-auto p-3 rounded-lg">
                             {can('incisor.create') && (
                                 <div className="w-full mb-2 justify-end h-auto flex gap-2">
                                     <Link href={route('incisors.create')}>
                                         <Button className="bg-blue-600 w-32 hover:bg-blue-500 text-white">
-                                            <CirclePlus className="w-4 h-4 mr-2" /> {/* Added class for icon spacing */}
+                                            <CirclePlus className="w-4 h-4 mr-2" />  
                                             Add Penoreh
                                         </Button>
                                     </Link>
@@ -159,33 +155,33 @@ export default function Admin() { // Renamed to Admin (PascalCase for component 
 
                             <div>
                                 {flash.message && (
-                                    <Alert className="mb-4"> {/* Added margin-bottom */}
-                                        <Megaphone className="h-4 w-4" /> {/* Corrected class from h4-w4 */}
+                                    <Alert className="mb-4">  
+                                        <Megaphone className="h-4 w-4" />  
                                         <AlertTitle className="text-green-600">Notification</AlertTitle>
                                         <AlertDescription>{flash.message}</AlertDescription>
                                     </Alert>
                                 )}
                             </div>
 
-                            <div className='flex flex-col gap-4 py-4 sm:flex-row sm:items-center'> {/* Changed layout for search and button */}
-                                <div className='relative flex-1'> {/* Make search input flexible */}
+                            <div className='flex flex-col gap-4 py-4 sm:flex-row sm:items-center'>  
+                                <div className='relative flex-1'>  
                                     <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
                                     <Input
                                         placeholder="Search by Name, Location, No. Invoice..."
-                                        value={searchValue} // Bind value to state
-                                        onChange={handleInputChange} // Handle input changes
-                                        onKeyPress={handleKeyPress} // Handle Enter key press
+                                        value={searchValue}  
+                                        onChange={handleInputChange}  
+                                        onKeyPress={handleKeyPress}  
                                         className="pl-10"
                                     />
                                 </div>
-                                <Button onClick={performSearch}> {/* Added search button */}
+                                <Button onClick={performSearch}>  
                                     <Search className="h-4 w-4 mr-2" /> Search
                                 </Button>
                             </div>
 
-                            <CardContent className="border rounded-lg mt-4"> {/* Added mt-4 for spacing */}
+                            <CardContent className="border rounded-lg mt-4">  
                                 <div className="rounded-md">
-                                    {incisors.data.length > 0 ? ( // Conditional rendering based on data existence
+                                    {incisors.data.length > 0 ? (  
                                         <Table>
                                             <TableHeader>
                                                 <TableRow>
@@ -243,7 +239,7 @@ export default function Admin() { // Renamed to Admin (PascalCase for component 
                                         </div>
                                     )}
                                 </div>
-                                {incisors.data.length > 0 && renderPagination(incisors)} {/* Tambahkan navigasi paginasi */}
+                                {incisors.data.length > 0 && renderPagination(incisors)}  
                             </CardContent>
                         </div>
                     </div>

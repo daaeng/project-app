@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/componen
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Wallet, Calendar, Utensils, Gift, MinusCircle } from 'lucide-react';
+import { BreadcrumbItem } from '@/types';
 
 interface EmployeePayrollData {
     employee_id: number;
@@ -26,6 +27,11 @@ interface PageProps {
 }
 
 const formatCurrency = (value: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(value);
+
+const breadcrumbs: BreadcrumbItem[] = [
+    { title: 'Penggajian', href: route('payroll.index') },
+    { title: 'Generate', href: route('payroll.index') },
+];
 
 export default function Generate({ payrollData, period, period_string, uang_makan_harian }: PageProps) {
     const { data, setData, post, processing } = useForm({
@@ -47,7 +53,7 @@ export default function Generate({ payrollData, period, period_string, uang_maka
     };
 
     return (
-        <AppLayout>
+        <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={`Generate Gaji Periode ${period}`} />
             <div className="container mx-auto p-4">
                 <Heading title={`Generate Gaji Periode ${period}`} description="Periksa dan sesuaikan detail penggajian untuk setiap pegawai sebelum disimpan." />
@@ -65,7 +71,7 @@ export default function Generate({ payrollData, period, period_string, uang_maka
                                     <Input
                                         id="uang_makan_harian"
                                         type="number"
-                                        value={data.uang_makan_harian}
+                                        value={data.uang_makan_harian + ''}
                                         onChange={(e) => setData('uang_makan_harian', parseInt(e.target.value) || 0)}
                                         className="pl-10"
                                     />

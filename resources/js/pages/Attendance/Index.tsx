@@ -352,7 +352,7 @@ const AllEmployeesCalendar = ({ attendancesByDate, selectedMonth }: { attendance
                             </div>
                             <div>
                                 <DialogTitle className="text-xl">
-                                    Detail Absensi - {modalData && format(modalData.date, 'EEEE, dd MMMM yyyy', { locale: id })}
+                                    Absensi - {modalData && format(modalData.date, 'EEEE, dd MMMM yyyy', { locale: id })}
                                 </DialogTitle>
                                 <DialogDescription>
                                     Rincian kehadiran karyawan pada tanggal yang dipilih.

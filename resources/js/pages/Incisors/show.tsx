@@ -13,7 +13,11 @@ import { CircleAlert, Undo2 } from 'lucide-react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Incisor',
+        title: 'Penoreh',
+        href: '/incisors',
+    },
+    {
+        title: 'Informasi Penoreh',
         href: '/incisors',
     },
 ];

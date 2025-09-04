@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { Head, useForm, Link } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
@@ -30,12 +30,12 @@ const formatCurrency = (value: number) =>
 
 export default function Edit({ payroll, uang_makan_harian }: EditPageProps) {
     const breadcrumbs: BreadcrumbItem[] = [
-        { title: 'Dashboard', href: route('dashboard') },
+        // { title: 'Dashboard', href: route('dashboard') },
         { title: 'Penggajian', href: route('payroll.index') },
         { title: 'Edit Rincian Gaji', href: '#' },
     ];
     
-    const { data, setData, put, processing, errors, wasSuccessful } = useForm({
+    const { data, setData, put, processing} = useForm({
         status: payroll.status,
         gaji_pokok: payroll.gaji_pokok,
         hari_hadir: payroll.hari_hadir,
