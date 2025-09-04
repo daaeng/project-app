@@ -42,6 +42,7 @@ interface Product {
   amount_out: number;
   keping_out: number;
   kualitas_out: string;
+  susut_value?: number;
 }
 
 interface PaginationLink {
@@ -132,7 +133,9 @@ interface PageProps {
   klp_slou: number;
   klp_sin: number;
   klp_sou: number;
-  klp_ready: number
+  klp_ready: number;
+
+  dataSusut: number;
   
   filter?: { search?: string; time_period?: string; product_type?: string; month?: string; year?: string }; // Added month and year
   currentMonth: number; // New prop
@@ -151,7 +154,7 @@ const formatCurrency = (value: number) => {
 export default function GkaPage({
   flash, products, products2, products3, products4, products5, products6, 
   tm_slin, tm_slou, tm_sin, tm_sou, filter, s_ready, keping_in, keping_out,
-  ppk_slin, ppk_slou, ppk_sin, ppk_sou, p_ready,
+  ppk_slin, ppk_slou, ppk_sin, ppk_sou, p_ready, dataSusut,
   klp_slin, klp_slou, klp_sin, klp_sou, klp_ready, currentMonth, currentYear
 }: PageProps) {
   const [searchValue, setSearchValue] = useState(filter?.search || '');
@@ -688,7 +691,7 @@ export default function GkaPage({
             {/* Conditional rendering for combined tables or specific product tables */}
             {(productType === 'all' || productType === 'karet') && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                <div className="border p-2 rounded-lg">
+                <div className="p-2 rounded-lg bg-white dark:bg-neutral-900">
                   <div className="font-bold text-2xl mb-4">Data Pembelian {productType === 'all' ? 'Semua Produk' : 'Karet'}</div>
                   <div className="rounded-md border">
                     <Table>
@@ -746,70 +749,47 @@ export default function GkaPage({
                   {products.data.length > 0 && renderPagination(products)} {/* Pagination for karet is used here, needs adjustment if all products are paginated */}
                 </div>
 
-                <div className="border p-2 rounded-lg">
-                  <div className="font-bold text-2xl mb-4">Data Penjualan {productType === 'all' ? 'Semua Produk' : 'Karet'}</div>
-                  <div className="rounded-md border">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Tanggal</TableHead>
-                          {productType === 'all' && <TableHead>Jenis Produk</TableHead>} {/* New column for product type */}
-                          <TableHead>Supplier</TableHead>
-                          <TableHead>Keping</TableHead>
-                          <TableHead>Qty </TableHead>
-                          <TableHead>Income</TableHead>
-                          <TableHead className="text-center">Aksi</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {filteredProductsOut.length > 0 ? (
-                          filteredProductsOut.map((product) => (
-                            <TableRow key={product.id}>
-                              <TableCell key={`${product.id}-date-out`}>{product.date}</TableCell>
-                              {productType === 'all' && <TableCell key={`${product.id}-product-type-out`}>{product.product_type_display}</TableCell>} {/* Display product type */}
-                              <TableCell key={`${product.id}-supplier-out`}>{product.nm_supplier}</TableCell>
-                              <TableCell key={`${product.id}-keping-out`}>{product.keping_out}</TableCell>
-                              <TableCell key={`${product.id}-qty-out`}>{product.qty_out}</TableCell>
-                              <TableCell key={`${product.id}-amount-out`}>{formatCurrency(product.amount_out)}</TableCell>
-                              <TableCell key={`${product.id}-actions-out`} className="text-center space-x-2">
-                                {can('products.view') && (
-                                  <Link href={route('products.show', product.id)}>
-                                    <Button className="bg-transparent hover:bg-gray-700">
-                                      <Eye color="gray" />
-                                    </Button>
-                                  </Link>
-                                )}
-                                
-                                {can('roles.edit') && (
-                                  <Link href={route('products.edit_out', product.id)}>
-                                    <Button className="bg-transparent hover:bg-gray-700">
-                                      <Pencil color="blue" />
-                                    </Button>
-                                  </Link>
-                                )}
-
-                                {can('roles.delete') && (
-                                  <Button
-                                    onClick={() => handleDelete(product.id, product.product)}
-                                    className="bg-transparent hover:bg-gray-700"
-                                  >
-                                    <Trash color="red" />
-                                  </Button>
-                                )} 
-                              </TableCell>
+                <div className="p-2 rounded-lg bg-white dark:bg-neutral-900">
+                    <div className="font-bold text-2xl mb-4">Data Penjualan {productType === 'all' ? 'Semua Produk' : 'Karet'}</div>
+                    <div className="rounded-md border">
+                        <Table>
+                        <TableHeader>
+                            <TableRow>
+                            <TableHead>Tanggal</TableHead>
+                            {productType === 'all' && <TableHead>Jenis Produk</TableHead>}
+                            <TableHead>Supplier</TableHead>
+                            <TableHead>Susut</TableHead>
+                            <TableHead>Keping</TableHead>
+                            <TableHead>Qty </TableHead>
+                            <TableHead>Income</TableHead>
+                            <TableHead className="text-center">Aksi</TableHead>
                             </TableRow>
-                          ))
-                        ) : (
-                          <TableRow>
-                            <TableCell colSpan={productType === 'all' ? 7 : 6} className="h-24 text-center">
-                              Tidak ada hasil ditemukan.
-                            </TableCell>
-                          </TableRow>
-                        )}
-                      </TableBody>
-                    </Table>
-                  </div>
-                  {products2.data.length > 0 && renderPagination(products2)} {/* Pagination for karet is used here, needs adjustment if all products are paginated */}
+                        </TableHeader>
+                        <TableBody>
+                            {filteredProductsOut.length > 0 ? (
+                            filteredProductsOut.map((product) => (
+                                <TableRow key={product.id}>
+                                <TableCell>{product.date}</TableCell>
+                                {productType === 'all' && <TableCell>{product.product_type_display}</TableCell>}
+                                <TableCell>{product.nm_supplier}</TableCell>
+                                <TableCell className="font-bold text-yellow-600">{product.susut_value} Kg</TableCell>
+                                <TableCell>{product.keping_out}</TableCell>
+                                <TableCell>{product.qty_out}</TableCell>
+                                <TableCell>{formatCurrency(product.amount_out)}</TableCell>
+                                <TableCell className="text-center space-x-2">
+                                    {can('products.view') && (<Link href={route('products.show', product.id)}><Button className="bg-transparent hover:bg-gray-700"><Eye color="gray" /></Button></Link>)}
+                                    {can('roles.edit') && (<Link href={route('products.edit_out', product.id)}><Button className="bg-transparent hover:bg-gray-700"><Pencil color="blue" /></Button></Link>)}
+                                    {can('roles.delete') && (<Button onClick={() => handleDelete(product.id, product.product)} className="bg-transparent hover:bg-gray-700"><Trash color="red" /></Button>)} 
+                                </TableCell>
+                                </TableRow>
+                            ))
+                            ) : (
+                            <TableRow><TableCell colSpan={productType === 'all' ? 8 : 7} className="h-24 text-center">Tidak ada hasil ditemukan.</TableCell></TableRow>
+                            )}
+                        </TableBody>
+                        </Table>
+                    </div>
+                    {products2.data.length > 0 && renderPagination(products2)}
                 </div>
               </div>
             )}

@@ -152,7 +152,6 @@ class ProductController extends Controller
     {
         $perPage = 10; 
         $searchTerm = $request->input('search');
-        // Default timePeriod menjadi 'this-month'
         $timePeriod = $request->input('time_period', 'this-month'); 
         $selectedMonth = $request->input('month', Carbon::now()->month);
         $selectedYear = $request->input('year', Carbon::now()->year);
@@ -166,79 +165,128 @@ class ProductController extends Controller
                       ->orWhere('j_brg', 'like', "%{$search}%");
                 });
             });
-            // Filter waktu diterapkan di sini
-            if ($timePeriod === 'specific-month') {
-                $baseQuery->whereMonth('date', $selectedMonth)
-                          ->whereYear('date', $selectedYear);
-            } elseif ($timePeriod !== 'all-time') {
-                switch ($timePeriod) {
-                    case 'today':
-                        $baseQuery->whereDate('date', Carbon::today());
-                        break;
-                    case 'this-week':
-                        $baseQuery->whereBetween('date', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]);
-                        break;
-                    case 'this-month':
-                        $baseQuery->whereMonth('date', Carbon::now()->month)
-                                  ->whereYear('date', Carbon::now()->year);
-                        break;
-                    case 'last-month': // Added last-month filter
-                        $lastMonth = Carbon::now()->subMonth();
-                        $baseQuery->whereMonth('date', $lastMonth->month)
-                                  ->whereYear('date', $lastMonth->year);
-                        break;
-                    case 'this-year':
-                        $baseQuery->whereYear('date', Carbon::now()->year);
-                        break;
-                }
+        
+        $dateFilterQuery = clone $baseQuery;
+            
+        if ($timePeriod === 'specific-month') {
+            $dateFilterQuery->whereMonth('date', $selectedMonth)
+                      ->whereYear('date', $selectedYear);
+        } elseif ($timePeriod !== 'all-time') {
+            switch ($timePeriod) {
+                case 'today':
+                    $dateFilterQuery->whereDate('date', Carbon::today());
+                    break;
+                case 'this-week':
+                    $dateFilterQuery->whereBetween('date', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]);
+                    break;
+                case 'this-month':
+                    $dateFilterQuery->whereMonth('date', Carbon::now()->month)
+                              ->whereYear('date', Carbon::now()->year);
+                    break;
+                case 'last-month':
+                    $lastMonth = Carbon::now()->subMonth();
+                    $dateFilterQuery->whereMonth('date', $lastMonth->month)
+                              ->whereYear('date', $lastMonth->year);
+                    break;
+                case 'this-year':
+                    $dateFilterQuery->whereYear('date', Carbon::now()->year);
+                    break;
             }
+        }
 
 
-        // KARET
-        $products = $baseQuery->clone()
+        // --- START: LOGIKA PERHITUNGAN SUSUT (BERDASARKAN TANGGAL YANG SAMA) ---
+        $susutMap = [];
+
+        // 1. Ambil total qty_out per tanggal untuk status 'gka'
+        $gkaTotalsByDate = Product::where('product', 'karet')
+            ->where('status', 'gka')
+            ->groupBy('date')
+            ->select('date', DB::raw('SUM(qty_out) as total_gka_qty'))
+            ->get()
+            ->pluck('total_gka_qty', 'date');
+
+        // 2. Ambil total qty_out per tanggal untuk status 'buyer'
+        $buyerTotalsByDate = Product::where('product', 'karet')
+            ->where('status', 'buyer')
+            ->groupBy('date')
+            ->select('date', DB::raw('SUM(qty_out) as total_buyer_qty'))
+            ->get()
+            ->pluck('total_buyer_qty', 'date');
+
+        // 3. Hitung susut untuk setiap tanggal yang ada di data buyer
+        foreach ($buyerTotalsByDate as $date => $buyerTotal) {
+            // Cek apakah ada data gka di tanggal yang sama
+            if (isset($gkaTotalsByDate[$date])) {
+                $gkaTotal = $gkaTotalsByDate[$date];
+                $susutMap[$date] = $gkaTotal - $buyerTotal;
+            }
+        }
+        // --- END: LOGIKA PERHITUNGAN SUSUT ---
+
+
+        // KARET - Data Pembelian (menampilkan status GKA)
+        $products = $dateFilterQuery->clone()
             ->where('product', 'karet')
             ->where('qty_out', '>', 0)
             ->where('status', 'gka')
             ->orderBy('created_at', 'DESC')
             ->paginate($perPage);
 
-        $product2 = $baseQuery->clone()
+        // KARET - Data Penjualan (menampilkan status BUYER)
+        $product2 = $dateFilterQuery->clone()
             ->where('product', 'karet')
             ->where('qty_out', '>', 0)  
             ->where('status', 'buyer') 
             ->orderBy('created_at', 'DESC')
             ->paginate($perPage);
         
+        // 4. Tambahkan nilai susut ke data penjualan berdasarkan tanggal
+        $product2->getCollection()->transform(function ($item) use ($susutMap) {
+            // Mencocokkan berdasarkan tanggal dari item
+            $itemDate = Carbon::parse($item->date)->toDateString();
+            $item->susut_value = $susutMap[$itemDate] ?? 0;
+            return $item;
+        });
+
         // PUPUK
-        $products3 = $baseQuery->clone()
+        $products3 = $dateFilterQuery->clone()
             ->where('product', 'pupuk')
             ->where('qty_out', '>', 0)
             ->where('status', 'gka')
             ->orderBy('created_at', 'DESC')
             ->paginate($perPage);
 
-        $product4 = $baseQuery->clone()
+        $product4 = $dateFilterQuery->clone()
             ->where('product', 'pupuk')
             ->where('qty_out', '>', 0)  
             ->where('status', 'buyer') 
             ->orderBy('created_at', 'DESC')
             ->paginate($perPage);
+        
+        $product4->getCollection()->transform(function ($item) {
+            $item->susut_value = 0; return $item;
+        });
         
         // KELAPA
-        $products5 = $baseQuery->clone()
+        $products5 = $dateFilterQuery->clone()
             ->where('product', 'kelapa')
             ->where('qty_out', '>', 0)
             ->where('status', 'gka')
             ->orderBy('created_at', 'DESC')
             ->paginate($perPage);
 
-        $product6 = $baseQuery->clone()
+        $product6 = $dateFilterQuery->clone()
             ->where('product', 'kelapa')
             ->where('qty_out', '>', 0)  
             ->where('status', 'buyer') 
             ->orderBy('created_at', 'DESC')
             ->paginate($perPage);
  
+        $product6->getCollection()->transform(function ($item) {
+            $item->susut_value = 0; return $item;
+        });
+
         $statsQuery = Product::query()
             ->when($searchTerm, function ($query, $search) {
                 $query->where(function($q) use ($search) {
@@ -247,7 +295,7 @@ class ProductController extends Controller
                       ->orWhere('j_brg', 'like', "%{$search}%");
                 });
             });
-            // Filter waktu diterapkan di sini
+
             if ($timePeriod === 'specific-month') {
                 $statsQuery->whereMonth('date', $selectedMonth)
                            ->whereYear('date', $selectedYear);
@@ -263,7 +311,7 @@ class ProductController extends Controller
                         $statsQuery->whereMonth('date', Carbon::now()->month)
                                    ->whereYear('date', Carbon::now()->year);
                         break;
-                    case 'last-month': // Added last-month filter
+                    case 'last-month':
                         $lastMonth = Carbon::now()->subMonth();
                         $statsQuery->whereMonth('date', $lastMonth->month)
                                    ->whereYear('date', $lastMonth->year);
@@ -293,10 +341,8 @@ class ProductController extends Controller
         $klp_sou = $statsQuery->clone()->where('status', 'buyer')->where('product', 'kelapa')->SUM('qty_out');
 
         //keping
-        //keping total
         $keping = $statsQuery->clone()->where('status', 'gka')->where('product', 'karet')->sum('keping_out');
         $keping2 = $statsQuery->clone()->where('status', 'buyer')->where('product', 'karet')->sum('keping_out');
-
 
         return Inertia::render("Products/gka", [
             "products" => $products,
@@ -733,3 +779,4 @@ class ProductController extends Controller
         return redirect()->route('products.index')->with('message', 'Product deleted Successfully');
     }
 }
+
