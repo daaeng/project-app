@@ -6,7 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, useForm, router } from '@inertiajs/react';
-import { CirclePlus, Eye, Megaphone, Pencil, Search, Trash } from 'lucide-react';
+import { CirclePlus, Eye, Megaphone, Pencil, Search, Trash, XCircle } from 'lucide-react';
 import { can } from '@/lib/can';
 import { Input } from '@/components/ui/input';
 import { useState, useEffect } from 'react';
@@ -20,7 +20,6 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-// ... (Interface Incised, PaginationLink tetap sama)
 interface Incised {
     id: number;
     product: string;
@@ -44,8 +43,9 @@ interface PaginationLink {
 }
 
 interface PageProps {
-    flash: {
+    flash?: { 
         message?: string;
+        error?: string;
     };
     inciseds: {
         data: Incised[];
@@ -57,10 +57,10 @@ interface PageProps {
             total: number;
         };
     };
-    filter?: { search?: string; time_period?: string; month?: string; year?: string; }; // Tambah month & year
+    filter?: { search?: string; time_period?: string; month?: string; year?: string; per_page?: string; };
     totalKebunA: number;
     totalKebunB: number;
-    mostProductiveIncisor: {
+    mostProductiveIncisor?: { // Jadikan opsional
         name: string;
         total_qty_kg: number;
     };
@@ -74,7 +74,6 @@ const formatCurrency = (value: number) => {
     }).format(value);
 };
 
-// ... (Komponen StatCard tetap sama)
 interface StatCardProps {
     icon: React.ElementType;
     title: string;
@@ -103,26 +102,41 @@ export default function Admin({ inciseds, flash, filter, totalKebunA, totalKebun
     const { processing, delete: destroy } = useForm();
 
     const [searchValue, setSearchValue] = useState(filter?.search || '');
-    // --- PERUBAHAN 1: Set state awal ke 'this-month' ---
     const [timePeriod, setTimePeriod] = useState(filter?.time_period || 'this-month');
     
-    // --- PERUBAHAN 2: State untuk filter bulan dan tahun spesifik ---
     const currentYear = new Date().getFullYear();
     const [specificMonth, setSpecificMonth] = useState(filter?.month || (new Date().getMonth() + 1).toString());
     const [specificYear, setSpecificYear] = useState(filter?.year || currentYear.toString());
+    const [perPage, setPerPage] = useState(filter?.per_page || '10');
+    const [showSuccessAlert, setShowSuccessAlert] = useState(false);
+    const [showErrorAlert, setShowErrorAlert] = useState(false);
 
     useEffect(() => {
         setSearchValue(filter?.search || '');
         setTimePeriod(filter?.time_period || 'this-month');
         setSpecificMonth(filter?.month || (new Date().getMonth() + 1).toString());
         setSpecificYear(filter?.year || currentYear.toString());
+        setPerPage(filter?.per_page || '10');
     }, [filter]);
 
-    // --- PERUBAHAN 3: Fungsi untuk melakukan filter/pencarian ---
-    const applyFilters = (params: { search: string; time_period: string; month?: string; year?: string }) => {
+    useEffect(() => {
+        if (flash?.message) {
+            setShowSuccessAlert(true);
+            const timer = setTimeout(() => setShowSuccessAlert(false), 5000);
+            return () => clearTimeout(timer);
+        }
+        if (flash?.error) {
+            setShowErrorAlert(true);
+            const timer = setTimeout(() => setShowErrorAlert(false), 5000);
+            return () => clearTimeout(timer);
+        }
+    }, [flash]);
+
+    const applyFilters = (params: { search: string; time_period: string; month?: string; year?: string; per_page: string }) => {
         const queryParams: any = {
             search: params.search,
             time_period: params.time_period,
+            per_page: params.per_page,
         };
 
         if (params.time_period === 'specific-month' && params.month && params.year) {
@@ -140,18 +154,17 @@ export default function Admin({ inciseds, flash, filter, totalKebunA, totalKebun
     const handleTimePeriodChange = (value: string) => {
         setTimePeriod(value);
         if (value !== 'specific-month') {
-            applyFilters({ search: searchValue, time_period: value });
+            applyFilters({ search: searchValue, time_period: value, per_page: perPage });
         }
     };
-    
-    const handleSpecificDateChange = () => {
-        if (timePeriod === 'specific-month') {
-            applyFilters({ search: searchValue, time_period: 'specific-month', month: specificMonth, year: specificYear });
-        }
-    }
 
+    const handlePerPageChange = (value: string) => {
+        setPerPage(value);
+        applyFilters({ search: searchValue, time_period: timePeriod, month: specificMonth, year: specificYear, per_page: value });
+    };
+    
     const performSearch = () => {
-        applyFilters({ search: searchValue, time_period: timePeriod, month: specificMonth, year: specificYear });
+        applyFilters({ search: searchValue, time_period: timePeriod, month: specificMonth, year: specificYear, per_page: perPage });
     };
 
     const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -165,21 +178,44 @@ export default function Admin({ inciseds, flash, filter, totalKebunA, totalKebun
             destroy(route('inciseds.destroy', id), {
                 preserveScroll: true,
                 onSuccess: () => {
-                    // Refresh data setelah berhasil hapus
                     performSearch();
                 },
             });
         }
     };
     
-    // Opsi untuk dropdown bulan dan tahun
     const monthOptions = Array.from({ length: 12 }, (_, i) => ({ value: (i + 1).toString(), label: new Date(0, i).toLocaleString('id-ID', { month: 'long' }) }));
     const yearOptions = Array.from({ length: 10 }, (_, i) => ({ value: (currentYear - i).toString(), label: (currentYear - i).toString() }));
 
 
-    // ... (renderPagination tetap sama)
     const renderPagination = (pagination: PageProps['inciseds']) => {
-        // ...
+        if (perPage === 'all' || !pagination || !pagination.meta || pagination.meta.last_page <= 1) {
+            return null; // Jangan render apa-apa jika tidak perlu paginasi
+        }
+    
+        return (
+            <div className="flex items-center justify-between p-4 border-t border-gray-200 dark:border-gray-700">
+                <span className="text-sm text-gray-700 dark:text-gray-400">
+                    Menampilkan {pagination.meta.from} - {pagination.meta.to} dari {pagination.meta.total} data
+                </span>
+                <div className="flex items-center gap-2">
+                    {pagination.links.map((link, index) => (
+                        <Link
+                            key={index}
+                            href={link.url || '#'}
+                            preserveState 
+                            replace
+                            className={`px-3 py-2 text-sm font-medium rounded-md transition-colors
+                                ${link.active ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 dark:bg-gray-800 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}
+                                ${!link.url ? 'cursor-not-allowed opacity-50' : ''}
+                            `}
+                        >
+                           <span dangerouslySetInnerHTML={{ __html: link.label }} />
+                        </Link>
+                    ))}
+                </div>
+            </div>
+        );
     };
 
     return (
@@ -209,8 +245,8 @@ export default function Admin({ inciseds, flash, filter, totalKebunA, totalKebun
                             <StatCard
                                 icon={FaUserFriends}
                                 title="Penoreh Paling Produktif"
-                                value={mostProductiveIncisor.name}
-                                subtitle={`Total ${mostProductiveIncisor.total_qty_kg.toFixed(2)} kg`}
+                                value={mostProductiveIncisor?.name || 'N/A'}
+                                subtitle={`Total ${(mostProductiveIncisor?.total_qty_kg || 0).toFixed(2)} kg`}
                                 gradient="from-purple-400 to-purple-600"
                             />
                         </div>
@@ -228,11 +264,18 @@ export default function Admin({ inciseds, flash, filter, totalKebunA, totalKebun
                             </div>
 
                             <div>
-                                {flash.message && (
-                                    <Alert className="mb-4">
-                                        <Megaphone className="h-4 w-4" />
-                                        <AlertTitle className="text-green-600">Notifikasi</AlertTitle>
+                                { (showSuccessAlert && flash?.message) && (
+                                    <Alert variant="default" className="bg-green-50 border-green-200 text-green-800">
+                                        <Megaphone className="h-4 w-4 text-green-600" />
+                                        <AlertTitle className="font-semibold">Berhasil!</AlertTitle>
                                         <AlertDescription>{flash.message}</AlertDescription>
+                                    </Alert>
+                                )}
+                                { (showErrorAlert && flash?.error) && (
+                                    <Alert variant="destructive">
+                                        <XCircle className="h-4 w-4" />
+                                        <AlertTitle className="font-semibold">Gagal!</AlertTitle>
+                                        <AlertDescription>{flash.error}</AlertDescription>
                                     </Alert>
                                 )}
                             </div>
@@ -249,7 +292,6 @@ export default function Admin({ inciseds, flash, filter, totalKebunA, totalKebun
                                     />
                                 </div>
                                 
-                                {/* --- PERUBAHAN 4: Update filter Select --- */}
                                 <Select value={timePeriod} onValueChange={handleTimePeriodChange}>
                                     <SelectTrigger className="w-full sm:w-[180px]">
                                         <SelectValue placeholder="Pilih Periode Waktu" />
@@ -265,7 +307,6 @@ export default function Admin({ inciseds, flash, filter, totalKebunA, totalKebun
                                     </SelectContent>
                                 </Select>
 
-                                {/* --- PERUBAHAN 5: Tambah UI untuk filter bulan & tahun spesifik --- */}
                                 {timePeriod === 'specific-month' && (
                                     <div className="flex gap-2 w-full sm:w-auto">
                                         <Select value={specificMonth} onValueChange={setSpecificMonth}>
@@ -292,9 +333,26 @@ export default function Admin({ inciseds, flash, filter, totalKebunA, totalKebun
                                 </Button>
                             </div>
 
+                            <div className="flex items-center gap-2 mb-4">
+                                <span className="text-sm text-gray-700">Tampilkan:</span>
+                                <Select value={perPage} onValueChange={handlePerPageChange}>
+                                    <SelectTrigger className="w-[100px]">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="10">10</SelectItem>
+                                        <SelectItem value="25">25</SelectItem>
+                                        <SelectItem value="50">50</SelectItem>
+                                        <SelectItem value="100">100</SelectItem>
+                                        <SelectItem value="all">Semua</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <span className="text-sm text-gray-700">data per halaman</span>
+                            </div>
+
                             <CardContent className="border rounded-lg mt-4 p-0">
-                                <div className="rounded-md">
-                                    {inciseds.data.length > 0 ? (
+                                <div className="rounded-md overflow-x-auto">
+                                    {inciseds && inciseds.data.length > 0 ? (
                                         <Table>
                                             <TableHeader>
                                                 <TableRow>
@@ -352,7 +410,7 @@ export default function Admin({ inciseds, flash, filter, totalKebunA, totalKebun
                                         </div>
                                     )}
                                 </div>
-                                {inciseds.data.length > 0 && renderPagination(inciseds)}
+                                {inciseds && inciseds.data.length > 0 && renderPagination(inciseds)}
                             </CardContent>
                         </div>
                     </div>
@@ -361,3 +419,4 @@ export default function Admin({ inciseds, flash, filter, totalKebunA, totalKebun
         </AppLayout>
     );
 }
+

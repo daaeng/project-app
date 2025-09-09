@@ -14,9 +14,22 @@ class Kasbon extends Model
 
     protected $table = 'kasbons';
 
+    /**
+     * [PEMBARUAN] Menambahkan 'transaction_date' ke fillable.
+     * Hapus 'incisor_id' karena sudah ditangani oleh relasi polimorfik.
+     */
     protected $fillable = [
-        'incisor_id', 'gaji', 'kasbon', 'status', 'reason', 'month', 'year',
+        'gaji', 'kasbon', 'status', 'reason', 'month', 'year',
         'kasbonable_type', 'kasbonable_id', 'payment_status', 'paid_at',
+        'transaction_date',
+    ];
+
+    /**
+     * [PEMBARUAN] Memberi tahu Laravel bahwa transaction_date adalah objek Carbon.
+     */
+    protected $casts = [
+        'transaction_date' => 'datetime',
+        'paid_at' => 'datetime',
     ];
 
     public function kasbonable(): MorphTo
@@ -24,14 +37,11 @@ class Kasbon extends Model
         return $this->morphTo();
     }
 
-    // Relasi baru ke tabel pembayaran
     public function payments(): HasMany
     {
         return $this->hasMany(KasbonPayment::class);
     }
-
-    // (Sisa relasi lainnya tidak berubah)
-    public function employee(): BelongsTo { return $this->belongsTo(Employee::class); }
-    public function incisor(): BelongsTo { return $this->belongsTo(Incisor::class, 'incisor_id'); }
-    public function incised(): BelongsTo { return $this->belongsTo(Incised::class, 'incised_id'); }
+    
+    // Relasi lama bisa dihapus jika tidak digunakan di tempat lain
+    // public function incisor(): BelongsTo { return $this->belongsTo(Incisor::class, 'incisor_id'); }
 }

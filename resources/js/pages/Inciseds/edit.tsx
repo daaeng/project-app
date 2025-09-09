@@ -46,8 +46,6 @@ export default function EditIncised({
     incised: Incised;
     noInvoicesWithNames: NoInvoiceWithName[];
 }) {
-    console.log('incised:', incised); // Debugging
-    console.log('noInvoicesWithNames:', noInvoicesWithNames); // Debugging
 
     const { data, setData, put, processing, errors } = useForm({
         product: incised.product,

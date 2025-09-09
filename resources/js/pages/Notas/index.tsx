@@ -109,7 +109,7 @@ export default function Index({ notas, flash, filter, totalPendingNotas, totalAp
                     className={`px-4 py-2 text-sm rounded-lg transition-colors duration-200 ${
                         link.active
                             ? 'bg-cyan-500 text-white shadow-md shadow-cyan-500/30'
-                            : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                            : 'bg-slate-200 text-slate-300 hover:bg-slate-700'
                     } ${!link.url ? 'text-slate-600 cursor-not-allowed' : ''}`}
                     dangerouslySetInnerHTML={{ __html: link.label }}
                 />
@@ -157,7 +157,7 @@ export default function Index({ notas, flash, filter, totalPendingNotas, totalAp
                                 value={searchValue}
                                 onChange={(e) => setSearchValue(e.target.value)}
                                 onKeyPress={handleKeyPress}
-                                className="pl-10 bg-slate-900 border-slate-700 focus:border-cyan-500 focus:ring-cyan-500 text-white"
+                                className="pl-10 bg-slate-700 border-slate-700 focus:border-cyan-500 focus:ring-cyan-500 text-white"
                             />
                         </div>
                     </div>

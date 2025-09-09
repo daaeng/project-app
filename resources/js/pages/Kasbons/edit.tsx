@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
-import { Undo2, Megaphone, User, HardHat, FileText, Wallet, BarChart2 } from 'lucide-react';
+import { Undo2, Megaphone, HardHat, Wallet, BarChart2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { cn } from '@/lib/utils';
@@ -33,6 +33,7 @@ interface KasbonData {
     gaji: number;
     month: string;
     year: string;
+    created_at: string; // [BARU] Menerima tanggal
     owner: { name: string; no_invoice: string; };
 }
 interface PageProps {
@@ -73,10 +74,11 @@ export default function EditKasbon() {
         kasbon: kasbon.kasbon,
         status: kasbon.status,
         reason: kasbon.reason || '',
+        created_at: kasbon.created_at, // [BARU] Inisialisasi tanggal
     });
 
     const [incisorDetails, setIncisorDetails] = useState({
-        total_toreh_bulan_ini: kasbon.gaji * 2,
+        total_toreh_bulan_ini: kasbon.gaji * 2, // Asumsi awal
         max_kasbon_amount: kasbon.gaji,
     });
     const [isLoadingData, setIsLoadingData] = useState(false);
@@ -108,6 +110,7 @@ export default function EditKasbon() {
                 }
             }
         };
+        // Fetch ulang data hanya jika penoreh atau periode berubah
         if (String(kasbon.kasbonable_id) !== data.incisor_id || kasbon.month !== data.month || kasbon.year !== data.year) {
             fetchIncisorData();
         }
@@ -130,7 +133,7 @@ export default function EditKasbon() {
                 </div>
 
                 {(flash.message || flash.error || fetchError) && (
-                    <Alert variant={flash.error || fetchError ? "destructive" : "success"}>
+                    <Alert variant={flash.error || fetchError ? "destructive" : "default"}>
                         <Megaphone className='h-4 w-4' />
                         <AlertTitle>{flash.error || fetchError ? "Gagal!" : "Berhasil!"}</AlertTitle>
                         <AlertDescription>{flash.message || flash.error || fetchError}</AlertDescription>
@@ -144,17 +147,54 @@ export default function EditKasbon() {
                             <CardContent>
                                 <form onSubmit={handleSubmit} className="space-y-6">
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                        <div className="md:col-span-1"><Label htmlFor="incisor_id">Penoreh</Label><Select onValueChange={(v) => setData('incisor_id', v)} value={data.incisor_id}><SelectTrigger><SelectValue/></SelectTrigger><SelectContent>{incisors.map((i) => (<SelectItem key={i.id} value={String(i.id)}>{i.label}</SelectItem>))}</SelectContent></Select>{errors.incisor_id && <p className="text-red-500 text-sm mt-1">{errors.incisor_id}</p>}</div>
-                                        <div className="md:col-span-2"><Label>Periode Torehan</Label><Select onValueChange={(v) => { const [m, y] = v.split('-'); setData(d => ({ ...d, month: m, year: y })); }} value={`${data.month}-${data.year}`}><SelectTrigger><SelectValue/></SelectTrigger><SelectContent>{monthsYears.map((i, idx) => (<SelectItem key={idx} value={`${i.month}-${i.year}`}>{i.label}</SelectItem>))}</SelectContent></Select>{(errors.month || errors.year) && <p className="text-red-500 text-sm mt-1">{errors.month || errors.year}</p>}</div>
+                                        <div className="md:col-span-1">
+                                            <Label htmlFor="incisor_id">Penoreh</Label>
+                                            <Select onValueChange={(v) => setData('incisor_id', v)} value={data.incisor_id}>
+                                                <SelectTrigger><SelectValue/></SelectTrigger>
+                                                <SelectContent>{incisors.map((i) => (<SelectItem key={i.id} value={String(i.id)}>{i.label}</SelectItem>))}</SelectContent>
+                                            </Select>
+                                            {errors.incisor_id && <p className="text-red-500 text-sm mt-1">{errors.incisor_id}</p>}
+                                        </div>
+                                        <div className="md:col-span-2">
+                                            <Label>Periode Torehan</Label>
+                                            <Select onValueChange={(v) => { const [m, y] = v.split('-'); setData(d => ({ ...d, month: m, year: y })); }} value={`${data.month}-${data.year}`}>
+                                                <SelectTrigger><SelectValue/></SelectTrigger>
+                                                <SelectContent>{monthsYears.map((i, idx) => (<SelectItem key={idx} value={`${i.month}-${i.year}`}>{i.label}</SelectItem>))}</SelectContent>
+                                            </Select>
+                                            {(errors.month || errors.year) && <p className="text-red-500 text-sm mt-1">{errors.month || errors.year}</p>}
+                                        </div>
                                     </div>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div><Label htmlFor="kasbon">Jumlah Kasbon</Label><Input id="kasbon" type="number" value={data.kasbon} onChange={(e) => setData('kasbon', parseFloat(e.target.value) || 0)} />{errors.kasbon && <p className="text-red-500 text-sm mt-1">{errors.kasbon}</p>}</div>
+                                        <div>
+                                            <Label htmlFor="kasbon">Jumlah Kasbon</Label>
+                                            <Input id="kasbon" type="number" value={data.kasbon} onChange={(e) => setData('kasbon', parseFloat(e.target.value) || 0)} />
+                                            {errors.kasbon && <p className="text-red-500 text-sm mt-1">{errors.kasbon}</p>}
+                                        </div>
                                         {can('administrasis.edit') && (
-                                            <div><Label>Status</Label><Select onValueChange={(v) => setData('status', v as any)} value={data.status}><SelectTrigger><SelectValue/></SelectTrigger><SelectContent>{statuses.map((s) => (<SelectItem key={s} value={s}>{s}</SelectItem>))}</SelectContent></Select>{errors.status && <p className="text-red-500 text-sm mt-1">{errors.status}</p>}</div>
+                                            <div>
+                                                <Label>Status</Label>
+                                                <Select onValueChange={(v) => setData('status', v as any)} value={data.status}>
+                                                    <SelectTrigger><SelectValue/></SelectTrigger>
+                                                    <SelectContent>{statuses.map((s) => (<SelectItem key={s} value={s}>{s}</SelectItem>))}</SelectContent>
+                                                </Select>
+                                                {errors.status && <p className="text-red-500 text-sm mt-1">{errors.status}</p>}
+                                            </div>
                                         )}
                                     </div>
-                                    <div><Label htmlFor="reason">Alasan (Opsional)</Label><Textarea id="reason" value={data.reason} onChange={(e) => setData('reason', e.target.value)} />{errors.reason && <p className="text-red-500 text-sm mt-1">{errors.reason}</p>}</div>
-                                    <div className="flex justify-end pt-2"><Button type="submit" disabled={processing || isLoadingData}>{processing ? 'Menyimpan...' : 'Simpan Perubahan'}</Button></div>
+                                    {/* [BARU] Input untuk tanggal */}
+                                    <div>
+                                        <Label htmlFor="created_at">Tanggal Pengajuan</Label>
+                                        <Input id="created_at" type="date" value={data.created_at} onChange={(e) => setData('created_at', e.target.value)} />
+                                        {errors.created_at && <p className="text-red-500 text-sm mt-1">{errors.created_at}</p>}
+                                    </div>
+                                    <div>
+                                        <Label htmlFor="reason">Alasan (Opsional)</Label>
+                                        <Textarea id="reason" value={data.reason} onChange={(e) => setData('reason', e.target.value)} />
+                                        {errors.reason && <p className="text-red-500 text-sm mt-1">{errors.reason}</p>}
+                                    </div>
+                                    <div className="flex justify-end pt-2">
+                                        <Button type="submit" disabled={processing || isLoadingData}>{processing ? 'Menyimpan...' : 'Simpan Perubahan'}</Button>
+                                    </div>
                                 </form>
                             </CardContent>
                         </Card>
@@ -164,9 +204,9 @@ export default function EditKasbon() {
                         <Card className="shadow-sm">
                             <CardHeader><CardTitle>Informasi Kalkulasi</CardTitle></CardHeader>
                             <CardContent className="space-y-6">
-                                <InfoItem icon={HardHat} label="Nama Penoreh" value={isLoadingData ? 'Memuat...' : (selectedIncisor?.label.split(' - ')[1] || '...')} iconBgClass="bg-purple-100 dark:bg-purple-900/50" />
-                                <InfoItem icon={BarChart2} label="Total Torehan Periode Ini" value={isLoadingData ? 'Memuat...' : formatCurrency(incisorDetails.total_toreh_bulan_ini)} iconBgClass="bg-green-100 dark:bg-green-900/50" />
-                                <InfoItem icon={Wallet} label="Maksimal Kasbon (50%)" value={isLoadingData ? 'Memuat...' : formatCurrency(incisorDetails.max_kasbon_amount)} iconBgClass="bg-rose-100 dark:bg-rose-900/50" />
+                                <InfoItem icon={HardHat} label="Nama Penoreh" value={isLoadingData ? 'Memuat...' : (selectedIncisor?.label.split(' - ')[1] || '...')} iconBgClass="bg-purple-100" />
+                                <InfoItem icon={BarChart2} label="Total Torehan Periode Ini" value={isLoadingData ? 'Memuat...' : formatCurrency(incisorDetails.total_toreh_bulan_ini)} iconBgClass="bg-green-100" />
+                                <InfoItem icon={Wallet} label="Maksimal Kasbon (Gaji)" value={isLoadingData ? 'Memuat...' : formatCurrency(incisorDetails.max_kasbon_amount)} iconBgClass="bg-rose-100" />
                             </CardContent>
                         </Card>
                     </div>

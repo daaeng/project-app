@@ -189,7 +189,7 @@ export default function Index({ payrolls, availablePeriods, filters, totalGajiPe
                             </Select>
 
                             <Link href={route('payroll.create')} className='w-full sm:w-auto'>
-                                <Button className='w-full'>
+                                <Button className="bg-cyan-500 hover:bg-cyan-600 text-white font-bold shadow-lg shadow-cyan-500/20 transition-all duration-300 transform hover:scale-105 w-full sm:w-auto mt-2 sm:mt-0">
                                     <PlusCircle className="w-4 h-4 mr-2" />
                                     Generate Gaji
                                 </Button>

@@ -185,28 +185,62 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('kasbons.getIncisorData')
         ->middleware("permission:kasbons.create|kasbons.edit|kasbons.delete|kasbons.view");
 
-    Route::post('/kasbons/{kasbon}/pay', [KasbonController::class, 'pay'])
+    Route::post('/kasbons/pay', [KasbonController::class, 'pay'])
         ->name('kasbons.pay')
         ->middleware("permission:kasbons.edit");
 
-    // --- [ROUTE PENTING UNTUK PRINT] ---
-    // Pastikan baris ini ada dan benar
     Route::get('/kasbons/print', [KasbonController::class, 'print'])->name('kasbons.print')
         ->middleware("permission:kasbons.view");
 
-    // Halaman utama kasbon/utang
-    Route::resource('kasbons', KasbonController::class)
+    Route::get('/kasbons/details/{type}/{id}', [KasbonController::class, 'showByUser'])->name('kasbons.showByUser');
+        
+    Route::resource('kasbons', KasbonController::class)->except(['show'])
         ->middleware("permission:kasbons.create|kasbons.edit|kasbons.delete|kasbons.view");
 
-    // Form pengajuan kasbon pegawai
     Route::get('/kasbons-pegawai/create', [KasbonController::class, 'createPegawai'])
         ->name('kasbons.create_pegawai')
         ->middleware("permission:kasbons.create|kasbons.edit|kasbons.delete|kasbons.view");
 
-    // Proses simpan kasbon pegawai
     Route::post('/kasbons-pegawai', [KasbonController::class, 'storePegawai'])
         ->name('kasbons.store_pegawai')
         ->middleware("permission:kasbons.create|kasbons.edit|kasbons.delete|kasbons.view");
+        
+    // [PENAMBAHAN] Route untuk mengelola pembayaran (update dan delete)
+    Route::put('/kasbon-payments/{payment}', [KasbonController::class, 'updatePayment'])->name('kasbon-payments.update')
+        ->middleware('permission:kasbons.edit');
+        
+    Route::delete('/kasbon-payments/{payment}', [KasbonController::class, 'destroyPayment'])->name('kasbon-payments.destroy')
+        ->middleware('permission:kasbons.delete');
+
+    // Route::post('/kasbons/get-incisor-data', [KasbonController::class, 'getIncisorData'])
+    //     ->name('kasbons.getIncisorData')
+    //     ->middleware("permission:kasbons.create|kasbons.edit|kasbons.delete|kasbons.view");
+
+    // // --- [PERBAIKAN] Route untuk pembayaran disederhanakan ---
+    // Route::post('/kasbons/pay', [KasbonController::class, 'pay'])
+    //     ->name('kasbons.pay')
+    //     ->middleware("permission:kasbons.edit");
+
+    // // --- [ROUTE PENTING UNTUK PRINT] ---
+    // Route::get('/kasbons/print', [KasbonController::class, 'print'])->name('kasbons.print')
+    //     ->middleware("permission:kasbons.view");
+
+    // // Route untuk detail per user
+    // Route::get('/kasbons/details/{type}/{id}', [KasbonController::class, 'showByUser'])->name('kasbons.showByUser');
+        
+    // // Halaman utama kasbon/utang
+    // Route::resource('kasbons', KasbonController::class)->except(['show'])
+    //     ->middleware("permission:kasbons.create|kasbons.edit|kasbons.delete|kasbons.view");
+
+    // // Form pengajuan kasbon pegawai
+    // Route::get('/kasbons-pegawai/create', [KasbonController::class, 'createPegawai'])
+    //     ->name('kasbons.create_pegawai')
+    //     ->middleware("permission:kasbons.create|kasbons.edit|kasbons.delete|kasbons.view");
+
+    // // Proses simpan kasbon pegawai
+    // Route::post('/kasbons-pegawai', [KasbonController::class, 'storePegawai'])
+    //     ->name('kasbons.store_pegawai')
+    //     ->middleware("permission:kasbons.create|kasbons.edit|kasbons.delete|kasbons.view");
         
     // ~~~~~~~~~~~~~ INVENTORY ~~~~~~~~~~~~~
     Route::get('/inventories', [InventoryController::class, 'index'])->name('inventories.index');

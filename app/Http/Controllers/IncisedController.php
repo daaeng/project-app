@@ -13,14 +13,20 @@ class IncisedController extends Controller
 {
     public function index(Request $request)
     {
-        $perPage = 10;
+        // --- PERUBAHAN: Ambil perPage dari request, default ke 10 ---
+        $perPage = $request->input('per_page', 10);
         $searchTerm = $request->input('search');
-        // --- PERUBAHAN 1: Set default time_period ke 'this-month' ---
         $timePeriod = $request->input('time_period', 'this-month');
         $specificMonth = $request->input('month');
         $specificYear = $request->input('year');
 
-        // --- Fungsi untuk menerapkan filter waktu ---
+        // Jika per_page adalah 'all', set nilai yang sangat besar untuk mengambil semua data
+        if ($perPage === 'all') {
+            $perPage = 999999; // Angka besar untuk mensimulasikan "semua"
+        } else {
+            $perPage = intval($perPage);
+        }
+
         $applyTimeFilter = function ($query, $period, $month, $year) {
             switch ($period) {
                 case 'today':
@@ -33,7 +39,6 @@ class IncisedController extends Controller
                     $query->whereMonth('date', Carbon::now()->month)
                           ->whereYear('date', Carbon::now()->year);
                     break;
-                // --- PERUBAHAN 2: Tambah case untuk 'last-month' ---
                 case 'last-month':
                     $query->whereMonth('date', Carbon::now()->subMonth()->month)
                           ->whereYear('date', Carbon::now()->subMonth()->year);
@@ -41,7 +46,6 @@ class IncisedController extends Controller
                 case 'this-year':
                     $query->whereYear('date', Carbon::now()->year);
                     break;
-                // --- PERUBAHAN 3: Tambah case untuk 'specific-month' ---
                 case 'specific-month':
                     if ($month && $year) {
                         $query->whereMonth('date', $month)
@@ -50,15 +54,12 @@ class IncisedController extends Controller
                     break;
                 case 'all-time':
                 default:
-                    // Tidak ada filter tanggal untuk 'all-time'
                     break;
             }
         };
         
-        // --- Query utama untuk tabel ---
         $incisedsQuery = Incised::query()->with('incisor');
 
-        // Terapkan filter pencarian
         $incisedsQuery->when($searchTerm, function ($query, $search) {
             $query->where(function ($q) use ($search) {
                 $q->where('product', 'like', "%{$search}%")
@@ -71,10 +72,8 @@ class IncisedController extends Controller
             });
         });
 
-        // Terapkan filter waktu
         $applyTimeFilter($incisedsQuery, $timePeriod, $specificMonth, $specificYear);
 
-        // --- Data untuk Kartu Statistik ---
         $baseStatQuery = Incised::query();
         $applyTimeFilter($baseStatQuery, $timePeriod, $specificMonth, $specificYear);
         
@@ -95,10 +94,9 @@ class IncisedController extends Controller
             'total_qty_kg' => $mostProductiveIncisor ? (float)$mostProductiveIncisor->total_qty_kg : 0,
         ];
 
-        // Paginate hasil query utama
         $inciseds = $incisedsQuery
             ->orderBy('date', 'DESC')
-            ->paginate($perPage)
+            ->paginate($perPage) // Gunakan variabel $perPage
             ->through(function ($incised) {
                 $incisor = $incised->incisor;
                 return [
@@ -121,14 +119,15 @@ class IncisedController extends Controller
 
         return Inertia::render("Inciseds/index", [
             "inciseds" => $inciseds,
-            "filter" => $request->only(['search', 'time_period', 'month', 'year']),
+            // --- PERUBAHAN: Kirim filter per_page ke frontend ---
+            "filter" => $request->only(['search', 'time_period', 'month', 'year', 'per_page']),
             'totalKebunA' => (float)$totalKebunA,
             'totalKebunB' => (float)$totalKebunB,
             'mostProductiveIncisor' => $mostProductiveIncisorData,
         ]);
     }
 
-    // ... (Fungsi create, store, edit, update, show, destroy lainnya tidak diubah) ...
+    // ... (Fungsi lainnya tetap sama) ...
 
     public function create()
     {
@@ -215,3 +214,4 @@ class IncisedController extends Controller
         return redirect()->route('inciseds.index')->with('message', 'Invoice deleted Successfully');
     }
 }
+

@@ -8,6 +8,7 @@ import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { CircleAlert, Undo2 } from 'lucide-react';
+import { useEffect } from 'react'; // Import useEffect
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -22,8 +23,6 @@ interface NoInvoiceWithName {
 }
 
 export default function CreateIncised({ noInvoicesWithNames }: { noInvoicesWithNames: NoInvoiceWithName[] }) {
-    console.log('noInvoicesWithNames:', noInvoicesWithNames); // Debugging
-
     const { data, setData, post, processing, errors } = useForm({
         product: '',
         date: '',
@@ -37,6 +36,20 @@ export default function CreateIncised({ noInvoicesWithNames }: { noInvoicesWithN
         keping: '',
         kualitas: '',
     });
+
+    // --- PERUBAHAN: Tambahkan useEffect untuk perhitungan otomatis ---
+    useEffect(() => {
+        const qty = parseFloat(data.qty_kg);
+        const price = parseFloat(data.price_qty);
+
+        // Cek apakah qty dan price adalah angka yang valid
+        if (!isNaN(qty) && !isNaN(price)) {
+            const calculatedAmount = qty * price * 0.40; // Rumus: qty * price * 40%
+            setData('amount', calculatedAmount.toFixed(2)); // Set nilai amount dengan 2 angka desimal
+        } else {
+            setData('amount', ''); // Kosongkan jika salah satu input tidak valid
+        }
+    }, [data.qty_kg, data.price_qty]); // Efek ini akan berjalan setiap kali qty_kg atau price_qty berubah
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -172,6 +185,7 @@ export default function CreateIncised({ noInvoicesWithNames }: { noInvoicesWithN
                                     <div className="gap-2 md:col-span-1 sm:col-span-3">
                                         <Label htmlFor="Quantity">Quantity (Kg)</Label>
                                         <Input
+                                            type="number"
                                             placeholder="Quantity"
                                             value={data.qty_kg}
                                             onChange={(e) => setData('qty_kg', e.target.value)}
@@ -181,6 +195,7 @@ export default function CreateIncised({ noInvoicesWithNames }: { noInvoicesWithN
                                     <div className="gap-2 md:col-span-1 sm:col-span-3">
                                         <Label htmlFor="Price">Price /Qty</Label>
                                         <Input
+                                            type="number"
                                             placeholder="Price"
                                             value={data.price_qty}
                                             onChange={(e) => setData('price_qty', e.target.value)}
@@ -189,16 +204,19 @@ export default function CreateIncised({ noInvoicesWithNames }: { noInvoicesWithN
                                     </div>
                                     <div className="gap-2 md:col-span-1 sm:col-span-3">
                                         <Label htmlFor="Amount">Amount</Label>
+                                        {/* --- PERUBAHAN: Jadikan input ini readOnly --- */}
                                         <Input
                                             placeholder="Amount"
                                             value={data.amount}
-                                            onChange={(e) => setData('amount', e.target.value)}
+                                            readOnly
+                                            className="bg-gray-100 dark:bg-gray-700"
                                         />
                                         {errors.amount && <p className="text-red-600 text-sm">{errors.amount}</p>}
                                     </div>
                                     <div className="gap-2 md:col-span-1 sm:col-span-3">
                                         <Label htmlFor="Keping">Keping</Label>
                                         <Input
+                                            type="number"
                                             placeholder="Keping"
                                             value={data.keping}
                                             onChange={(e) => setData('keping', e.target.value)}
@@ -229,3 +247,4 @@ export default function CreateIncised({ noInvoicesWithNames }: { noInvoicesWithN
         </AppLayout>
     );
 }
+

@@ -67,12 +67,12 @@ const SummaryRow: React.FC<{ label: string; value: string; isLoading: boolean; c
     </div>
 );
 
-export default function CreateKasbon({ incisors, monthsYears, flash, errors: pageErrors }: PageProps) {
+export default function CreateKasbon({ incisors, monthsYears, statuses, flash, errors: pageErrors }: PageProps) {
     const { data, setData, post, processing, errors, reset } = useForm({
         incisor_id: '',
         month: '',
         year: '',
-        kasbon: 1500000,
+        kasbon: 0,
         status: 'Pending',
         reason: '',
     });
@@ -81,7 +81,7 @@ export default function CreateKasbon({ incisors, monthsYears, flash, errors: pag
         name: '',
         total_toreh_bulan_ini: 0,
         gaji_bulan_ini: 0,
-        max_kasbon_amount: 1500000,
+        max_kasbon_amount: 0,
     });
 
     const [isLoadingData, setIsLoadingData] = useState(false);
@@ -131,10 +131,6 @@ export default function CreateKasbon({ incisors, monthsYears, flash, errors: pag
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        // if (data.kasbon > incisorDetails.max_kasbon_amount) {
-        //     setDataFetchError(`Jumlah kasbon tidak boleh melebihi ${formatCurrency(incisorDetails.max_kasbon_amount)}.`);
-        //     return;
-        // }
         post(route('kasbons.store'), {
             onSuccess: () => reset(),
             preserveScroll: true,
@@ -142,7 +138,6 @@ export default function CreateKasbon({ incisors, monthsYears, flash, errors: pag
     };
 
     const sisaGaji = incisorDetails.gaji_bulan_ini - data.kasbon;
-    // const sisaGaji = incisorDetails.gaji_bulan_ini - data.kasbon;
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -218,6 +213,18 @@ export default function CreateKasbon({ incisors, monthsYears, flash, errors: pag
                                         className="text-2xl font-bold h-14"
                                     />
                                     {errors.kasbon && <p className="text-sm text-destructive mt-1">{errors.kasbon}</p>}
+                                </div>
+                                <div>
+                                    <Label htmlFor="status">Status</Label>
+                                    <Select onValueChange={(value) => setData('status', value)} value={data.status}>
+                                        <SelectTrigger id="status"><SelectValue placeholder="Pilih Status..." /></SelectTrigger>
+                                        <SelectContent>
+                                            {statuses.map((status) => (
+                                                <SelectItem key={status} value={status}>{status}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    {errors.status && <p className="text-sm text-destructive mt-1">{errors.status}</p>}
                                 </div>
                                 <div>
                                     <Label htmlFor="reason">Alasan (Opsional)</Label>

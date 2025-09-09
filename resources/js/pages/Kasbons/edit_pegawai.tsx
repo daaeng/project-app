@@ -8,14 +8,14 @@ import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
-import { Undo2, Megaphone, User, FileText, Wallet, Briefcase } from 'lucide-react';
+import { Undo2, Megaphone, User, Wallet } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 // --- INTERFACES ---
 interface EmployeeOption {
     id: number;
-    label: string; // NIP - Nama
+    label: string;
     salary: number;
 }
 interface KasbonData {
@@ -24,10 +24,10 @@ interface KasbonData {
     kasbon: number;
     status: 'Pending' | 'Approved' | 'Rejected';
     reason: string | null;
+    created_at: string; // [BARU] Menerima tanggal
     owner: {
         name: string;
-        employee_id: string; // NIP
-        position: string;
+        employee_id: string;
         salary: number;
     };
 }
@@ -63,6 +63,7 @@ export default function EditKasbonPegawai() {
         kasbon: kasbon.kasbon,
         status: kasbon.status,
         reason: kasbon.reason || '',
+        created_at: kasbon.created_at, // [BARU] Inisialisasi tanggal
     });
 
     const [selectedEmployee, setSelectedEmployee] = useState<EmployeeOption | undefined>(
@@ -76,9 +77,6 @@ export default function EditKasbonPegawai() {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (selectedEmployee && data.kasbon > selectedEmployee.salary) {
-            // Error handling can be improved, but for now, we rely on backend validation
-        }
         put(route('kasbons.update', kasbon.id), {
             preserveScroll: true,
         });
@@ -104,12 +102,10 @@ export default function EditKasbonPegawai() {
                     </Link>
                 </div>
 
-                {/* --- FLASH MESSAGES & ERRORS --- */}
-                {flash.message && <Alert variant="success"><Megaphone className='h-4 w-4' /><AlertTitle>Berhasil!</AlertTitle><AlertDescription>{flash.message}</AlertDescription></Alert>}
+                {flash.message && <Alert><Megaphone className='h-4 w-4' /><AlertTitle>Berhasil!</AlertTitle><AlertDescription>{flash.message}</AlertDescription></Alert>}
                 {flash.error && <Alert variant="destructive"><Megaphone className='h-4 w-4' /><AlertTitle>Gagal!</AlertTitle><AlertDescription>{flash.error}</AlertDescription></Alert>}
                 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    {/* --- Kolom Kiri: Form Edit --- */}
                     <div className="lg:col-span-2">
                         <Card>
                             <CardHeader>
@@ -118,7 +114,6 @@ export default function EditKasbonPegawai() {
                             </CardHeader>
                             <CardContent>
                                 <form onSubmit={handleSubmit} className="space-y-6">
-                                    {/* Employee Select */}
                                     <div>
                                         <Label htmlFor="employee_id">Pegawai</Label>
                                         <Select onValueChange={(value) => setData('employee_id', value)} value={data.employee_id}>
@@ -132,7 +127,6 @@ export default function EditKasbonPegawai() {
                                         {errors.employee_id && <p className="text-red-500 text-sm mt-1">{errors.employee_id}</p>}
                                     </div>
 
-                                    {/* Kasbon Amount & Status */}
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
                                             <Label htmlFor="kasbon">Jumlah Kasbon (IDR)</Label>
@@ -155,7 +149,15 @@ export default function EditKasbonPegawai() {
                                         </div>
                                     </div>
 
-                                    {/* Reason Textarea */}
+                                    {/* [BARU] Input untuk tanggal */}
+                                    <div>
+                                        <Label htmlFor="created_at">Tanggal Pengajuan</Label>
+                                        <Input id="created_at" type="date" value={data.created_at}
+                                            onChange={(e) => setData('created_at', e.target.value)}
+                                        />
+                                        {errors.created_at && <p className="text-red-500 text-sm mt-1">{errors.created_at}</p>}
+                                    </div>
+
                                     <div>
                                         <Label htmlFor="reason">Alasan (Opsional)</Label>
                                         <Textarea id="reason" placeholder="Alasan persetujuan, penolakan, atau catatan lain..." value={data.reason}
@@ -165,7 +167,7 @@ export default function EditKasbonPegawai() {
                                     </div>
 
                                     <div className="flex justify-end pt-4">
-                                        <Button type="submit" disabled={processing} size="lg">
+                                        <Button type="submit" disabled={processing}>
                                             {processing ? 'Menyimpan...' : 'Simpan Perubahan'}
                                         </Button>
                                     </div>
@@ -174,35 +176,23 @@ export default function EditKasbonPegawai() {
                         </Card>
                     </div>
 
-                    {/* --- Kolom Kanan: Info Panel --- */}
                     <div className="lg:col-span-1">
-                        <Card className="sticky top-6 bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700">
+                        <Card className="sticky top-6 bg-slate-50">
                             <CardHeader>
                                 <CardTitle>Informasi Pegawai</CardTitle>
-                                <CardDescription>Data berdasarkan pegawai yang dipilih.</CardDescription>
                             </CardHeader>
-                            <CardContent className="space-y-5">
-                                <div className="flex items-center space-x-4">
-                                    <div className="bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 p-3 rounded-lg">
+                            <CardContent className="space-y-4">
+                                <div className="flex items-center space-x-3">
+                                    <div className="bg-emerald-100 text-emerald-700 p-2 rounded-lg">
                                         <User className="w-5 h-5" />
                                     </div>
                                     <div>
                                         <p className="text-sm text-muted-foreground">Nama Pegawai</p>
-                                        <p className="font-semibold">{selectedEmployee?.label.split(' - ')[1] || 'Pilih Pegawai'}</p>
+                                        <p className="font-semibold">{selectedEmployee?.label || 'Pilih Pegawai'}</p>
                                     </div>
                                 </div>
-                                <div className="flex items-center space-x-4">
-                                    <div className="bg-sky-100 dark:bg-sky-900/50 text-sky-700 dark:text-sky-300 p-3 rounded-lg">
-                                        <FileText className="w-5 h-5" />
-                                    </div>
-                                    <div>
-                                        <p className="text-sm text-muted-foreground">NIP</p>
-                                        <p className="font-semibold">{selectedEmployee?.label.split(' - ')[0] || '-'}</p>
-                                    </div>
-                                </div>
-                                <hr className="dark:border-slate-700"/>
-                                <div className="flex items-center space-x-4">
-                                    <div className="bg-rose-100 dark:bg-rose-900/50 text-rose-700 dark:text-rose-300 p-3 rounded-lg">
+                                <div className="flex items-center space-x-3">
+                                    <div className="bg-rose-100 text-rose-700 p-2 rounded-lg">
                                         <Wallet className="w-5 h-5" />
                                     </div>
                                     <div>
