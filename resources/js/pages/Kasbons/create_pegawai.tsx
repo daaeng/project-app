@@ -31,7 +31,7 @@ interface PageProps {
         message?: string;
         error?: string;
     };
-    errors: Partial<Record<'employee_id' | 'gaji' | 'kasbon' | 'status' | 'reason', string>>;
+    errors: Partial<Record<'employee_id' | 'gaji' | 'kasbon' | 'status' | 'reason' | 'transaction_date', string>>; // Tambahkan transaction_date
 }
 
 const formatCurrency = (value: number | null | undefined) => {
@@ -46,10 +46,12 @@ const formatCurrency = (value: number | null | undefined) => {
 export default function CreateKasbonPegawai({ employees, statuses, flash, errors: pageErrors }: PageProps) {
     const { data, setData, post, processing, errors, reset, wasSuccessful } = useForm({
         employee_id: '',
-        gaji: 0, // <-- Tambahkan gaji di form
+        gaji: 0,
         kasbon: 0,
         status: 'Pending',
         reason: '',
+        // [MODIFIKASI] Tambahkan transaction_date ke state form, default hari ini
+        transaction_date: new Date().toISOString().split('T')[0],
     });
 
     const [selectedEmployee, setSelectedEmployee] = useState<EmployeeOption | null>(null);
@@ -67,7 +69,7 @@ export default function CreateKasbonPegawai({ employees, statuses, flash, errors
         setData(prevData => ({
             ...prevData,
             employee_id: employeeId,
-            gaji: employee?.salary || 0, // otomatis isi gaji
+            gaji: employee?.salary || 0,
             kasbon: 0
         }));
     };
@@ -136,9 +138,23 @@ export default function CreateKasbonPegawai({ employees, statuses, flash, errors
                                     </Select>
                                     {errors.employee_id && <p className="text-sm text-destructive mt-1">{errors.employee_id}</p>}
                                 </div>
-
-                                {/* Input Gaji */}
+                                
+                                {/* [MODIFIKASI] Tambahkan input tanggal transaksi */}
                                 <div>
+                                    <Label htmlFor="transaction_date">Tanggal Transaksi</Label>
+                                    <Input
+                                        id="transaction_date"
+                                        type="date"
+                                        name="transaction_date"
+                                        value={data.transaction_date}
+                                        onChange={(e) => setData('transaction_date', e.target.value)}
+                                        required
+                                        disabled={processing}
+                                    />
+                                    {errors.transaction_date && <p className="text-sm text-destructive mt-1">{errors.transaction_date}</p>}
+                                </div>
+
+                                {/* <div className={cn(!data.employee_id && "opacity-50 pointer-events-none")}>
                                     <Label htmlFor="gaji">Gaji</Label>
                                     <Input
                                         id="gaji"
@@ -148,10 +164,11 @@ export default function CreateKasbonPegawai({ employees, statuses, flash, errors
                                         onChange={(e) => setData('gaji', parseFloat(e.target.value) || 0)}
                                         required
                                         disabled={processing}
+                                        readOnly // Gaji seharusnya tidak bisa diubah manual
                                     />
                                     {errors.gaji && <p className="text-sm text-destructive mt-1">{errors.gaji}</p>}
-                                </div>
-
+                                </div> */}
+                                
                                 <div className={cn(!data.employee_id && "opacity-50 pointer-events-none")}>
                                     <Label htmlFor="kasbon">Jumlah Kasbon (IDR)</Label>
                                     <Input

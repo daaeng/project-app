@@ -46,6 +46,7 @@ interface PayableKasbon {
     id: number;
     kasbon: number;
     created_at: string;
+    transaction_date: string; // [MODIFIKASI] Tambahkan properti ini
 }
 
 interface PageProps {
@@ -236,7 +237,8 @@ export default function KasbonDetail() {
                                         <SelectContent>
                                             {payableKasbons && payableKasbons.map(k => (
                                                 <SelectItem key={k.id} value={String(k.id)}>
-                                                    {`Kasbon ${formatCurrency(k.kasbon)} - ${new Date(k.created_at).toLocaleDateString('id-ID')}`}
+                                                    {/* [MODIFIKASI] Gunakan transaction_date, dengan fallback ke created_at jika transaction_date null */}
+                                                    {`Kasbon ${formatCurrency(k.kasbon)} - ${new Date(k.transaction_date || k.created_at).toLocaleDateString('id-ID')}`}
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>
@@ -301,4 +303,3 @@ export default function KasbonDetail() {
         </AppLayout>
     );
 }
-

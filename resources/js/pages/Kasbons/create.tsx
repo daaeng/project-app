@@ -45,6 +45,7 @@ interface PageProps {
         kasbon?: string;
         status?: string;
         reason?: string;
+        transaction_date?: string; // Tambahkan error handling untuk transaction_date
     };
 }
 
@@ -75,6 +76,8 @@ export default function CreateKasbon({ incisors, monthsYears, statuses, flash, e
         kasbon: 0,
         status: 'Pending',
         reason: '',
+        // [MODIFIKASI] Tambahkan transaction_date ke state form, default hari ini
+        transaction_date: new Date().toISOString().split('T')[0],
     });
 
     const [incisorDetails, setIncisorDetails] = useState({
@@ -201,6 +204,19 @@ export default function CreateKasbon({ incisors, monthsYears, statuses, flash, e
                                 <CardDescription>Masukkan jumlah kasbon yang ingin diajukan.</CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-6">
+                                {/* [MODIFIKASI] Tambahkan input tanggal transaksi */}
+                                <div>
+                                    <Label htmlFor="transaction_date">Tanggal Transaksi</Label>
+                                    <Input
+                                        id="transaction_date"
+                                        type="date"
+                                        value={data.transaction_date}
+                                        onChange={(e) => setData('transaction_date', e.target.value)}
+                                        disabled={isLoadingData || !selectionsMade}
+                                        required
+                                    />
+                                    {errors.transaction_date && <p className="text-sm text-destructive mt-1">{errors.transaction_date}</p>}
+                                </div>
                                 <div>
                                     <Label htmlFor="kasbon">Jumlah Kasbon (IDR)</Label>
                                     <Input

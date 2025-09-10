@@ -19,7 +19,6 @@ class KasbonController extends Controller
 {
     private $statuses = ['Pending', 'Approved', 'Rejected'];
 
-    // ... (Method index tidak berubah, diasumsikan sudah akurat dari perbaikan sebelumnya) ...
     public function index(Request $request)
     {
         $perPage = 20;
@@ -122,7 +121,7 @@ class KasbonController extends Controller
         foreach ($kasbons as $kasbon) {
             $transactions->push([
                 'id' => 'k-'.$kasbon->id,
-                'date' => $kasbon->created_at,
+                'date' => $kasbon->transaction_date,
                 'description' => 'Pinjaman Dana (Kasbon) - ' . $kasbon->status,
                 'debit' => $kasbon->kasbon,
                 'credit' => 0,
@@ -133,7 +132,7 @@ class KasbonController extends Controller
         foreach ($payments as $payment) {
             $transactions->push([
                 'id' => 'p-'.$payment->id,
-                'date' => $payment->created_at,
+                'date' => $payment->payment_date,
                 'description' => $payment->notes ?: 'Pembayaran Cicilan',
                 'debit' => 0,
                 'credit' => $payment->amount,
@@ -171,7 +170,8 @@ class KasbonController extends Controller
             ->where('status', 'Approved')
             ->whereIn('payment_status', ['unpaid', 'partial'])
             ->orderBy('created_at', 'desc')
-            ->get(['id', 'kasbon', 'created_at']);
+            // [MODIFIKASI] Ambil 'transaction_date' untuk ditampilkan di dropdown frontend
+            ->get(['id', 'kasbon', 'created_at', 'transaction_date']);
 
         return Inertia::render('Kasbons/Detail', [
             'owner' => $ownerData,
@@ -372,9 +372,9 @@ class KasbonController extends Controller
             ->sum('amount');
         $gaji = $totalAmount;
 
-        if ($validated['status'] === 'Approved' && $validated['kasbon'] > $gaji) {
-            return back()->withErrors(['kasbon' => 'Jumlah kasbon tidak boleh melebihi total gaji penoreh pada periode ini.'])->withInput();
-        }
+        // if ($validated['status'] === 'Approved' && $validated['kasbon'] > $gaji) {
+        //     return back()->withErrors(['kasbon' => 'Jumlah kasbon tidak boleh melebihi total gaji penoreh pada periode ini.'])->withInput();
+        // }
 
         DB::beginTransaction();
         try {

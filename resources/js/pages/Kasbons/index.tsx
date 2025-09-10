@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Search, Clock, CheckCircle2, Wallet, Megaphone, XCircle, User, HardHat, Printer, ChevronLeft, ChevronRight, Eye } from 'lucide-react';
+import { Search, Clock, CheckCircle2, Wallet, Megaphone, XCircle, User, HardHat, ChevronLeft, ChevronRight, Eye } from 'lucide-react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Rekap Kasbon', href: route('kasbons.index') },

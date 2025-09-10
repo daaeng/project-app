@@ -33,7 +33,7 @@ interface KasbonData {
     gaji: number;
     month: string;
     year: string;
-    created_at: string; // [BARU] Menerima tanggal
+    transaction_date: string; // [BARU] Menerima tanggal
     owner: { name: string; no_invoice: string; };
 }
 interface PageProps {
@@ -74,7 +74,7 @@ export default function EditKasbon() {
         kasbon: kasbon.kasbon,
         status: kasbon.status,
         reason: kasbon.reason || '',
-        created_at: kasbon.created_at, // [BARU] Inisialisasi tanggal
+        transaction_date: kasbon.transaction_date, // [BARU] Inisialisasi tanggal
     });
 
     const [incisorDetails, setIncisorDetails] = useState({
@@ -183,9 +183,9 @@ export default function EditKasbon() {
                                     </div>
                                     {/* [BARU] Input untuk tanggal */}
                                     <div>
-                                        <Label htmlFor="created_at">Tanggal Pengajuan</Label>
-                                        <Input id="created_at" type="date" value={data.created_at} onChange={(e) => setData('created_at', e.target.value)} />
-                                        {errors.created_at && <p className="text-red-500 text-sm mt-1">{errors.created_at}</p>}
+                                        <Label htmlFor="transaction_date">Tanggal Pengajuan</Label>
+                                        <Input id="transaction_date" type="date" value={data.transaction_date} onChange={(e) => setData('transaction_date', e.target.value)} />
+                                        {errors.transaction_date && <p className="text-red-500 text-sm mt-1">{errors.transaction_date}</p>}
                                     </div>
                                     <div>
                                         <Label htmlFor="reason">Alasan (Opsional)</Label>
