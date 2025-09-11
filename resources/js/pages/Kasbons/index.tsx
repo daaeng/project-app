@@ -10,13 +10,13 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Search, Clock, CheckCircle2, Wallet, Megaphone, XCircle, User, HardHat, ChevronLeft, ChevronRight, Eye } from 'lucide-react';
+// [MODIFICATION] Add Printer icon
+import { Search, Clock, CheckCircle2, Wallet, Megaphone, XCircle, User, HardHat, ChevronLeft, ChevronRight, Eye, Printer } from 'lucide-react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Rekap Kasbon', href: route('kasbons.index') },
 ];
 
-// INTERFACE BARU: Sesuai dengan data yang dikelompokkan dari controller
 interface KasbonGroup {
     owner_id: number;
     owner_type: string;
@@ -82,7 +82,7 @@ const OwnerCell: React.FC<{ kasbon: KasbonGroup }> = ({ kasbon }) => {
                 {isPegawai ? <User size={20} /> : <HardHat size={20} />}
             </div>
             <div>
-                <span className="font-medium text-gray-800">{kasbon.owner_name}</span>
+                <span className="font-medium text-gray-800 dark:text-white">{kasbon.owner_name}</span>
                 <p className="text-xs text-muted-foreground">{kasbon.owner_identifier}</p>
             </div>
         </div>
@@ -148,7 +148,6 @@ export default function KasbonIndex({ kasbons, flash, filter, totalPendingKasbon
         return () => clearTimeout(handler);
     }, [search]);
 
-    // Fungsi untuk mendapatkan tipe 'slug' untuk URL (misal: 'App\Models\Employee' -> 'employee')
     const getOwnerTypeSlug = (fullType: string) => {
         return fullType.toLowerCase().includes('employee') ? 'employee' : 'incisor';
     };
@@ -159,7 +158,15 @@ export default function KasbonIndex({ kasbons, flash, filter, totalPendingKasbon
             <div className="space-y-6 p-4">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <Heading title="Dashboard Rekap Kasbon" description="Total kasbon yang dimiliki oleh setiap orang." />
-                     <div className="flex items-center gap-3">
+                     <div className="flex items-center gap-3 flex-wrap">
+                        {/* [MODIFICATION START] Add Print Button */}
+                        <Link href={route('kasbons.print', { search: search || undefined })} target="_blank">
+                             <Button variant="outline" className="shadow-sm">
+                                <Printer className="w-4 h-4 mr-2" />
+                                Cetak Laporan
+                            </Button>
+                        </Link>
+                        {/* [MODIFICATION END] */}
                         {can('kasbons.create') && (
                             <Link href={route('kasbons.create')}>
                                 <Button className="bg-gradient-to-r from-purple-500 to-indigo-500 text-white shadow-lg hover:shadow-indigo-500/50 transition-shadow">
@@ -213,7 +220,7 @@ export default function KasbonIndex({ kasbons, flash, filter, totalPendingKasbon
                     <CardContent className="p-0">
                         <Table>
                             <TableHeader>
-                                <TableRow className="bg-slate-100 hover:bg-slate-100">
+                                <TableRow className="bg-slate-100 dark:bg-transparent hover:bg-slate-100">
                                     <TableHead className="pl-6">Nama</TableHead>
                                     <TableHead>Total Kasbon</TableHead>
                                     <TableHead>Total Dibayar</TableHead>
@@ -259,4 +266,3 @@ export default function KasbonIndex({ kasbons, flash, filter, totalPendingKasbon
         </AppLayout>
     );
 }
-

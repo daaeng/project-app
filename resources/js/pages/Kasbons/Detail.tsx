@@ -183,7 +183,7 @@ export default function KasbonDetail() {
                     <CardContent className="p-0">
                         <Table>
                             <TableHeader>
-                                <TableRow className="bg-slate-50 hover:bg-slate-50">
+                                <TableRow className="bg-slate-50 dark:bg-transparent hover:bg-slate-50">
                                     <TableHead>Tanggal</TableHead>
                                     <TableHead>Keterangan</TableHead>
                                     <TableHead className="text-right">Debit (Pinjaman)</TableHead>

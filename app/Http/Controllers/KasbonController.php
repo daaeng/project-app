@@ -14,6 +14,9 @@ use Inertia\Inertia;
 use Carbon\Carbon;
 use Throwable;
 use Illuminate\Validation\Rule;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Pagination\Paginator;
+
 
 class KasbonController extends Controller
 {
@@ -21,7 +24,7 @@ class KasbonController extends Controller
 
     public function index(Request $request)
     {
-        $perPage = 20;
+        $perPage = 25;
         $searchTerm = $request->input('search');
 
         $query = Kasbon::query()
@@ -40,7 +43,9 @@ class KasbonController extends Controller
             });
         }
         
-        $kasbonGroups = $query->paginate($perPage)->through(function ($group) {
+        $allGroups = $query->get();
+
+        $processedGroups = $allGroups->map(function ($group) {
             $totalKasbon = Kasbon::where('kasbonable_id', $group->kasbonable_id)
                 ->where('kasbonable_type', $group->kasbonable_type)
                 ->where('status', 'Approved')
@@ -81,7 +86,17 @@ class KasbonController extends Controller
                 'remaining' => $remaining > 0 ? $remaining : 0,
             ];
         });
-        
+
+        $sortedGroups = $processedGroups->sortBy('owner_name')->values();
+
+        $currentPage = Paginator::resolveCurrentPage('page');
+        $currentPageItems = $sortedGroups->slice(($currentPage - 1) * $perPage, $perPage)->all();
+
+        $kasbonGroups = new LengthAwarePaginator($currentPageItems, count($sortedGroups), $perPage, $currentPage, [
+            'path' => Paginator::resolveCurrentPath(),
+            'query' => $request->query(),
+        ]);
+
         $totalPendingKasbon = Kasbon::where('status', 'Pending')->count();
         $approvedKasbons = Kasbon::where('status', 'Approved')->get(['id', 'kasbon']);
         $totalApprovedPaid = KasbonPayment::whereIn('kasbon_id', $approvedKasbons->pluck('id'))->sum('amount');
@@ -170,7 +185,6 @@ class KasbonController extends Controller
             ->where('status', 'Approved')
             ->whereIn('payment_status', ['unpaid', 'partial'])
             ->orderBy('created_at', 'desc')
-            // [MODIFIKASI] Ambil 'transaction_date' untuk ditampilkan di dropdown frontend
             ->get(['id', 'kasbon', 'created_at', 'transaction_date']);
 
         return Inertia::render('Kasbons/Detail', [
@@ -185,7 +199,6 @@ class KasbonController extends Controller
 
     public function pay(Request $request)
     {
-        // [PEMBARUAN] owner_id dan owner_type tidak perlu divalidasi karena tidak disimpan ke tabel payments
         $validated = $request->validate([
             'kasbon_id' => 'required|exists:kasbons,id',
             'amount' => 'required|numeric|min:1',
@@ -208,14 +221,12 @@ class KasbonController extends Controller
                  return back()->withErrors(['amount' => 'Jumlah pembayaran melebihi sisa utang.'])->withInput();
             }
             
-            // [PEMBARUAN KUNCI] Menyimpan data yang sudah divalidasi ke tabel payments
             $kasbon->payments()->create($validated);
             
             $this->updateKasbonPaymentStatus($kasbon);
 
             DB::commit();
 
-            // [PEMBARUAN] Redirect kembali ke halaman detail user agar data ter-refresh
             return redirect()->route('kasbons.showByUser', [
                 'type' => $request->input('owner_type'), 
                 'id' => $request->input('owner_id')
@@ -246,7 +257,6 @@ class KasbonController extends Controller
                 return back()->withErrors(['amount' => 'Jumlah pembayaran melebihi sisa utang.'])->withInput();
             }
             
-            // [PEMBARUAN KUNCI] Langsung update dengan data yang sudah divalidasi
             $payment->update($validated);
             
             $this->updateKasbonPaymentStatus($kasbon);
@@ -294,7 +304,6 @@ class KasbonController extends Controller
         $kasbon->save();
     }
     
-    // ... (Method-method lain seperti create, store, edit, update, destroy tidak berubah dari versi sebelumnya) ...
     public function createPegawai()
     {
         $employees = Employee::select('id', 'name', 'salary', 'employee_id')->get()->map(fn ($e) => [
@@ -371,10 +380,6 @@ class KasbonController extends Controller
             ->whereYear('date', $validated['year'])
             ->sum('amount');
         $gaji = $totalAmount;
-
-        // if ($validated['status'] === 'Approved' && $validated['kasbon'] > $gaji) {
-        //     return back()->withErrors(['kasbon' => 'Jumlah kasbon tidak boleh melebihi total gaji penoreh pada periode ini.'])->withInput();
-        // }
 
         DB::beginTransaction();
         try {
@@ -542,62 +547,71 @@ class KasbonController extends Controller
     public function print(Request $request)
     {
         $searchTerm = $request->input('search');
-        $statusFilter = $request->input('status');
-        $statuses = ['Pending', 'Approved', 'Rejected'];
 
         $query = Kasbon::query()
-            ->with(['kasbonable', 'payments'])
-            ->when($searchTerm, function ($query, $search) {
-                $query->where(function ($q) use ($search) {
-                     $q->orWhereHasMorph('kasbonable', [Incisor::class], function ($incisorQuery) use ($search) {
-                        $incisorQuery->where('name', 'like', "%{$search}%")->orWhere('no_invoice', 'like', "%{$search}%");
-                    })
-                    ->orWhereHasMorph('kasbonable', [Employee::class], function ($employeeQuery) use ($search) {
-                        $employeeQuery->where('name', 'like', "%{$search}%")->orWhere('employee_id', 'like', "%{$search}%");
-                    });
-                });
-            })
-            ->when($statusFilter && $statusFilter !== 'all', function ($query) use ($statusFilter, $statuses) {
-                if (in_array($statusFilter, ['paid', 'unpaid', 'partial'])) {
-                    return $query->where('payment_status', $statusFilter);
-                }
-                $backendStatus = ucfirst($statusFilter);
-                if (in_array($backendStatus, $statuses)) {
-                    return $query->where('status', $backendStatus);
-                }
-            })
-            ->orderBy('created_at', 'DESC');
+            ->select('kasbonable_id', 'kasbonable_type')
+            ->groupBy('kasbonable_id', 'kasbonable_type');
 
-        $kasbons = $query->get()->map(function ($kasbon) {
+        if ($searchTerm) {
+            $query->where(function ($q) use ($searchTerm) {
+                $q->whereHasMorph('kasbonable', [Employee::class], function ($query) use ($searchTerm) {
+                    $query->where('name', 'like', "%{$searchTerm}%")
+                          ->orWhere('employee_id', 'like', "%{$searchTerm}%");
+                })->orWhereHasMorph('kasbonable', [Incisor::class], function ($query) use ($searchTerm) {
+                    $query->where('name', 'like', "%{$searchTerm}%")
+                          ->orWhere('no_invoice', 'like', "%{$searchTerm}%");
+                });
+            });
+        }
+        
+        $allGroups = $query->get();
+
+        $processedGroups = $allGroups->map(function ($group) {
+            $totalKasbon = Kasbon::where('kasbonable_id', $group->kasbonable_id)
+                ->where('kasbonable_type', $group->kasbonable_type)
+                ->where('status', 'Approved')
+                ->sum('kasbon');
+
+            $kasbonIds = Kasbon::where('kasbonable_id', $group->kasbonable_id)
+                ->where('kasbonable_type', $group->kasbonable_type)
+                ->pluck('id');
+
+            $totalPaid = KasbonPayment::whereIn('kasbon_id', $kasbonIds)->sum('amount');
+            
+            $owner = $group->kasbonable;
             $ownerName = 'N/A';
             $location = '-';
 
-            if ($kasbon->kasbonable) {
-                $ownerName = $kasbon->kasbonable->name;
-                if ($kasbon->kasbonable_type === Incisor::class) {
-                    $location = $kasbon->kasbonable->lok_toreh ?? '-';
-                } else {
-                    $location = 'Kantor'; 
+            if ($owner) {
+                $ownerName = $owner->name;
+                 if ($group->kasbonable_type === Employee::class) {
+                    $location = 'Kantor';
+                } elseif ($group->kasbonable_type === Incisor::class) {
+                    $location = $owner->lok_toreh ?? '-';
                 }
             }
             
-            $totalPaid = $kasbon->payments->sum('amount');
-            $remaining = $kasbon->kasbon - $totalPaid;
+            $remaining = $totalKasbon - $totalPaid;
+            
+            $status = 'Lunas';
+            if ($remaining > 0) {
+                $status = 'Belum Lunas';
+            }
 
             return [
                 'owner_name' => $ownerName,
                 'location' => $location,
-                'kasbon' => $kasbon->kasbon,
-                'total_paid' => $totalPaid,
-                'remaining' => $remaining,
-                'payment_status' => $kasbon->payment_status,
-                'status' => $kasbon->status,
+                'total_kasbon' => (float) $totalKasbon,
+                'remaining' => $remaining > 0 ? $remaining : 0,
+                'status' => $status,
             ];
         });
 
+        $kasbons = $processedGroups->sortBy('owner_name')->values();
+
         return Inertia::render("Kasbons/Print", [
             'kasbons' => $kasbons,
-            'filters' => $request->only(['search', 'status']),
+            'filters' => $request->only(['search']),
             'printDate' => now()->translatedFormat('d F Y'),
         ]);
     }

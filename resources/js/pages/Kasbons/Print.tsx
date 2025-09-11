@@ -6,8 +6,8 @@ import { Printer, ArrowLeft } from 'lucide-react';
 // --- INTERFACES ---
 interface KasbonPrint {
     owner_name: string;
-    location: string; // [PERUBAHAN] Ganti kasbon_type menjadi location
-    kasbon: number;
+    location: string;
+    total_kasbon: number;
     total_paid: number;
     remaining: number;
     payment_status: string;
@@ -34,13 +34,13 @@ const getStatusText = (status: string, paymentStatus: string) => {
 };
 
 // --- KOMPONEN HALAMAN CETAK ---
-export default function Print({ kasbons, filters, printDate }: PrintPageProps) {
+export default function Print({ kasbons, printDate }: PrintPageProps) {
     
     const handlePrint = () => {
         window.print();
     };
 
-    const totalKasbon = kasbons.reduce((sum, item) => sum + Number(item.kasbon), 0);
+    const totalKasbon = kasbons.reduce((sum, item) => sum + Number(item.total_kasbon), 0);
     const totalRemaining = kasbons.reduce((sum, item) => sum + Number(item.remaining), 0);
 
     return (
@@ -91,7 +91,6 @@ export default function Print({ kasbons, filters, printDate }: PrintPageProps) {
                                 <tr>
                                     <th className="p-3 text-left font-semibold text-gray-700 border">No.</th>
                                     <th className="p-3 text-left font-semibold text-gray-700 border">Nama</th>
-                                    {/* [PERUBAHAN] Ganti header kolom */}
                                     <th className="p-3 text-left font-semibold text-gray-700 border">Lokasi</th>
                                     <th className="p-3 text-right font-semibold text-gray-700 border">Total Kasbon</th>
                                     <th className="p-3 text-right font-semibold text-gray-700 border">Sisa Utang</th>
@@ -103,9 +102,8 @@ export default function Print({ kasbons, filters, printDate }: PrintPageProps) {
                                     <tr key={index} className="border-b">
                                         <td className="p-3 border-x">{index + 1}</td>
                                         <td className="p-3 border-x">{kasbon.owner_name}</td>
-                                        {/* [PERUBAHAN] Tampilkan data lokasi */}
                                         <td className="p-3 border-x">{kasbon.location}</td>
-                                        <td className="p-3 text-right border-x">{formatCurrency(kasbon.kasbon)}</td>
+                                        <td className="p-3 text-right border-x">{formatCurrency(kasbon.total_kasbon)}</td>
                                         <td className="p-3 text-right border-x font-medium text-red-600">{formatCurrency(kasbon.remaining)}</td>
                                         <td className="p-3 text-center border-x">{getStatusText(kasbon.status, kasbon.payment_status)}</td>
                                     </tr>
