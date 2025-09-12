@@ -6,7 +6,7 @@ import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Undo2, Banknote, Edit, Trash2 } from 'lucide-react';
+import { Undo2, Banknote, Edit, Trash2, Printer } from 'lucide-react';
 import { AlertDialog, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription } from '@/components/ui/alert-dialog';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -46,7 +46,7 @@ interface PayableKasbon {
     id: number;
     kasbon: number;
     created_at: string;
-    transaction_date: string; // [MODIFIKASI] Tambahkan properti ini
+    transaction_date: string;
 }
 
 interface PageProps {
@@ -55,6 +55,7 @@ interface PageProps {
     payableKasbons: PayableKasbon[];
     kasbon_owner_id: number;
     kasbon_owner_type: string;
+    errors: any; // Menambahkan 'errors' ke PageProps
 }
 
 const formatCurrency = (value: number) => {
@@ -63,12 +64,11 @@ const formatCurrency = (value: number) => {
 }
 
 export default function KasbonDetail() {
-    const { owner, history, payableKasbons, kasbon_owner_id, kasbon_owner_type, errors } = usePage().props as PageProps & { errors: any };
+    const { owner, history, payableKasbons, kasbon_owner_id, kasbon_owner_type, errors } = usePage<PageProps>().props;
 
     const [showPayDialog, setShowPayDialog] = useState(false);
     const [showEditDialog, setShowEditDialog] = useState(false);
 
-    // [PEMBARUAN KUNCI] Form terpisah untuk pembayaran baru
     const payForm = useForm({
         amount: '',
         notes: '',
@@ -78,7 +78,6 @@ export default function KasbonDetail() {
         owner_type: kasbon_owner_type,
     });
 
-    // [PEMBARUAN KUNCI] Form terpisah untuk edit pembayaran
     const editForm = useForm({
         id: null as number | null,
         amount: '',
@@ -88,11 +87,9 @@ export default function KasbonDetail() {
 
     useEffect(() => {
         if (errors && Object.keys(errors).length > 0) {
-            // Jika ada error `kasbon_id`, itu dari form pembayaran baru
             if (errors.kasbon_id) {
                 setShowPayDialog(true);
             } else {
-                // Jika tidak, kemungkinan besar dari form edit
                 setShowEditDialog(true);
             }
         }
@@ -126,6 +123,10 @@ export default function KasbonDetail() {
                 editForm.reset();
             },
         });
+    };
+    
+    const handlePrint = () => {
+        window.open(route('kasbons.printDetail', { type: kasbon_owner_type, id: kasbon_owner_id }), '_blank');
     };
 
     const openEditDialog = (transaction: Transaction) => {
@@ -168,6 +169,9 @@ export default function KasbonDetail() {
                     <div className="flex items-center gap-2">
                          <Button onClick={() => setShowPayDialog(true)} disabled={finalBalance <= 0 || !payableKasbons || payableKasbons.length === 0}>
                             <Banknote className="w-4 h-4 mr-2" /> Bayar Cicilan
+                        </Button>
+                        <Button variant="secondary" onClick={handlePrint}>
+                            <Printer className="w-4 h-4 mr-2" /> Cetak
                         </Button>
                         <Link href={route('kasbons.index')}>
                             <Button variant="outline"><Undo2 className="w-4 h-4 mr-2" /> Kembali</Button>
@@ -237,7 +241,6 @@ export default function KasbonDetail() {
                                         <SelectContent>
                                             {payableKasbons && payableKasbons.map(k => (
                                                 <SelectItem key={k.id} value={String(k.id)}>
-                                                    {/* [MODIFIKASI] Gunakan transaction_date, dengan fallback ke created_at jika transaction_date null */}
                                                     {`Kasbon ${formatCurrency(k.kasbon)} - ${new Date(k.transaction_date || k.created_at).toLocaleDateString('id-ID')}`}
                                                 </SelectItem>
                                             ))}
@@ -303,3 +306,4 @@ export default function KasbonDetail() {
         </AppLayout>
     );
 }
+

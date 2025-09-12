@@ -615,5 +615,81 @@ class KasbonController extends Controller
             'printDate' => now()->translatedFormat('d F Y'),
         ]);
     }
+
+    public function printDetail($type, $id)
+    {
+        // --- 1. Logika ini sama persis dengan method showByUser ---
+        $modelType = ($type === 'employee') ? Employee::class : Incisor::class;
+        $owner = $modelType::findOrFail($id);
+        
+        $ownerData = [];
+        if ($modelType === Employee::class) {
+            $ownerData = ['name' => $owner->name, 'identifier' => 'NIP: ' . $owner->employee_id];
+        } else {
+            $ownerData = ['name' => $owner->name, 'identifier' => 'No. Invoice: ' . $owner->no_invoice];
+        }
+
+        $kasbons = Kasbon::where('kasbonable_id', $id)
+            ->where('kasbonable_type', $modelType)
+            ->get();
+
+        $kasbonIds = $kasbons->pluck('id');
+        $payments = KasbonPayment::whereIn('kasbon_id', $kasbonIds)->with('kasbon')->get();
+
+        $transactions = collect([]);
+        foreach ($kasbons as $kasbon) {
+            $transactions->push([
+                'id' => 'k-'.$kasbon->id,
+                'date' => $kasbon->transaction_date,
+                'description' => 'Pinjaman Dana (Kasbon) - ' . $kasbon->status,
+                'debit' => $kasbon->kasbon,
+                'credit' => 0,
+                'transaction_type' => 'kasbon',
+                'transaction_ref' => $kasbon,
+            ]);
+        }
+        foreach ($payments as $payment) {
+            $transactions->push([
+                'id' => 'p-'.$payment->id,
+                'date' => $payment->payment_date,
+                'description' => $payment->notes ?: 'Pembayaran Cicilan',
+                'debit' => 0,
+                'credit' => $payment->amount,
+                'transaction_type' => 'payment',
+                'transaction_ref' => $payment,
+            ]);
+        }
+        
+        $sortedTransactions = $transactions->sortBy('date')->values();
+        
+        $runningBalance = 0;
+        $balanceMap = [];
+        
+        foreach ($sortedTransactions as $tx) {
+            $kasbonStatus = $tx['transaction_type'] === 'kasbon' 
+                ? $tx['transaction_ref']['status'] 
+                : ($tx['transaction_ref']['kasbon']['status'] ?? 'Approved');
+
+            if ($kasbonStatus === 'Approved') {
+                 $runningBalance += $tx['debit'] - $tx['credit'];
+            }
+            $balanceMap[$tx['id']] = $runningBalance;
+        }
+
+        $history = $sortedTransactions->map(function ($item) use ($balanceMap) {
+            $item['balance'] = $balanceMap[$item['id']] ?? 0;
+            $carbonDate = Carbon::parse($item['date']);
+            // Format tanggal yang lebih simpel untuk print
+            $item['date_formatted'] = $carbonDate->isoFormat('D MMMM YYYY');
+            return $item;
+        });
+
+        // --- 2. Render view khusus untuk print ---
+        return Inertia::render('Kasbons/PrintDetail', [
+            'owner' => $ownerData,
+            'history' => $history->sortBy('date')->values()->all(),
+            'printDate' => now()->translatedFormat('d F Y, H:i'),
+        ]);
+    }
 }
 

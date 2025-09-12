@@ -188,8 +188,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/kasbons/print', [KasbonController::class, 'print'])->name('kasbons.print')
         ->middleware("permission:kasbons.view");
+    
+    Route::get('/kasbons/print-detail/{type}/{id}', [KasbonController::class, 'printDetail'])->name('kasbons.printDetail')
+        ->middleware("permission:kasbons.view");
 
-    Route::get('/kasbons/details/{type}/{id}', [KasbonController::class, 'showByUser'])->name('kasbons.showByUser');
+    Route::get('/kasbons/details/{type}/{id}', [KasbonController::class, 'showByUser'])->name('kasbons.showByUser')
+        ->middleware("permission:kasbons.view");
         
     Route::resource('kasbons', KasbonController::class)->except(['show'])
         ->middleware("permission:kasbons.create|kasbons.edit|kasbons.delete|kasbons.view");
