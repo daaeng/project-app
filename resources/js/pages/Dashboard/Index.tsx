@@ -421,9 +421,9 @@ export default function Dashboard({ totalAmountOutKaret, hsl_tsa, hsl_beli, tota
                                 />
                                 <Legend />
 
-                                <Bar yAxisId="left" dataKey="sebayar" fill="#FFC107" name="Sebayar" radius={[8, 8, 0, 0]} />
-                                <Bar yAxisId="left" dataKey="temadu" fill="#3B82F6" name="Temadu" radius={[8, 8, 0, 0]} />
-                                <Bar yAxisId="right" dataKey="penjualan" fill="#22C55E"  radius={[8, 8, 0, 0]} />
+                                <Bar yAxisId="left" dataKey="sebayar" fill="#CC0000" name="Sebayar" radius={[8, 8, 0, 0]} />
+                                <Bar yAxisId="left" dataKey="temadu" fill="#0000FF" name="Temadu" radius={[8, 8, 0, 0]} />
+                                <Bar yAxisId="right" dataKey="penjualan" fill="#00CC00"  radius={[8, 8, 0, 0]} />
                             
                             </BarChart>
                         </ResponsiveContainer>

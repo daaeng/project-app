@@ -8,6 +8,8 @@ import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { CircleAlert, Undo2 } from 'lucide-react';
+// Import useEffect dari React
+import { useEffect } from 'react';
 
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -16,28 +18,35 @@ const breadcrumbs: BreadcrumbItem[] = [
   { title: 'Send Product', href: '/products/c_send' },
 ];
 
-export default function index() {
+export default function SendProduct() {
 
     const {data, setData, post, processing, errors } = useForm({
-
         product: '',
         date: '',
         no_invoice: '',
         nm_supplier: '',
         j_brg: '',
         desk: '',
-        // qty_kg: '',
-        // price_qty: '',
-        // amount: '',
-        // keping: '',
-        // kualitas: '',
         qty_out: '',
         price_out: '',
         amount_out: '',
         keping_out: '',
         kualitas_out: '',
         status: '',
-    })
+    });
+
+    // --- START: Logika Perhitungan Otomatis untuk form send ---
+    // Logika ini sama, hanya nama fieldnya yang berbeda (qty_out, price_out, amount_out)
+    useEffect(() => {
+        const qty = parseFloat(data.qty_out) || 0;
+        const price = parseFloat(data.price_out) || 0;
+
+        const calculatedAmount = qty * price * 0.40;
+
+        setData('amount_out', calculatedAmount.toFixed(2));
+
+    }, [data.qty_out, data.price_out]);
+    // --- END: Logika Perhitungan Otomatis ---
 
     const handleSubmit = (e: React.FormEvent) =>{
         e.preventDefault();
@@ -84,7 +93,6 @@ export default function index() {
                         <div className='space-y-2'>
                             <div className='gap-2'>
                                 <Label htmlFor='Product Name'> Product </Label>
-                                {/* <Input placeholder='Product Name' value={data.product} onChange={(e) => setData('product', e.target.value)} /> */}
                                 <select value={data.product} onChange={(e) => setData('product', e.target.value)} className='w-full border p-1 rounded-md text-destructive-foreground' required>
                                     <option value="" disabled selected>Pilih Jenis Product</option>
                                     <option value="Karet" >Karet</option>
@@ -102,18 +110,13 @@ export default function index() {
                             </div>
                             <div className='gap-2'>
                                 <Label htmlFor='Name Supplier'> Supplier </Label>
-                                {/* <Input placeholder='Name Supplier' value={data.nm_supplier} onChange={(e) => setData('nm_supplier', e.target.value)} /> */}
                                 <select value={data.nm_supplier} onChange={(e) => setData('nm_supplier', e.target.value)} className='w-full border p-1 rounded-md text-destructive-foreground' required>
                                     <option value="" disabled selected>Pilih Supplier</option>
-                                    {/* <option value="Sebayar" >Sebayar</option>
-                                    <option value="Temadu" >Temadu</option>
-                                    <option value="Agro" >GK Agro</option> */}
                                     <option value="GKA" >GKA</option>
                                 </select>
                             </div>
                             <div className='gap-2 sm:col-span-3'>
                                 <Label htmlFor='Product Name'> Status</Label>
-                                {/* <Input placeholder='Product Name' value={data.product} onChange={(e) => setData('product', e.target.value)} /> */}
                                 <select value={data.status} onChange={(e) => setData('status', e.target.value)} className='w-full border p-1 rounded-md text-destructive-foreground' required>
                                     <option value="" disabled selected>Status</option>
                                     <option value="Buyer" >GKA - Buyer</option>
@@ -130,43 +133,35 @@ export default function index() {
 
                         </div>
                         
-
                         <div className='grid lg:grid-cols-3'>
-
                             <div className='p-2 mt-3 col-span-3 border-2  rounded-md h-fit '>
-
                                 <div className='grid md:grid-cols-2 sm:grid-cols-1 gap-3 p-2'>
-
                                     <div className='gap-2 sm:col-span-3 mt-5'>
                                         <Label htmlFor='In'> Stock Keluar </Label>
                                     </div>
-
                                     <div className='gap-2 md:col-span-1 sm:col-span-3'>
                                         <Label htmlFor='Quantity'> Quantity (Kg) </Label>
-                                        <Input placeholder='Quantity' value={data.qty_out} onChange={(e) => setData('qty_out', e.target.value)}/>
+                                        <Input type='number' placeholder='Quantity' value={data.qty_out} onChange={(e) => setData('qty_out', e.target.value)}/>
                                     </div>
                                     <div className='gap-2 md:col-span-1 sm:col-span-3'>
                                         <Label htmlFor='Price'> Price /Qty </Label>
-                                        <Input placeholder='Price' value={data.price_out} onChange={(e) => setData('price_out', e.target.value)}/>
+                                        <Input type='number' placeholder='Price' value={data.price_out} onChange={(e) => setData('price_out', e.target.value)}/>
                                     </div>
                                     <div className='gap-2 md:col-span-1 sm:col-span-3'>
                                         <Label htmlFor='Amount'> Amount </Label>
-                                        <Input placeholder='Amount' value={data.amount_out} onChange={(e) => setData('amount_out', e.target.value)}/>
+                                        {/* Tambahkan 'readOnly' agar tidak bisa diubah manual oleh user */}
+                                        <Input placeholder='Amount' value={data.amount_out} readOnly className='bg-gray-100 dark:bg-gray-800' />
                                     </div>
                                     <div className='gap-2 md:col-span-1 sm:col-span-3'>
                                         <Label htmlFor='Keping'> Keping </Label>
-                                        <Input placeholder='Keping Keluar' value={data.keping_out} onChange={(e) => setData('keping_out', e.target.value)}/>
+                                        <Input type='number' placeholder='Keping Keluar' value={data.keping_out} onChange={(e) => setData('keping_out', e.target.value)}/>
                                     </div>
                                     <div className='gap-2 md:col-span-1 sm:col-span-3'>
                                         <Label htmlFor='Kualitas'> Kualitas </Label>
                                         <Input placeholder='Kualitas' value={data.kualitas_out} onChange={(e) => setData('kualitas_out', e.target.value)}/>
                                     </div>
-                                                                        
                                 </div>
-                                
                             </div>
-
-
                         </div>
 
                         <div className=''>
@@ -174,16 +169,9 @@ export default function index() {
                                 Add Product
                             </Button>
                         </div>
-
                     </form>
-                    
                 </div>
-
-                
-
             </div>
-
-
         </AppLayout>
     );
 }

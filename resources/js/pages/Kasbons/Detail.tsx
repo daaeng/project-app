@@ -55,7 +55,7 @@ interface PageProps {
     payableKasbons: PayableKasbon[];
     kasbon_owner_id: number;
     kasbon_owner_type: string;
-    errors: any; // Menambahkan 'errors' ke PageProps
+    errors: any;
 }
 
 const formatCurrency = (value: number) => {
@@ -209,9 +209,12 @@ export default function KasbonDetail() {
                                                 <Button variant="ghost" size="icon" onClick={() => tx.transaction_type === 'kasbon' ? (window.location.href = route('kasbons.edit', tx.transaction_ref.id)) : openEditDialog(tx)}>
                                                     <Edit className="w-4 h-4 text-blue-600"/>
                                                 </Button>
-                                                <Button variant="ghost" size="icon" onClick={() => handleDelete(tx.transaction_type, tx.transaction_ref.id)}>
-                                                    <Trash2 className="w-4 h-4 text-red-500"/>
-                                                </Button>
+                                                {/* [PERUBAHAN] Tombol Hapus hanya akan muncul untuk tipe 'kasbon' (pinjaman) */}
+                                                {tx.transaction_type === 'kasbon' && (
+                                                    <Button variant="ghost" size="icon" onClick={() => handleDelete(tx.transaction_type, tx.transaction_ref.id)}>
+                                                        <Trash2 className="w-4 h-4 text-red-500"/>
+                                                    </Button>
+                                                )}
                                             </div>
                                         </TableCell>
                                     </TableRow>
@@ -306,4 +309,3 @@ export default function KasbonDetail() {
         </AppLayout>
     );
 }
-

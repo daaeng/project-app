@@ -11,7 +11,7 @@ class IncisorController extends Controller
 {
     public function index(Request $request)
     {
-        $perPage = 10; 
+        $perPage = 20; 
         $searchTerm = $request->input('search'); 
 
         $incisors = Incisor::query()

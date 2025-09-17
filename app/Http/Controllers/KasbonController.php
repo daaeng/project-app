@@ -618,7 +618,6 @@ class KasbonController extends Controller
 
     public function printDetail($type, $id)
     {
-        // --- 1. Logika ini sama persis dengan method showByUser ---
         $modelType = ($type === 'employee') ? Employee::class : Incisor::class;
         $owner = $modelType::findOrFail($id);
         
@@ -679,12 +678,10 @@ class KasbonController extends Controller
         $history = $sortedTransactions->map(function ($item) use ($balanceMap) {
             $item['balance'] = $balanceMap[$item['id']] ?? 0;
             $carbonDate = Carbon::parse($item['date']);
-            // Format tanggal yang lebih simpel untuk print
             $item['date_formatted'] = $carbonDate->isoFormat('D MMMM YYYY');
             return $item;
         });
 
-        // --- 2. Render view khusus untuk print ---
         return Inertia::render('Kasbons/PrintDetail', [
             'owner' => $ownerData,
             'history' => $history->sortBy('date')->values()->all(),
@@ -692,4 +689,3 @@ class KasbonController extends Controller
         ]);
     }
 }
-

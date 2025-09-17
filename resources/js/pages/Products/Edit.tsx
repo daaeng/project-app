@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { CircleAlert, Undo2 } from 'lucide-react';
+import React, { useEffect } from 'react'; // Import useEffect
 
 interface Product{
     id: number,
@@ -37,7 +38,6 @@ interface props{
 export default function edit({product} : props) {
 
     const {data, setData, put, processing, errors } = useForm({
-
         product: product.product,
         date: product.date,
         no_invoice: product.no_invoice,
@@ -55,8 +55,23 @@ export default function edit({product} : props) {
         keping_out: product.keping_out,
         kualitas_out: product.kualitas_out,
         status: product.status,
+    });
 
-    })
+    // --- START: Logika Perhitungan Otomatis ---
+    useEffect(() => {
+        // Mengambil nilai qty dan price, jika kosong atau bukan angka, dianggap 0
+        const qty = parseFloat(data.qty_kg) || 0;
+        const price = parseFloat(data.price_qty) || 0;
+        
+        // Melakukan kalkulasi sesuai rumus: qty * price * 40%
+        const calculatedAmount = qty * price * 0.40;
+        
+        // Memperbarui state 'amount' dengan hasil kalkulasi
+        // .toFixed(2) untuk membatasi hasil menjadi 2 angka desimal
+        setData('amount', calculatedAmount.toFixed(2));
+
+    }, [data.qty_kg, data.price_qty]); // Hook ini akan berjalan setiap kali nilai qty_kg atau price_qty berubah
+    // --- END: Logika Perhitungan Otomatis ---
 
     const handleUpdate = (e: React.FormEvent) =>{
         e.preventDefault();
@@ -79,41 +94,32 @@ export default function edit({product} : props) {
                 </Link>
 
                 <div className='w-full p-4'>
-
-
-                        {Object.keys(errors). length > 0 && (
-                            <Alert>
-                                <CircleAlert className='h-4 w-4'/>
-                                <AlertTitle className='text-red-600'>
-                                    Errors...!
-                                </AlertTitle>
-                                <AlertDescription>
-                                    <ul>
-                                        {Object.entries(errors).map(([key, message]) =>
-                                            <li key={key}>
-                                                {message as string  }
-                                            </li>
-                                        )}
-                                    </ul>
-                                </AlertDescription>
-                            </Alert>
-                        )}
+                    {Object.keys(errors). length > 0 && (
+                        <Alert>
+                            <CircleAlert className='h-4 w-4'/>
+                            <AlertTitle className='text-red-600'>
+                                Errors...!
+                            </AlertTitle>
+                            <AlertDescription>
+                                <ul>
+                                    {Object.entries(errors).map(([key, message]) =>
+                                        <li key={key}>
+                                            {message as string}
+                                        </li>
+                                    )}
+                                </ul>
+                            </AlertDescription>
+                        </Alert>
+                    )}
                     <form onSubmit={handleUpdate} className='space-y-3 grid lg:grid-cols-2 md:grid-cols-1 gap-2'>
-
                         <div className='space-y-2'>
                             <div className='gap-2'>
                                 <Label htmlFor='Product Name'> Product </Label>
-                                <Input placeholder='Product Name' value={data.product} onChange={(e) => setData('product', e.target.value)} readOnly/>
-                                {/* <select value={data.product} onChange={(e) => setData('product', e.target.value)} className='w-full border p-1 rounded-md text-destructive-foreground' required>
-                                    <option value="" disabled selected>Pilih Jenis Product</option>
-                                    <option value="Karet" >Karet</option>
-                                    <option value="Kelapa" >Kelapa</option>
-                                    <option value="Pupuk" >Pupuk</option>
-                                </select> */}
+                                <Input placeholder='Product Name' value={data.product} readOnly className="bg-gray-100 dark:bg-gray-800"/>
                             </div>
                             <div className='gap-2'>
                                 <Label htmlFor='Tanggal'> Tanggal </Label>
-                                <Input type='date' placeholder='Tanggal' value={data.date} onChange={(e) => setData('date', e.target.value)} readOnly/>
+                                <Input type='date' placeholder='Tanggal' value={data.date} readOnly className="bg-gray-100 dark:bg-gray-800"/>
                             </div>
                             <div className='gap-2'>
                                 <Label htmlFor='Invoice'> No. Invoice </Label>
@@ -121,18 +127,17 @@ export default function edit({product} : props) {
                             </div>
                             <div className='gap-2'>
                                 <Label htmlFor='Name Supplier'> Supplier </Label>
-                                {/* <Input placeholder='Name Supplier' value={data.nm_supplier} onChange={(e) => setData('nm_supplier', e.target.value)} /> */}
                                 <select value={data.nm_supplier} onChange={(e) => setData('nm_supplier', e.target.value)} className='w-full border p-1 rounded-md text-destructive-foreground' required>
-                                    <option value="" disabled selected>Pilih Supplier</option>
-                                    <option value="Sebayar" >Sebayar</option>
-                                    <option value="Temadu" >Temadu</option>
-                                    <option value="Agro" >GK Agro</option>
-                                    <option value="GKA" >GKA</option>
+                                    <option value="" disabled>Pilih Supplier</option>
+                                    <option value="Sebayar">Sebayar</option>
+                                    <option value="Temadu">Temadu</option>
+                                    <option value="Agro">GK Agro</option>
+                                    <option value="GKA">GKA</option>
                                 </select>
                             </div>
                             <div className='gap-2'>
                                 <Label htmlFor='Jenis Barang'> Jenis Barang </Label>
-                                <Input placeholder='Jenis Barang' value={data.j_brg} onChange={(e) => setData('j_brg', e.target.value)} readOnly/>
+                                <Input placeholder='Jenis Barang' value={data.j_brg} readOnly className="bg-gray-100 dark:bg-gray-800"/>
                             </div>                        
                             <div className='gap-2'>
                                 <Label htmlFor='Description'> Description </Label>
@@ -144,83 +149,37 @@ export default function edit({product} : props) {
                                     <Tag_Karet status={product.status} />
                                 </div>
                             </div>
-
                         </div>
                         
-
                         <div className='grid grid-cols-3'>
-                            {/* <div className='gap-2 sm:col-span-3 bg'>
-                                <Label htmlFor='Product Name'> Status </Label>
-                                <div>
-                                    <Tag_Karet status={product.status} />
-                                </div> */}
-                                {/* <Input placeholder='Product Name' value={data.status} onChange={(e) => setData('status', e.target.value)} readOnly/> */}
-                                {/* <select value={data.status} onChange={(e) => setData('status', e.target.value)} className='w-full border p-1 rounded-md text-destructive-foreground' required>
-                                    <option value="" disabled selected>Pilih Lokasi Kebun</option>
-                                    <option value="tsa" >TSA</option>
-                                    <option value="gka" >TSA to GKA</option>
-                                </select> */}
-                            {/* </div> */}
-
                             <div className='p-2 mt-3 col-span-3 bg-gray-900 rounded-md h-fit text-white'>
-
                                 <div className='grid md:grid-cols-2 sm:grid-cols-1 gap-3 p-2'>
-
                                     <div className='gap-2 sm:col-span-3'>
                                         <Label htmlFor='In'> MASUK </Label>
                                     </div>
-
                                     <div className='gap-2 md:col-span-1 sm:col-span-3'>
                                         <Label htmlFor='Quantity'> Quantity (Kg) </Label>
-                                        <Input placeholder='Quantity' value={data.qty_kg} onChange={(e) => setData('qty_kg', e.target.value)} />
+                                        <Input type='number' placeholder='Quantity' value={data.qty_kg} onChange={(e) => setData('qty_kg', e.target.value)} />
                                     </div>
                                     <div className='gap-2 md:col-span-1 sm:col-span-3'>
                                         <Label htmlFor='Price'> Price /Qty </Label>
-                                        <Input placeholder='Price' value={data.price_qty} onChange={(e) => setData('price_qty', e.target.value)} />
+                                        <Input type='number' placeholder='Price' value={data.price_qty} onChange={(e) => setData('price_qty', e.target.value)} />
                                     </div>
                                     <div className='gap-2 md:col-span-1 sm:col-span-3'>
                                         <Label htmlFor='Amount'> Amount </Label>
-                                        <Input placeholder='Amount' value={data.amount} onChange={(e) => setData('amount', e.target.value)} />
+                                        {/* Input Amount dibuat readOnly */}
+                                        <Input placeholder='Amount' value={data.amount} readOnly className="bg-gray-600"/>
                                     </div>
                                     <div className='gap-2 md:col-span-1 sm:col-span-3'>
                                         <Label htmlFor='Keping'> Keping / Buah</Label>
-                                        <Input placeholder='Keping' value={data.keping} onChange={(e) => setData('keping', e.target.value)} />
+                                        <Input type='number' placeholder='Keping' value={data.keping} onChange={(e) => setData('keping', e.target.value)} />
                                     </div>
                                     <div className='gap-2 md:col-span-1 sm:col-span-3'>
                                         <Label htmlFor='Kualitas'> Kualitas </Label>
                                         <Input placeholder='Kualitas' value={data.kualitas} onChange={(e) => setData('kualitas', e.target.value)} />
                                     </div>
-
-                                    {/* <div className='gap-2 sm:col-span-3 mt-5'>
-                                        <Label htmlFor='In'> KELUAR </Label>
-                                    </div>
-
-                                    <div className='gap-2 md:col-span-1 sm:col-span-3'>
-                                        <Label htmlFor='Quantity'> Quantity (Kg) </Label>
-                                        <Input placeholder='Quantity' value={data.qty_out} onChange={(e) => setData('qty_out', e.target.value)} readOnly/>
-                                    </div>
-                                    <div className='gap-2 md:col-span-1 sm:col-span-3'>
-                                        <Label htmlFor='Price'> Price /Qty </Label>
-                                        <Input placeholder='Price' value={data.price_out} onChange={(e) => setData('price_out', e.target.value)} readOnly/>
-                                    </div>
-                                    <div className='gap-2 md:col-span-1 sm:col-span-3'>
-                                        <Label htmlFor='Amount'> Amount </Label>
-                                        <Input placeholder='Amount' value={data.amount_out} onChange={(e) => setData('amount_out', e.target.value)} readOnly/>
-                                    </div>
-                                    <div className='gap-2 md:col-span-1 sm:col-span-3'>
-                                        <Label htmlFor='Keping'> Keping / Buah </Label>
-                                        <Input placeholder='Keping Keluar' value={data.keping_out} onChange={(e) => setData('keping_out', e.target.value)} readOnly/>
-                                    </div>
-                                    <div className='gap-2 md:col-span-1 sm:col-span-3'>
-                                        <Label htmlFor='Kualitas'> Kualitas </Label>
-                                        <Input placeholder='Kualitas' value={data.kualitas_out} onChange={(e) => setData('kualitas_out', e.target.value)} readOnly/>
-                                    </div> */}
-                                                                        
                                 </div>
-                                
                             </div>
-
-
                         </div>
 
                         <div className=''>
@@ -228,16 +187,10 @@ export default function edit({product} : props) {
                                 Update Product
                             </Button>
                         </div>
-
                     </form>
-                    
                 </div>
-
-                
-
             </div>
-
-
         </AppLayout>
     );
 }
+
