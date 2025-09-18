@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/table";
 
 import { Head, Link, router } from '@inertiajs/react';
-import { Building2, CirclePlus, Eye, Landmark, Package, Pencil, Search, Sprout, Trash, Trees, TrendingUp, Undo2 } from 'lucide-react';
+import { Building2, CirclePlus, Droplet, Eye, Landmark, Package, Pencil, Search, Sprout, Trash, Trees, TrendingUp, Undo2 } from 'lucide-react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Product Information', href: '/products' },
@@ -90,6 +90,7 @@ interface PageProps {
     ts_slou: number;
     ts_sin: number;
     ts_sou: number;
+    s_ready: number;
     hsl_jual: number;
     filter?: { search?: string; time_period?: string; month?: string; year?: string }; // Added month and year
     currentMonth: number; // New prop
@@ -107,7 +108,7 @@ const formatCurrency = (value: number) => {
 
 export default function TsaPage({
     flash, products, products2, hsl_karet, saldoin, saldoout, keping_in, keping_out, keping_sbyr, keping_sbyr2, keping_tmd, keping_tmd2, 
-    tm_slin, tm_slou, tm_sin, tm_sou, ts_slin, ts_slou, ts_sin, ts_sou, filter, hsl_jual, currentMonth, currentYear
+    tm_slin, tm_slou, tm_sin, tm_sou, ts_slin, ts_slou, ts_sin, ts_sou, filter, hsl_jual, currentMonth, currentYear, s_ready
 }: PageProps) {
     // Pastikan searchValue selalu string, bahkan jika filter.search null/undefined
     const [searchValue, setSearchValue] = useState(filter?.search || '');
@@ -174,7 +175,7 @@ export default function TsaPage({
             {
                 preserveState: true,
                 replace: true,
-                only: ['products', 'products2', 'filter', 'hsl_karet', 'saldoin', 'keping_sbyr', 'keping_sbyr2', 'keping_tmd', 'keping_tmd2', 'keping_out', 'keping_in', 'saldoout', 'tm_slin', 'tm_slou', 'tm_sin', 'tm_sou', 'ts_slin', 'ts_slou', 'ts_sin', 'ts_sou', 'hsl_jual'], // Include all stats
+                only: ['s_ready', 'products', 'products2', 'filter', 'hsl_karet', 'saldoin', 'keping_sbyr', 'keping_sbyr2', 'keping_tmd', 'keping_tmd2', 'keping_out', 'keping_in', 'saldoout', 'tm_slin', 'tm_slou', 'tm_sin', 'tm_sou', 'ts_slin', 'ts_slou', 'ts_sin', 'ts_sou', 'hsl_jual'], // Include all stats
             }
         );
     };
@@ -186,7 +187,7 @@ export default function TsaPage({
             {
                 preserveState: true,
                 replace: true,
-                only: ['products', 'products2', 'filter', 'hsl_karet', 'saldoin', 'keping_sbyr', 'keping_sbyr2', 'keping_tmd', 'keping_tmd2', 'keping_out', 'keping_in', 'saldoout', 'tm_slin', 'tm_slou', 'tm_sin', 'tm_sou', 'ts_slin', 'ts_slou', 'ts_sin', 'ts_sou', 'hsl_jual'],
+                only: ['s_ready', 'products', 'products2', 'filter', 'hsl_karet', 'saldoin', 'keping_sbyr', 'keping_sbyr2', 'keping_tmd', 'keping_tmd2', 'keping_out', 'keping_in', 'saldoout', 'tm_slin', 'tm_slou', 'tm_sin', 'tm_sou', 'ts_slin', 'ts_slou', 'ts_sin', 'ts_sou', 'hsl_jual'],
             }
         );
     };
@@ -198,7 +199,7 @@ export default function TsaPage({
             {
                 preserveState: true,
                 replace: true,
-                only: ['products', 'products2', 'filter', 'hsl_karet', 'saldoin', 'keping_sbyr', 'keping_sbyr2', 'keping_tmd', 'keping_tmd2', 'keping_out', 'keping_in', 'saldoout', 'tm_slin', 'tm_slou', 'tm_sin', 'tm_sou', 'ts_slin', 'ts_slou', 'ts_sin', 'ts_sou', 'hsl_jual'],
+                only: ['s_ready', 'products', 'products2', 'filter', 'hsl_karet', 'saldoin', 'keping_sbyr', 'keping_sbyr2', 'keping_tmd', 'keping_tmd2', 'keping_out', 'keping_in', 'saldoout', 'tm_slin', 'tm_slou', 'tm_sin', 'tm_sou', 'ts_slin', 'ts_slou', 'ts_sin', 'ts_sou', 'hsl_jual'],
             }
         );
     };
@@ -209,7 +210,7 @@ export default function TsaPage({
             {
                 preserveState: true,
                 replace: true,
-                only: ['products', 'products2', 'filter', 'hsl_karet', 'saldoin', 'keping_sbyr', 'keping_sbyr2', 'keping_tmd', 'keping_tmd2', 'keping_out', 'keping_in', 'saldoout', 'tm_slin', 'tm_slou', 'tm_sin', 'tm_sou', 'ts_slin', 'ts_slou', 'ts_sin', 'ts_sou', 'hsl_jual'], // Include all stats
+                only: ['s_ready', 'products', 'products2', 'filter', 'hsl_karet', 'saldoin', 'keping_sbyr', 'keping_sbyr2', 'keping_tmd', 'keping_tmd2', 'keping_out', 'keping_in', 'saldoout', 'tm_slin', 'tm_slou', 'tm_sin', 'tm_sou', 'ts_slin', 'ts_slou', 'ts_sin', 'ts_sou', 'hsl_jual'], // Include all stats
             }
         );
     };
@@ -334,6 +335,11 @@ export default function TsaPage({
                                 <div className="flex items-center font-medium">
                                     <TrendingUp size={18} className="mr-1" />
                                     <span>Stock Gudang</span>
+                                </div>
+
+                                <div className="flex items-center font-medium">
+                                    <Droplet size={18} className="mr-1" />
+                                    <span>Susut : {s_ready}kg</span>
                                 </div>
                             </div>
                         </CardContent>
@@ -481,7 +487,23 @@ export default function TsaPage({
                     )}
                 </div>
                 
-                <div className="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-4 p-4 rounded-xl  border border-gray-200 shadow-sm">
+                <div className="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-4 p-4 rounded-xl">
+                    
+                    <div className="relative w-full md:flex-grow">
+                        <Input
+                            type="text"
+                            placeholder="Cari..."
+                            value={searchValue}
+                            onChange={handleInputChange}
+                            onKeyPress={handleKeyPress}
+                            className="w-full pl-10 pr-4 py-2 bg-white text-gray-800 rounded-full border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300"
+                        />
+                        <Search
+                            size={18}
+                            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 pointer-events-none"
+                        />
+                    </div>
+
                     <Select value={timePeriod} onValueChange={handleTimePeriodChange}>
                         <SelectTrigger className="w-full sm:w-[180px]">
                             <SelectValue placeholder="Select time period" />
@@ -526,20 +548,6 @@ export default function TsaPage({
                         </>
                     )}
 
-                    <div className="relative w-full md:flex-grow">
-                        <Input
-                            type="text"
-                            placeholder="Cari..."
-                            value={searchValue}
-                            onChange={handleInputChange}
-                            onKeyPress={handleKeyPress}
-                            className="w-full pl-10 pr-4 py-2 bg-white text-gray-800 rounded-full border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300"
-                        />
-                        <Search
-                            size={18}
-                            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 pointer-events-none"
-                        />
-                    </div>
                 </div>
 
                 {/* Bagian Tabel Data */}

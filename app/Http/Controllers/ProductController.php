@@ -553,6 +553,8 @@ class ProductController extends Controller
             "ts_slou" => $ts_slou,
             "ts_sin" => $ts_sin,
             "ts_sou" => $ts_sou,
+
+            "s_ready" => $tm_sin - $tm_sou,
         ]);
     }
 
