@@ -41,7 +41,8 @@ export default function SendProduct() {
         const qty = parseFloat(data.qty_out) || 0;
         const price = parseFloat(data.price_out) || 0;
 
-        const calculatedAmount = qty * price * 0.40;
+        const calculatedAmount = qty * price ;
+        // const calculatedAmount = qty * price * 0.40;
 
         setData('amount_out', calculatedAmount.toFixed(2));
 
