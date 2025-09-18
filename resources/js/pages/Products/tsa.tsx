@@ -339,7 +339,7 @@ export default function TsaPage({
 
                                 <div className="flex items-center font-medium">
                                     <Droplet size={18} className="mr-1" />
-                                    <span>Susut : {s_ready}kg</span>
+                                    <span>Stock Ready : {s_ready}kg</span>
                                 </div>
                             </div>
                         </CardContent>
@@ -406,10 +406,10 @@ export default function TsaPage({
                             <CardContent className="lg:-mt-4 text-blue-700">
                                 <div className='grid grid-cols-2 gap-1'>
                                     <div>
-                                        <div className="flex gap-2"><p className="text-green-400">OUT</p> {formatCurrency(saldoin)}</div>
+                                        <div className="flex gap-2"><p className="text-green-400">IN</p> {formatCurrency(saldoin)}</div>
                                         <div className="flex gap-2"><p className="text-green-400">keping</p>{keping_in}</div>
                                         
-                                        <div className="flex gap-2"><p className="text-red-400">IN</p> {formatCurrency(saldoout)}</div>
+                                        <div className="flex gap-2"><p className="text-red-400">MOVE</p> {formatCurrency(saldoout)}</div>
                                         <div className="flex gap-2"><p className="text-red-400">keping</p> {keping_out}</div>
 
                                     </div>
@@ -432,8 +432,8 @@ export default function TsaPage({
                             </CardHeader>
                             <CardContent className="lg:-mt-4 text-amber-700">
                                 <div className="grid grid-cols-2">
-                                    <div className="flex gap-2"><p className="text-green-400">OUT</p> {formatCurrency(tm_slin)}</div>
-                                    <div className="flex gap-2"><p className="text-red-400">IN</p> {formatCurrency(tm_slou)}</div>
+                                    <div className="flex gap-2"><p className="text-green-400">IN</p> {formatCurrency(tm_slin)}</div>
+                                    <div className="flex gap-2"><p className="text-red-400">MOVE</p> {formatCurrency(tm_slou)}</div>
 
                                     <div className="text-2xl w-full justify-center flex font-bold">{tm_sin} Kg</div>
                                     <div className="text-2xl w-full justify-center flex font-bold">{tm_sou} Kg</div>
@@ -455,8 +455,8 @@ export default function TsaPage({
                             </CardHeader>
                             <CardContent className="lg:-mt-4 text-red-700">
                                 <div className="grid grid-cols-2">
-                                    <div className="flex gap-2"><p className="text-green-400">OUT</p> {formatCurrency(ts_slin)}</div>
-                                    <div className="flex gap-2"><p className="text-red-400">IN</p> {formatCurrency(ts_slou)}</div>
+                                    <div className="flex gap-2"><p className="text-green-400">IN</p> {formatCurrency(ts_slin)}</div>
+                                    <div className="flex gap-2"><p className="text-red-400">MOVE</p> {formatCurrency(ts_slou)}</div>
 
                                     <div className="text-2xl w-full justify-center flex font-bold">{ts_sin} Kg</div>
                                     <div className="text-2xl w-full justify-center flex font-bold">{ts_sou} Kg</div>

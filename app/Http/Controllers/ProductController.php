@@ -448,7 +448,7 @@ class ProductController extends Controller
             ->where('product', 'karet')
             ->where('qty_out', '>', 0) 
             ->where('status', 'gka')
-            ->orderBy('created_at', 'DESC')
+            ->orderBy('date', 'DESC')
             ->paginate($perPage, ['*'], 'page2') 
             ->withQueryString(); 
 
@@ -524,6 +524,10 @@ class ProductController extends Controller
         $saldoin = $statsQuery->clone()->where('status', 'tsa')->where('product', 'karet')->sum('amount');
         $saldoout = $statsQuery->clone()->where('status', 'gka')->where('product', 'karet')->sum('amount_out');
 
+        //hitung susut
+        $susut_awal = Product::where('status', 'tsa')->where('product', 'karet')->sum('qty_kg');
+        $susut_akhir = Product::where('status', 'gka')->where('product', 'karet')->sum('qty_out');
+
         return Inertia::render("Products/tsa", [
             "products" => $products,
             "products2" => $product2,
@@ -554,7 +558,7 @@ class ProductController extends Controller
             "ts_sin" => $ts_sin,
             "ts_sou" => $ts_sou,
 
-            "s_ready" => $tm_sin - $tm_sou,
+            "s_ready" => $susut_awal - $susut_akhir,
         ]);
     }
 
