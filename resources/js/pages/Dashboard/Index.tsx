@@ -571,7 +571,7 @@ export default function Dashboard({ totalAmountOutKaret, hsl_tsa, hsl_beli, tota
                             onKeyPress={handleKeyPress}
                             className="border border-gray-300 rounded-lg px-4 py-2 w-full text-sm text-black focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all sm:w-1/3"
                         />
-                         <div className="flex items-center gap-2">
+                        {/* <div className="flex items-center gap-2">
                              <Select value={timePeriod} onValueChange={handleTimePeriodChange}>
                                 <SelectTrigger className="w-[180px]">
                                     <SelectValue placeholder="Pilih periode waktu" />
@@ -614,7 +614,7 @@ export default function Dashboard({ totalAmountOutKaret, hsl_tsa, hsl_beli, tota
                                     </Select>
                                 </>
                             )}
-                        </div>
+                        </div> */}
                     </div>
 
                     <div className="overflow-x-auto text-black">
