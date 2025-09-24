@@ -1,4 +1,3 @@
-import Heading from '@/components/heading';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,8 +6,8 @@ import Tag_Karet from '@/components/ui/tag_karet';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, useForm } from '@inertiajs/react';
-import { CircleAlert, Undo2 } from 'lucide-react';
-import React, { useEffect } from 'react'; // Import useEffect
+import { CircleAlert, Undo2, Save } from 'lucide-react';
+import React, { useEffect } from 'react';
 
 interface Product{
     id: number,
@@ -35,7 +34,42 @@ interface props{
     product : Product
 }
 
-export default function edit({product} : props) {
+// Komponen FormField untuk konsistensi
+const FormField = ({ label, children }: { label: string, children: React.ReactNode }) => (
+    <div>
+        <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">{label}</Label>
+        <div className="mt-1">
+            {children}
+        </div>
+    </div>
+);
+
+// Komponen select dengan gaya profesional
+const StyledSelect = (props: React.SelectHTMLAttributes<HTMLSelectElement>) => (
+    <select
+        {...props}
+        className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md py-2 px-3 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+    />
+);
+
+// Komponen input dengan gaya profesional
+const StyledInput = (props: React.InputHTMLAttributes<HTMLInputElement>) => (
+    <Input
+        {...props}
+        className="w-full bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:ring-indigo-500 focus:border-indigo-500"
+    />
+);
+
+// Komponen textarea dengan gaya profesional
+const StyledTextarea = (props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) => (
+    <Textarea
+        {...props}
+        className="w-full bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:ring-indigo-500 focus:border-indigo-500"
+    />
+);
+
+
+export default function Edit({product} : props) {
 
     const {data, setData, put, processing, errors } = useForm({
         product: product.product,
@@ -57,21 +91,13 @@ export default function edit({product} : props) {
         status: product.status,
     });
 
-    // --- START: Logika Perhitungan Otomatis ---
+    // --- Logika Perhitungan Otomatis ---
     useEffect(() => {
-        // Mengambil nilai qty dan price, jika kosong atau bukan angka, dianggap 0
         const qty = parseFloat(data.qty_kg) || 0;
         const price = parseFloat(data.price_qty) || 0;
-        
-        // Melakukan kalkulasi sesuai rumus: qty * price * 40%
         const calculatedAmount = qty * price * 0.40;
-        
-        // Memperbarui state 'amount' dengan hasil kalkulasi
-        // .toFixed(2) untuk membatasi hasil menjadi 2 angka desimal
         setData('amount', calculatedAmount.toFixed(2));
-
-    }, [data.qty_kg, data.price_qty]); // Hook ini akan berjalan setiap kali nilai qty_kg atau price_qty berubah
-    // --- END: Logika Perhitungan Otomatis ---
+    }, [data.qty_kg, data.price_qty]);
 
     const handleUpdate = (e: React.FormEvent) =>{
         e.preventDefault();
@@ -80,117 +106,111 @@ export default function edit({product} : props) {
 
     return (
         <AppLayout breadcrumbs={[{title: 'Edit Data Product', href:`/product/${product.id}/edit`}]}>
-            <Head title="Edit Product" />
+            <Head title="Edit Pemasukan" />
 
-            <div className="h-full flex-col rounded-xl p-4 bg-gray-50 dark:bg-black">
-            
-                <Heading title='Edit Data Product'/>
+            <div className="bg-gray-50 dark:bg-gray-900 py-6 sm:py-8 lg:py-12 min-h-full">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                     <div className="flex justify-between items-center mb-6">
+                        <div>
+                             <h1 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight sm:text-3xl">Edit Data Pemasukan</h1>
+                             <p className="mt-1 text-md text-gray-600 dark:text-gray-400">Perbarui informasi untuk No. Invoice: {product.no_invoice}</p>
+                        </div>
+                        <Link href={route('products.index')}>
+                            <Button variant="outline" className='flex items-center gap-2'>
+                                <Undo2 size={16} />
+                                Kembali
+                            </Button>
+                        </Link>
+                    </div>
 
-                <Link href={route('products.index')}>
-                    <Button className='bg-auto w-25 hover:bg-accent hover:text-accent-foreground'>
-                        <Undo2 />
-                        Back
-                    </Button>
-                </Link>
-
-                <div className='w-full p-4'>
-                    {Object.keys(errors). length > 0 && (
-                        <Alert>
+                    {Object.keys(errors).length > 0 && (
+                        <Alert variant="destructive" className="mb-6">
                             <CircleAlert className='h-4 w-4'/>
-                            <AlertTitle className='text-red-600'>
-                                Errors...!
-                            </AlertTitle>
+                            <AlertTitle>Terjadi Kesalahan</AlertTitle>
                             <AlertDescription>
                                 <ul>
-                                    {Object.entries(errors).map(([key, message]) =>
-                                        <li key={key}>
-                                            {message as string}
-                                        </li>
+                                    {Object.values(errors).map((message, i) =>
+                                        <li key={i}>{message}</li>
                                     )}
                                 </ul>
                             </AlertDescription>
                         </Alert>
                     )}
-                    <form onSubmit={handleUpdate} className='space-y-3 grid lg:grid-cols-2 md:grid-cols-1 gap-2'>
-                        <div className='space-y-2'>
-                            <div className='gap-2'>
-                                <Label htmlFor='Product Name'> Product </Label>
-                                <Input placeholder='Product Name' value={data.product} readOnly className="bg-gray-100 dark:bg-gray-800"/>
-                            </div>
-                            <div className='gap-2'>
-                                <Label htmlFor='Tanggal'> Tanggal </Label>
-                                <Input type='date' placeholder='Tanggal' value={data.date} readOnly className="bg-gray-100 dark:bg-gray-800"/>
-                            </div>
-                            <div className='gap-2'>
-                                <Label htmlFor='Invoice'> No. Invoice </Label>
-                                <Input placeholder='Invoice' value={data.no_invoice} onChange={(e) => setData('no_invoice', e.target.value)} />
-                            </div>
-                            <div className='gap-2'>
-                                <Label htmlFor='Name Supplier'> Supplier </Label>
-                                <select value={data.nm_supplier} onChange={(e) => setData('nm_supplier', e.target.value)} className='w-full border p-1 rounded-md text-destructive-foreground' required>
-                                    <option value="" disabled>Pilih Supplier</option>
-                                    <option value="Sebayar">Sebayar</option>
-                                    <option value="Temadu">Temadu</option>
-                                    <option value="Agro">GK Agro</option>
-                                    <option value="GKA">GKA</option>
-                                </select>
-                            </div>
-                            <div className='gap-2'>
-                                <Label htmlFor='Jenis Barang'> Jenis Barang </Label>
-                                <Input placeholder='Jenis Barang' value={data.j_brg} readOnly className="bg-gray-100 dark:bg-gray-800"/>
-                            </div>                        
-                            <div className='gap-2'>
-                                <Label htmlFor='Description'> Description </Label>
-                                <Textarea placeholder='Description' value={data.desk} onChange={(e) => setData('desk', e.target.value)} />
-                            </div>
-                            <div className='gap-2'>
-                                <Label htmlFor='Product Name'> Status </Label>
-                                <div>
-                                    <Tag_Karet status={product.status} />
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div className='grid grid-cols-3'>
-                            <div className='p-2 mt-3 col-span-3 bg-gray-900 rounded-md h-fit text-white'>
-                                <div className='grid md:grid-cols-2 sm:grid-cols-1 gap-3 p-2'>
-                                    <div className='gap-2 sm:col-span-3'>
-                                        <Label htmlFor='In'> MASUK </Label>
-                                    </div>
-                                    <div className='gap-2 md:col-span-1 sm:col-span-3'>
-                                        <Label htmlFor='Quantity'> Quantity (Kg) </Label>
-                                        <Input type='number' placeholder='Quantity' value={data.qty_kg} onChange={(e) => setData('qty_kg', e.target.value)} />
-                                    </div>
-                                    <div className='gap-2 md:col-span-1 sm:col-span-3'>
-                                        <Label htmlFor='Price'> Price /Qty </Label>
-                                        <Input type='number' placeholder='Price' value={data.price_qty} onChange={(e) => setData('price_qty', e.target.value)} />
-                                    </div>
-                                    <div className='gap-2 md:col-span-1 sm:col-span-3'>
-                                        <Label htmlFor='Amount'> Amount </Label>
-                                        {/* Input Amount dibuat readOnly */}
-                                        <Input placeholder='Amount' value={data.amount} readOnly className="bg-gray-600"/>
-                                    </div>
-                                    <div className='gap-2 md:col-span-1 sm:col-span-3'>
-                                        <Label htmlFor='Keping'> Keping / Buah</Label>
-                                        <Input type='number' placeholder='Keping' value={data.keping} onChange={(e) => setData('keping', e.target.value)} />
-                                    </div>
-                                    <div className='gap-2 md:col-span-1 sm:col-span-3'>
-                                        <Label htmlFor='Kualitas'> Kualitas </Label>
-                                        <Input placeholder='Kualitas' value={data.kualitas} onChange={(e) => setData('kualitas', e.target.value)} />
+
+                    <form onSubmit={handleUpdate} className='space-y-8'>
+                        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden">
+                            <div className="p-6">
+                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white border-b dark:border-gray-700 pb-4 mb-6">Detail Utama</h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    <FormField label="Product">
+                                        <StyledInput value={data.product} readOnly className="cursor-not-allowed bg-gray-200 dark:bg-gray-600" />
+                                    </FormField>
+                                    <FormField label="Tanggal">
+                                        <StyledInput type='date' value={data.date} readOnly className="cursor-not-allowed bg-gray-200 dark:bg-gray-600" />
+                                    </FormField>
+                                    <FormField label="No. Invoice">
+                                        <StyledInput placeholder='Invoice' value={data.no_invoice} onChange={(e) => setData('no_invoice', e.target.value)} />
+                                    </FormField>
+                                    <FormField label="Supplier">
+                                        <StyledSelect value={data.nm_supplier} onChange={(e) => setData('nm_supplier', e.target.value)} required>
+                                            <option value="" disabled>Pilih Supplier</option>
+                                            <option value="Sebayar">Sebayar</option>
+                                            <option value="Temadu">Temadu</option>
+                                            <option value="Agro">GK Agro</option>
+                                            <option value="GKA">GKA</option>
+                                        </StyledSelect>
+                                    </FormField>
+                                    <FormField label="Jenis Barang">
+                                        <StyledInput value={data.j_brg} readOnly className="cursor-not-allowed bg-gray-200 dark:bg-gray-600" />
+                                    </FormField>
+                                    <FormField label="Status">
+                                        <div className="mt-1 pt-1">
+                                            <Tag_Karet status={product.status} />
+                                        </div>
+                                    </FormField>
+                                    <div className="md:col-span-2 lg:col-span-3">
+                                        <FormField label="Description">
+                                            <StyledTextarea placeholder='Deskripsi...' value={data.desk} onChange={(e) => setData('desk', e.target.value)} />
+                                        </FormField>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div className=''>
-                            <Button type='submit' disabled={processing} className='bg-green-600 hover:bg-green-500'>
-                                Update Product
+                         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden">
+                            <div className="p-6">
+                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white border-b dark:border-gray-700 pb-4 mb-6">Data Pemasukan (Inbound)</h3>
+                                 <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
+                                     <FormField label="Quantity (Kg)">
+                                        <StyledInput type='number' placeholder='Quantity' value={data.qty_kg} onChange={(e) => setData('qty_kg', e.target.value)} />
+                                     </FormField>
+                                     <FormField label="Price / Qty">
+                                        <StyledInput type='number' placeholder='Price' value={data.price_qty} onChange={(e) => setData('price_qty', e.target.value)} />
+                                     </FormField>
+                                     <FormField label="Amount">
+                                        <StyledInput placeholder='Amount' value={data.amount} readOnly className="cursor-not-allowed bg-gray-200 dark:bg-gray-600"/>
+                                     </FormField>
+                                     <FormField label="Keping / Buah">
+                                        <StyledInput type='number' placeholder='Keping' value={data.keping} onChange={(e) => setData('keping', e.target.value)} />
+                                     </FormField>
+                                     <FormField label="Kualitas">
+                                        <StyledInput placeholder='Kualitas' value={data.kualitas} onChange={(e) => setData('kualitas', e.target.value)} />
+                                     </FormField>
+                                 </div>
+                            </div>
+                        </div>
+
+
+                        <div className='flex justify-end pt-4'>
+                            <Button type='submit' disabled={processing} className='bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-2 rounded-lg flex items-center gap-2 transition-all duration-300 shadow-lg hover:shadow-xl'>
+                                <Save size={16} />
+                                {processing ? 'Menyimpan...' : 'Simpan Perubahan'}
                             </Button>
                         </div>
+
                     </form>
                 </div>
             </div>
         </AppLayout>
     );
 }
-

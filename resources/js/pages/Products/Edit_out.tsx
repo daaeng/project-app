@@ -1,4 +1,3 @@
-import Heading from '@/components/heading';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,7 +6,8 @@ import Tag_Karet from '@/components/ui/tag_karet';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, useForm } from '@inertiajs/react';
-import { CircleAlert, Undo2 } from 'lucide-react';
+import { CircleAlert, Undo2, Save } from 'lucide-react';
+import React from 'react';
 
 interface Product{
     id: number,
@@ -34,10 +34,44 @@ interface props{
     product : Product
 }
 
-export default function edit({product} : props) {
+// Komponen FormField untuk konsistensi
+const FormField = ({ label, children }: { label: string, children: React.ReactNode }) => (
+    <div>
+        <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">{label}</Label>
+        <div className="mt-1">
+            {children}
+        </div>
+    </div>
+);
+
+// Komponen select dengan gaya profesional
+const StyledSelect = (props: React.SelectHTMLAttributes<HTMLSelectElement>) => (
+    <select
+        {...props}
+        className="w-full bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md py-2 px-3 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+    />
+);
+
+// Komponen input dengan gaya profesional
+const StyledInput = (props: React.InputHTMLAttributes<HTMLInputElement>) => (
+    <Input
+        {...props}
+        className="w-full bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:ring-indigo-500 focus:border-indigo-500"
+    />
+);
+
+// Komponen textarea dengan gaya profesional
+const StyledTextarea = (props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) => (
+    <Textarea
+        {...props}
+        className="w-full bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:ring-indigo-500 focus:border-indigo-500"
+    />
+);
+
+
+export default function EditOut({product} : props) {
 
     const {data, setData, put, processing, errors } = useForm({
-
         product: product.product,
         date: product.date,
         no_invoice: product.no_invoice,
@@ -55,7 +89,6 @@ export default function edit({product} : props) {
         keping_out: product.keping_out,
         kualitas_out: product.kualitas_out,
         status: product.status,
-
     })
 
     const handleUpdate = (e: React.FormEvent) =>{
@@ -65,179 +98,112 @@ export default function edit({product} : props) {
 
     return (
         <AppLayout breadcrumbs={[{title: 'Edit Data Product', href:`/product/${product.id}/edit`}]}>
-            <Head title="Edit Product" />
+            <Head title="Edit Pengeluaran" />
 
-            <div className="h-full flex-col rounded-xl p-4 bg-gray-50 dark:bg-black">
-            
-                <Heading title='Edit Data Pengeluaran Product'/>
+            <div className="bg-gray-50 dark:bg-gray-900 py-6 sm:py-8 lg:py-12 min-h-full">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                     <div className="flex justify-between items-center mb-6">
+                        <div>
+                             <h1 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight sm:text-3xl">Edit Data Pengeluaran</h1>
+                             <p className="mt-1 text-md text-gray-600 dark:text-gray-400">Perbarui informasi untuk No. Invoice: {product.no_invoice}</p>
+                        </div>
+                        <Link href={route('products.index')}>
+                            <Button variant="outline" className='flex items-center gap-2'>
+                                <Undo2 size={16} />
+                                Kembali
+                            </Button>
+                        </Link>
+                    </div>
 
-                <Link href={route('products.index')}>
-                    <Button className='bg-auto w-25 hover:bg-accent hover:text-accent-foreground'>
-                        <Undo2 />
-                        Back
-                    </Button>
-                </Link>
+                    {Object.keys(errors).length > 0 && (
+                        <Alert variant="destructive" className="mb-6">
+                            <CircleAlert className='h-4 w-4'/>
+                            <AlertTitle>Terjadi Kesalahan</AlertTitle>
+                            <AlertDescription>
+                                <ul>
+                                    {Object.values(errors).map((message, i) =>
+                                        <li key={i}>{message}</li>
+                                    )}
+                                </ul>
+                            </AlertDescription>
+                        </Alert>
+                    )}
 
-                <div className='w-full p-4'>
-
-
-                        {Object.keys(errors). length > 0 && (
-                            <Alert>
-                                <CircleAlert className='h-4 w-4'/>
-                                <AlertTitle className='text-red-600'>
-                                    Errors...!
-                                </AlertTitle>
-                                <AlertDescription>
-                                    <ul>
-                                        {Object.entries(errors).map(([key, message]) =>
-                                            <li key={key}>
-                                                {message as string  }
-                                            </li>
-                                        )}
-                                    </ul>
-                                </AlertDescription>
-                            </Alert>
-                        )}
-                    <form onSubmit={handleUpdate} className='space-y-3 grid lg:grid-cols-2 md:grid-cols-1 gap-2'>
-
-                        <div className='space-y-2'>
-                            <div className='gap-2'>
-                                <Label htmlFor='Product Name'> Product </Label>
-                                <Input placeholder='Product Name' value={data.product} onChange={(e) => setData('product', e.target.value)} readOnly/>
-                                {/* <select value={data.product} onChange={(e) => setData('product', e.target.value)} className='w-full border p-1 rounded-md text-destructive-foreground' required>
-                                    <option value="" disabled selected>Pilih Jenis Product</option>
-                                    <option value="Karet" >Karet</option>
-                                    <option value="Kelapa" >Kelapa</option>
-                                    <option value="Pupuk" >Pupuk</option>
-                                </select> */}
-                            </div>
-                            <div className='gap-2'>
-                                <Label htmlFor='Tanggal'> Tanggal </Label>
-                                <Input type='date' placeholder='Tanggal' value={data.date} onChange={(e) => setData('date', e.target.value)} />
-                            </div>
-                            <div className='gap-2'>
-                                <Label htmlFor='Invoice'> No. Invoice </Label>
-                                <Input placeholder='Invoice' value={data.no_invoice} onChange={(e) => setData('no_invoice', e.target.value)} />
-                            </div>
-                            <div className='gap-2'>
-                                <Label htmlFor='Name Supplier'> Supplier </Label>
-                                {/* <Input placeholder='Name Supplier' value={data.nm_supplier} onChange={(e) => setData('nm_supplier', e.target.value)} /> */}
-                                <select value={data.nm_supplier} onChange={(e) => setData('nm_supplier', e.target.value)} className='w-full border p-1 rounded-md text-destructive-foreground' required>
-                                    <option value="" disabled selected>Pilih Supplier</option>
-                                    <option value="Sebayar" >Sebayar</option>
-                                    <option value="Temadu" >Temadu</option>
-                                    <option value="Agro" >GK Agro</option>
-                                    <option value="GKA" >GKA</option>
-                                </select>
-                            </div>
-                            <div className='gap-2'>
-                                <Label htmlFor='Jenis Barang'> Jenis Barang </Label>
-                                <Input placeholder='Jenis Barang' value={data.j_brg} onChange={(e) => setData('j_brg', e.target.value)} readOnly/>
-                            </div>                        
-                            <div className='gap-2'>
-                                <Label htmlFor='Description'> Description </Label>
-                                <Textarea placeholder='Description' value={data.desk} onChange={(e) => setData('desk', e.target.value)} />
-                            </div>
-                            <div className='gap-2'>
-                                <Label htmlFor='Product Name'> Status </Label>
-                                <div>
-                                    <Tag_Karet status={product.status} />
+                    <form onSubmit={handleUpdate} className='space-y-8'>
+                        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden">
+                            <div className="p-6">
+                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white border-b dark:border-gray-700 pb-4 mb-6">Detail Utama</h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    <FormField label="Product">
+                                        <StyledInput value={data.product} readOnly className="cursor-not-allowed bg-gray-200 dark:bg-gray-600" />
+                                    </FormField>
+                                    <FormField label="Tanggal">
+                                        <StyledInput type='date' value={data.date} onChange={(e) => setData('date', e.target.value)} />
+                                    </FormField>
+                                    <FormField label="No. Invoice">
+                                        <StyledInput placeholder='Invoice' value={data.no_invoice} onChange={(e) => setData('no_invoice', e.target.value)} />
+                                    </FormField>
+                                    <FormField label="Supplier">
+                                        <StyledSelect value={data.nm_supplier} onChange={(e) => setData('nm_supplier', e.target.value)} required>
+                                            <option value="" disabled>Pilih Supplier</option>
+                                            <option value="Sebayar">Sebayar</option>
+                                            <option value="Temadu">Temadu</option>
+                                            <option value="Agro">GK Agro</option>
+                                            <option value="GKA">GKA</option>
+                                        </StyledSelect>
+                                    </FormField>
+                                    <FormField label="Jenis Barang">
+                                        <StyledInput value={data.j_brg} readOnly className="cursor-not-allowed bg-gray-200 dark:bg-gray-600" />
+                                    </FormField>
+                                    <FormField label="Status">
+                                        <div className="mt-1 pt-1">
+                                            <Tag_Karet status={product.status} />
+                                        </div>
+                                    </FormField>
+                                    <div className="md:col-span-2 lg:col-span-3">
+                                        <FormField label="Description">
+                                            <StyledTextarea placeholder='Deskripsi...' value={data.desk} onChange={(e) => setData('desk', e.target.value)} />
+                                        </FormField>
+                                    </div>
                                 </div>
                             </div>
-
                         </div>
-                        
 
-                        <div className='grid grid-cols-3'>
-                            {/* <div className='gap-2 sm:col-span-3 bg'>
-                                <Label htmlFor='Product Name'> Status </Label>
-                                <div>
-                                    <Tag_Karet status={product.status} />
-                                </div> */}
-                                {/* <Input placeholder='Product Name' value={data.status} onChange={(e) => setData('status', e.target.value)} readOnly/> */}
-                                {/* <select value={data.status} onChange={(e) => setData('status', e.target.value)} className='w-full border p-1 rounded-md text-destructive-foreground' required>
-                                    <option value="" disabled selected>Pilih Lokasi Kebun</option>
-                                    <option value="tsa" >TSA</option>
-                                    <option value="gka" >TSA to GKA</option>
-                                </select> */}
-                            {/* </div> */}
-
-                            <div className='p-2 mt-3 col-span-3 bg-gray-900 rounded-md h-fit text-white'>
-
-                                <div className='grid md:grid-cols-2 sm:grid-cols-1 gap-3 p-2'>
-
-                                    <div className='gap-2 sm:col-span-3'>
-                                        <Label htmlFor='In'> MASUK </Label>
-                                    </div>
-
-                                    <div className='gap-2 md:col-span-1 sm:col-span-3'>
-                                        <Label htmlFor='Quantity'> Quantity (Kg) </Label>
-                                        <Input placeholder='Quantity' value={data.qty_out} onChange={(e) => setData('qty_out', e.target.value)} />
-                                    </div>
-                                    <div className='gap-2 md:col-span-1 sm:col-span-3'>
-                                        <Label htmlFor='Price'> Price /Qty </Label>
-                                        <Input placeholder='Price' value={data.price_out} onChange={(e) => setData('price_out', e.target.value)} />
-                                    </div>
-                                    <div className='gap-2 md:col-span-1 sm:col-span-3'>
-                                        <Label htmlFor='Amount'> Amount </Label>
-                                        <Input placeholder='Amount' value={data.amount_out} onChange={(e) => setData('amount_out', e.target.value)} />
-                                    </div>
-                                    <div className='gap-2 md:col-span-1 sm:col-span-3'>
-                                        <Label htmlFor='Keping'> Keping / Buah</Label>
-                                        <Input placeholder='Keping' value={data.keping_out} onChange={(e) => setData('keping_out', e.target.value)} />
-                                    </div>
-                                    <div className='gap-2 md:col-span-1 sm:col-span-3'>
-                                        <Label htmlFor='Kualitas'> Kualitas </Label>
-                                        <Input placeholder='Kualitas' value={data.kualitas_out} onChange={(e) => setData('kualitas_out', e.target.value)} />
-                                    </div>
-
-                                    {/* <div className='gap-2 sm:col-span-3 mt-5'>
-                                        <Label htmlFor='In'> KELUAR </Label>
-                                    </div>
-
-                                    <div className='gap-2 md:col-span-1 sm:col-span-3'>
-                                        <Label htmlFor='Quantity'> Quantity (Kg) </Label>
-                                        <Input placeholder='Quantity' value={data.qty_out} onChange={(e) => setData('qty_out', e.target.value)} readOnly/>
-                                    </div>
-                                    <div className='gap-2 md:col-span-1 sm:col-span-3'>
-                                        <Label htmlFor='Price'> Price /Qty </Label>
-                                        <Input placeholder='Price' value={data.price_out} onChange={(e) => setData('price_out', e.target.value)} readOnly/>
-                                    </div>
-                                    <div className='gap-2 md:col-span-1 sm:col-span-3'>
-                                        <Label htmlFor='Amount'> Amount </Label>
-                                        <Input placeholder='Amount' value={data.amount_out} onChange={(e) => setData('amount_out', e.target.value)} readOnly/>
-                                    </div>
-                                    <div className='gap-2 md:col-span-1 sm:col-span-3'>
-                                        <Label htmlFor='Keping'> Keping / Buah </Label>
-                                        <Input placeholder='Keping Keluar' value={data.keping_out} onChange={(e) => setData('keping_out', e.target.value)} readOnly/>
-                                    </div>
-                                    <div className='gap-2 md:col-span-1 sm:col-span-3'>
-                                        <Label htmlFor='Kualitas'> Kualitas </Label>
-                                        <Input placeholder='Kualitas' value={data.kualitas_out} onChange={(e) => setData('kualitas_out', e.target.value)} readOnly/>
-                                    </div> */}
-                                                                        
-                                </div>
-                                
+                         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden">
+                            <div className="p-6">
+                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white border-b dark:border-gray-700 pb-4 mb-6">Data Pengeluaran (Outbound)</h3>
+                                 <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
+                                     <FormField label="Quantity (Kg)">
+                                        <StyledInput placeholder='Quantity' value={data.qty_out} onChange={(e) => setData('qty_out', e.target.value)} />
+                                     </FormField>
+                                     <FormField label="Price / Qty">
+                                        <StyledInput placeholder='Price' value={data.price_out} onChange={(e) => setData('price_out', e.target.value)} />
+                                     </FormField>
+                                     <FormField label="Amount">
+                                        <StyledInput placeholder='Amount' value={data.amount_out} onChange={(e) => setData('amount_out', e.target.value)} />
+                                     </FormField>
+                                     <FormField label="Keping / Buah">
+                                        <StyledInput placeholder='Keping' value={data.keping_out} onChange={(e) => setData('keping_out', e.target.value)} />
+                                     </FormField>
+                                     <FormField label="Kualitas">
+                                        <StyledInput placeholder='Kualitas' value={data.kualitas_out} onChange={(e) => setData('kualitas_out', e.target.value)} />
+                                     </FormField>
+                                 </div>
                             </div>
-
-
                         </div>
 
-                        <div className=''>
-                            <Button type='submit' disabled={processing} className='bg-green-600 hover:bg-green-500'>
-                                Update Product
+
+                        <div className='flex justify-end pt-4'>
+                            <Button type='submit' disabled={processing} className='bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-2 rounded-lg flex items-center gap-2 transition-all duration-300 shadow-lg hover:shadow-xl'>
+                                <Save size={16} />
+                                {processing ? 'Menyimpan...' : 'Simpan Perubahan'}
                             </Button>
                         </div>
 
                     </form>
-                    
                 </div>
-
-                
-
             </div>
-
-
         </AppLayout>
     );
 }
+

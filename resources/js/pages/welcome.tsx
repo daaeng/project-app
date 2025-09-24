@@ -96,10 +96,11 @@ export default function Welcome() {
                         ))}
                         <div className="pl-4 border-l border-gray-500">
                             <div className="space-x-4">
-                                <a href="/login" className="hover:text-yellow-400 transition-colors">Log In</a>
-                                <a href="/register" className="bg-yellow-400 text-gray-900 font-bold py-2 px-4 rounded-md hover:bg-yellow-500 transition-colors">
+                                <a href="/login" className="bg-yellow-400 text-white font-bold py-2 px-4 rounded-md hover:bg-yellow-500 transition-colors">Log In</a>
+                                {/* <a href="/login" className="hover:text-yellow-400 transition-colors">Log In</a> */}
+                                {/* <a href="/register" className="bg-yellow-400 text-gray-900 font-bold py-2 px-4 rounded-md hover:bg-yellow-500 transition-colors">
                                     Register
-                                </a>
+                                </a> */}
                             </div>
                         </div>
                     </nav>
