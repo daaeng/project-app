@@ -30,6 +30,7 @@ interface KasbonData {
         employee_id: string;
         salary: number;
     };
+    transaction_date: string;
 }
 interface PageProps {
     kasbon: KasbonData;
@@ -63,7 +64,7 @@ export default function EditKasbonPegawai() {
         kasbon: kasbon.kasbon,
         status: kasbon.status,
         reason: kasbon.reason || '',
-        created_at: kasbon.created_at, // [BARU] Inisialisasi tanggal
+        transaction_date: kasbon.transaction_date,// [BARU] Inisialisasi tanggal
     });
 
     const [selectedEmployee, setSelectedEmployee] = useState<EmployeeOption | undefined>(
@@ -152,10 +153,8 @@ export default function EditKasbonPegawai() {
                                     {/* [BARU] Input untuk tanggal */}
                                     <div>
                                         <Label htmlFor="created_at">Tanggal Pengajuan</Label>
-                                        <Input id="created_at" type="date" value={data.created_at}
-                                            onChange={(e) => setData('created_at', e.target.value)}
-                                        />
-                                        {errors.created_at && <p className="text-red-500 text-sm mt-1">{errors.created_at}</p>}
+                                        <Input id="transaction_date" type="date" value={data.transaction_date} onChange={(e) => setData('transaction_date', e.target.value)} />
+                                        {errors.transaction_date && <p className="text-red-500 text-sm mt-1">{errors.transaction_date}</p>}
                                     </div>
 
                                     <div>

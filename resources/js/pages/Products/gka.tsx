@@ -470,7 +470,8 @@ export default function GkaPage({
         </div>
 
         <div className='w-full justify-center h-auto flex mb-5 gap-2'>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
+            {/* <div className="grid grid-cols-1 md:grid-cols-3 gap-4"> */}
             
               <Card className="shadow-sm transition-shadow hover:shadow-md bg-amber-50">
                   <CardHeader className="bg-amber-300">
@@ -504,7 +505,7 @@ export default function GkaPage({
                   </CardContent>
               </Card>
 
-              <Card className="shadow-sm transition-shadow hover:shadow-md bg-red-50">
+              {/* <Card className="shadow-sm transition-shadow hover:shadow-md bg-red-50">
                   <CardHeader className="bg-red-300">
                   <div className="flex items-center p-1 justify-between">
                       <CardTitle className="text-sm font-medium text-gray-700">
@@ -558,7 +559,7 @@ export default function GkaPage({
                       <div className="text-2xl w-full justify-center flex font-bold">{klp_sou} Kg</div>
                   </div>
                   </CardContent>
-              </Card>
+              </Card> */}
             </div>
         </div>
 

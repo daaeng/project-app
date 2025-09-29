@@ -212,7 +212,7 @@ class ProductController extends Controller
 
     public function gka(Request $request)
     {
-        $perPage = 10; 
+        $perPage = 20; 
         $searchTerm = $request->input('search');
         $timePeriod = $request->input('time_period', 'this-month'); 
         $selectedMonth = $request->input('month', Carbon::now()->month);

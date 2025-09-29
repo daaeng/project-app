@@ -87,7 +87,7 @@ export default function ShowReport({ product, susut_value }: PageProps) {
                              <p className="mt-1 text-md text-gray-600 dark:text-gray-400">No. Invoice: {product.no_invoice}</p>
                         </div>
                         <div className="flex gap-2">
-                             <Link href={route('products.gka')}>
+                             <Link href={route('products.index')}>
                                 <Button variant="outline" className='flex items-center gap-2'>
                                     <Undo2 size={16} />
                                     Kembali
