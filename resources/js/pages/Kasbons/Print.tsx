@@ -57,7 +57,7 @@ export default function Print({ kasbons, printDate }: PrintPageProps) {
                 `}
             </style>
 
-            <div className="bg-gray-100 min-h-screen p-4 sm:p-8">
+            <div className="min-h-screen p-4 sm:p-8">
                 <div className="no-print max-w-4xl mx-auto mb-6 flex justify-between items-center">
                     <Button variant="outline" onClick={() => window.history.back()}>
                         <ArrowLeft className="w-4 h-4 mr-2" />
