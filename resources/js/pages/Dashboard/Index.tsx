@@ -446,16 +446,16 @@ export default function Dashboard({ totalAmountOutKaret, hsl_tsa, hsl_beli, tota
                             >
                                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                                 <XAxis dataKey="name" />
-                                <YAxis tickFormatter={(value) => formatCurrency(value)} tick={{ fontSize: 5 }}/>
+                                <YAxis tickFormatter={(value) => formatCurrency(value)} tick={{ fontSize: 5 }} />
                                 <Tooltip contentStyle={{ borderRadius: 10, boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }} formatter={(value: number) => formatCurrency(value)} />
                                 <Legend />
                                 <Line
-                                type="monotone"
-                                dataKey="value"
-                                stroke="#10B981"
-                                strokeWidth={3}
-                                dot={{ r: 5, fill: '#10B981' }}
-                                activeDot={{ r: 8 }}
+                                    type="monotone"
+                                    dataKey="value"
+                                    stroke="#10B981"
+                                    strokeWidth={2}
+                                    dot={{ r: 5, fill: '#10B981' }}
+                                    activeDot={{ r: 8 }}
                                 />
                             </LineChart>
                         </ResponsiveContainer>

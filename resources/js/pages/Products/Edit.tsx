@@ -146,7 +146,7 @@ export default function Edit({product} : props) {
                                         <StyledInput value={data.product} readOnly className="cursor-not-allowed bg-gray-200 dark:bg-gray-600" />
                                     </FormField>
                                     <FormField label="Tanggal">
-                                        <StyledInput type='date' value={data.date} readOnly className="cursor-not-allowed bg-gray-200 dark:bg-gray-600" />
+                                        <StyledInput type='date' value={data.date}  className=" bg-gray-200 dark:bg-gray-600" />
                                     </FormField>
                                     <FormField label="No. Invoice">
                                         <StyledInput placeholder='Invoice' value={data.no_invoice} onChange={(e) => setData('no_invoice', e.target.value)} />

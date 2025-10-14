@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, router } from '@inertiajs/react';
-import { Building2, CirclePlus, Coins, Droplet, Eye, Megaphone, Package, Pencil, Search, Send, Sprout, Trash, TreePalm, Truck, Undo2, Warehouse, Wheat } from 'lucide-react';
+import { Building2, CirclePlus, Coins, Droplet, Eye, Hand, HandCoins, Megaphone, Package, Pencil, Search, Sprout, Trash, Truck, Undo2, Warehouse } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -493,11 +493,11 @@ export default function GkaPage({
                   </CardHeader>
                   <CardContent className="lg:-mt-4 text-amber-700">
                     <div className="grid grid-cols-2">
-                        <div className="flex gap-2"><p className="text-red-400">OUT</p> {formatCurrency(tm_slin)}</div>
-                        <div className="flex gap-2"><p className="text-green-400">IN</p> {formatCurrency(tm_slou)}</div>
+                        <div className="flex gap-2"><p className="text-red-400"> <Hand/></p> {formatCurrency(tm_slin)}</div>
+                        <div className="flex gap-2"><p className="text-green-400"> <HandCoins/> </p> {formatCurrency(tm_slou)}</div>
 
-                        <div className="flex gap-2"><p className="text-red-400">keping</p>{keping_in}</div>
-                        <div className="flex gap-2"><p className="text-green-400">keping</p>{keping_out}</div>
+                        <div className="flex gap-2"><p className="text-red-400">Kpg</p>{keping_in}</div>
+                        <div className="flex gap-2"><p className="text-green-400">Kpg</p>{keping_out}</div>
                         
                         <div className="text-2xl w-full justify-center flex font-bold">{tm_sin} Kg</div>
                         <div className="text-2xl w-full justify-center flex font-bold">{tm_sou} Kg</div>
