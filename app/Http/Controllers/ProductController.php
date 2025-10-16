@@ -146,65 +146,53 @@ class ProductController extends Controller
 
     public function show(Product $product)
     {
-        // --- START: LOGIKA PERHITUNGAN SUSUT (BERDASARKAN TANGGAL YANG SAMA) ---
-        // $susutMap = [];
+       $susutValue = 0; // Default value
 
-        // // 1. Ambil total qty_out per tanggal untuk status 'gka'
-        // $gkaTotalsByDate = Product::where('product', 'karet')
-        //     ->where('status', 'gka')
-        //     ->groupBy('date')
-        //     ->select('date', DB::raw('SUM(qty_out) as total_gka_qty'))
-        //     ->get()
-        //     ->pluck('total_gka_qty', 'date');
-
-        // // 2. Ambil total qty_out per tanggal untuk status 'buyer'
-        // $buyerTotalsByDate = Product::where('product', 'karet')
-        //     ->where('status', 'buyer')
-        //     ->groupBy('date')
-        //     ->select('date', DB::raw('SUM(qty_out) as total_buyer_qty'))
-        //     ->get()
-        //     ->pluck('total_buyer_qty', 'date');
-
-        // // 3. Hitung susut untuk setiap tanggal yang ada di data buyer
-        // foreach ($buyerTotalsByDate as $date => $buyerTotal) {
-        //     // Cek apakah ada data gka di tanggal yang sama
-        //     if (isset($gkaTotalsByDate[$date])) {
-        //         $gkaTotal = $gkaTotalsByDate[$date];
-        //         $susutMap[$date] = $gkaTotal - $buyerTotal;
-        //     }
-        // }
-        
-        
-
-        $susutValue = 0; // Default value
-
-        // --- START: LOGIKA PERHITUNGAN SUSUT BARU ---
-        // Logika ini hanya berlaku untuk produk 'karet' dengan status 'buyer'
         if ($product->product === 'karet' && $product->status === 'buyer') {
             $productDate = Carbon::parse($product->date)->toDateString();
 
-            // 1. Ambil total qty_out dari status 'gka' pada tanggal yang sama dengan produk yang ditampilkan
             $gkaTotalOnDate = Product::where('product', 'karet')
                 ->where('status', 'gka')
                 ->whereDate('date', $productDate)
                 ->sum('qty_out');
 
-            // 2. Ambil total qty_out dari status 'buyer' pada tanggal yang sama
             $buyerTotalOnDate = Product::where('product', 'karet')
                 ->where('status', 'buyer')
                 ->whereDate('date', $productDate)
                 ->sum('qty_out');
 
-            // 3. Hitung susut hanya jika ada data GKA pada tanggal tersebut
             if ($gkaTotalOnDate > 0) {
                 $susutValue = $gkaTotalOnDate - $buyerTotalOnDate;
             }
         }
-        // --- END: LOGIKA PERHITUNGAN SUSUT BARU ---
-
-
-        // Kirim data product beserta nilai susut ke view
         return inertia('Products/show', [
+            'product' => $product,
+            'susut_value' => $susutValue,
+        ]);
+    }
+    
+    public function show_buy(Product $product)
+    {
+       $susutValue = 0; // Default value
+
+        if ($product->product === 'karet' && $product->status === 'buyer') {
+            $productDate = Carbon::parse($product->date)->toDateString();
+
+            $gkaTotalOnDate = Product::where('product', 'karet')
+                ->where('status', 'gka')
+                ->whereDate('date', $productDate)
+                ->sum('qty_out');
+
+            $buyerTotalOnDate = Product::where('product', 'karet')
+                ->where('status', 'buyer')
+                ->whereDate('date', $productDate)
+                ->sum('qty_out');
+
+            if ($gkaTotalOnDate > 0) {
+                $susutValue = $gkaTotalOnDate - $buyerTotalOnDate;
+            }
+        }
+        return inertia('Products/show_buy', [
             'product' => $product,
             'susut_value' => $susutValue,
         ]);
