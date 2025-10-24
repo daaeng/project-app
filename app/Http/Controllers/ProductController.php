@@ -173,28 +173,28 @@ class ProductController extends Controller
     
     public function show_buy(Product $product)
     {
-       $susutValue = 0; // Default value
+    //     $susutValue = 0; // Default value
 
-        if ($product->product === 'karet' && $product->status === 'buyer') {
-            $productDate = Carbon::parse($product->date)->toDateString();
+    //     if ($product->product === 'karet' && $product->status === 'buyer') {
+    //         $productDate = Carbon::parse($product->date)->toDateString();
 
-            $gkaTotalOnDate = Product::where('product', 'karet')
-                ->where('status', 'gka')
-                ->whereDate('date', $productDate)
-                ->sum('qty_out');
+    //         $gkaTotalOnDate = Product::where('product', 'karet')
+    //             ->where('status', 'gka')
+    //             ->whereDate('date', $productDate)
+    //             ->sum('qty_kg');
 
-            $buyerTotalOnDate = Product::where('product', 'karet')
-                ->where('status', 'buyer')
-                ->whereDate('date', $productDate)
-                ->sum('qty_out');
+    //         $buyerTotalOnDate = Product::where('product', 'karet')
+    //             ->where('status', 'buyer')
+    //             ->whereDate('date', $productDate)
+    //             ->sum('qty_kg');
 
-            if ($gkaTotalOnDate > 0) {
-                $susutValue = $gkaTotalOnDate - $buyerTotalOnDate;
-            }
-        }
+    //         if ($gkaTotalOnDate > 0) {
+    //             $susutValue = $gkaTotalOnDate - $buyerTotalOnDate;
+    //         }
+    //     }
         return inertia('Products/show_buy', [
             'product' => $product,
-            'susut_value' => $susutValue,
+            // 'susut_value' => $susutValue,
         ]);
     }
 
@@ -202,7 +202,7 @@ class ProductController extends Controller
     {
         $perPage = 20; 
         $searchTerm = $request->input('search');
-        $timePeriod = $request->input('time_period', 'this-month'); 
+        $timePeriod = $request->input('time_period', 'all-time'); 
         $selectedMonth = $request->input('month', Carbon::now()->month);
         $selectedYear = $request->input('year', Carbon::now()->year);
         $productType = $request->input('product_type', 'all'); 

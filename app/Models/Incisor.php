@@ -16,6 +16,7 @@ class Incisor extends Model
         'status', 
         'no_invoice', 
         'lok_toreh',
+        'nik',
     ];
 
     public function inciseds()

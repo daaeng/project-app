@@ -24,7 +24,7 @@ class KasbonController extends Controller
 
     public function index(Request $request)
     {
-        $perPage = 25;
+        $perPage = 30;
         $searchTerm = $request->input('search');
 
         $query = Kasbon::query()

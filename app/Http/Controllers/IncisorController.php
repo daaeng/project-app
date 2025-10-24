@@ -5,10 +5,15 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Incisor;
 use App\Models\Incised;
+use App\Models\Kasbon; // <-- TAMBAHKAN INI
+use App\Models\KasbonPayment; // <-- TAMBAHKAN INI
 use Inertia\Inertia;
+// TAMBAHKAN INI untuk validasi unique
+use Illuminate\Validation\Rule;
 
 class IncisorController extends Controller
 {
+    // ... (fungsi index, create, store, edit, update tidak berubah) ...
     public function index(Request $request)
     {
         $perPage = 20; 
@@ -17,6 +22,7 @@ class IncisorController extends Controller
         $incisors = Incisor::query()
             ->when($searchTerm, function ($query, $search) {
                 $query->where('name', 'like', "%{$search}%")
+                      ->orWhere('nik', 'like', "%{$search}%") // <-- TAMBAHKAN INI
                       ->orWhere('lok_toreh', 'like', "%{$search}%")
                       ->orWhere('no_invoice', 'like', "%{$search}%")
                       ->orWhere('ttl', 'like', "%{$search}%") 
@@ -42,6 +48,7 @@ class IncisorController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:250',
+            'nik' => 'required|string|max:20|unique:incisors,nik', // <-- TAMBAHKAN INI
             'ttl' => 'required|date',
             'gender' => 'required|string|max:250',
             'address' => 'required|string|max:250',
@@ -51,6 +58,7 @@ class IncisorController extends Controller
             'lok_toreh' => 'required|string|max:250',
         ]);
 
+        // Pastikan Model Incisor punya 'nik' di $fillable
         Incisor::create($request->all());
         return redirect()->route('incisors.index')->with('message', 'Users Creadted Successfully');
     }
@@ -64,6 +72,13 @@ class IncisorController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:250',
+            // TAMBAHKAN INI: Validasi unique tapi abaikan NIK milik user ini sendiri
+            'nik' => [
+                'required',
+                'string',
+                'max:20',
+                Rule::unique('incisors')->ignore($incisor->id),
+            ],
             'ttl' => 'required|date',
             'gender' => 'required|string|max:250',
             'address' => 'required|string|max:250',
@@ -75,6 +90,7 @@ class IncisorController extends Controller
         
         $incisor->update([
             'name' => $request->input('name'),
+            'nik' => $request->input('nik'), // <-- TAMBAHKAN INI
             'ttl' => $request->input('ttl'),
             'gender' => $request->input('gender'),
             'address' => $request->input('address'),
@@ -86,6 +102,7 @@ class IncisorController extends Controller
 
         return redirect()->route('incisors.index')->with('message', 'Product Updated Successfully');        
     }
+
 
     public function show(Incisor $incisor)
     {
@@ -105,12 +122,36 @@ class IncisorController extends Controller
             ->whereMonth('date', $currentMonth)
             ->sum('amount');
         
-        // Kasbon Bulan Ini (gaji = total amount per bulan * 50%)
-        $totalAmountBulanIni = Incised::where('no_invoice', $incisor->no_invoice)
-            ->whereYear('date', $currentYear)
-            ->whereMonth('date', $currentMonth)
+        // --- AWAL PERUBAHAN LOGIKA KASBON ---
+        // Logika lama yang salah:
+        // $totalAmountBulanIni = Incised::where('no_invoice', $incisor->no_invoice)
+        //     ->whereYear('date', $currentYear)
+        //     ->whereMonth('date', $currentMonth)
+        //     ->sum('amount');
+        // $kasbonBulanIni = $totalAmountBulanIni;
+
+        // Logika BARU yang benar (menghitung sisa kasbon):
+        // 1. Dapatkan semua ID kasbon (pinjaman) yang 'Approved' untuk penoreh ini
+        // Kita menggunakan relasi polimorfik 'kasbons()' dari model Incisor
+        $kasbonIds = $incisor->kasbons()
+            ->where('status', 'Approved')
+            ->pluck('id');
+
+        // 2. Hitung total pinjaman yang disetujui
+        $totalPinjaman = $incisor->kasbons()
+            ->where('status', 'Approved')
+            ->sum('kasbon');
+
+        // 3. Hitung total pembayaran untuk semua kasbon tersebut
+        $totalBayar = KasbonPayment::whereIn('kasbon_id', $kasbonIds)
             ->sum('amount');
-        $kasbonBulanIni = $totalAmountBulanIni * 0.5;
+
+        // 4. Hitung sisa kasbon
+        $sisaKasbon = $totalPinjaman - $totalBayar;
+        $sisaKasbon = $sisaKasbon > 0 ? $sisaKasbon : 0; // Pastikan tidak negatif
+
+        // --- AKHIR PERUBAHAN LOGIKA KASBON ---
+
 
         $dailyData = Incised::where('no_invoice', $incisor->no_invoice)
             ->select('product', 'date as tanggal', 'no_invoice as kode_penoreh', 'lok_kebun as kebun', 'j_brg as jenis_barang', 'qty_kg', 'amount as total_harga')
@@ -123,7 +164,8 @@ class IncisorController extends Controller
             'dailyData' => $dailyData,
             'totalQtyKgThisMonth' => $totalQtyKgThisMonth,
             'pendapatanBulanIni' => $pendapatanBulanIni,
-            'kasbonBulanIni' => $kasbonBulanIni,
+            // 'kasbonBulanIni' => $kasbonBulanIni, // <-- HAPUS YANG LAMA
+            'sisaKasbon' => $sisaKasbon, // <-- KIRIM DATA SISA KASBON YANG BENAR
         ]);
     }
 
@@ -139,3 +181,4 @@ class IncisorController extends Controller
         return response()->json($noInvoices);
     }
 }
+

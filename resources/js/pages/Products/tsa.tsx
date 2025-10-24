@@ -599,7 +599,7 @@ export default function TsaPage({
                                                     {formatCurrency(product.amount)}
                                                 </TableCell>
                                                 <TableCell className="p-4 flex justify-center space-x-2">
-                                                    <Link href={route('products.show', product.id)}>
+                                                    <Link href={route('products.show_buy', product.id)}>
                                                         <Button
                                                             variant="ghost"
                                                             className="text-gray-500 hover:bg-gray-200"

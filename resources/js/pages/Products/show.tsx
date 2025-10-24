@@ -54,7 +54,7 @@ export default function ShowReport({ product, susut_value }: PageProps) {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={`Laporan Penjualan ${product.no_invoice}`} />
 
-            {/* CSS Khusus untuk Print */}
+            {/* CSS Khusus untuk Print
             <style>
                 {`
                     @media print {
@@ -72,6 +72,54 @@ export default function ShowReport({ product, susut_value }: PageProps) {
                         }
                         .no-print {
                             display: none;
+                        }
+                    }
+                `}
+            </style> */}
+
+            {/* --- CSS KHUSUS PRINT (DIPERBARUI) --- */}
+            <style>
+                {`
+                    @media print {
+                        body {
+                            visibility: hidden;
+                            background-color: white !important;
+                            -webkit-print-color-adjust: exact; /* Untuk Chrome/Safari */
+                            color-adjust: exact; /* Standar */
+                        }
+                        .no-print {
+                            display: none !important;
+                        }
+                        .print-container {
+                            padding: 0 !important;
+                            margin: 0 !important;
+                            max-width: 100% !important;
+                            background: white !important;
+                        }
+                        #printable-area {
+                            visibility: visible;
+                            position: static !important;
+                            box-shadow: none !important;
+                            border: none !important;
+                            border-radius: 0 !important;
+                            padding: 1rem !important;
+                            margin: 0 !important;
+                            color: black !important;
+                            background: white !important;
+                            width: 100% !important;
+                        }
+                        #printable-area * {
+                            visibility: visible;
+                            color: black !important;
+                            background-color: transparent !important;
+                        }
+                        .print-tag {
+                           border: 1px solid #777 !important;
+                           background-color: #f0f0f0 !important;
+                           color: black !important;
+                        }
+                         .text-green-600 {
+                            color: black !important; /* Ubah warna hijau jadi hitam saat print */
                         }
                     }
                 `}
@@ -110,7 +158,7 @@ export default function ShowReport({ product, susut_value }: PageProps) {
                             <p className="text-sm text-center text-gray-500 dark:text-gray-400">PT. Garuda Karya Amanat</p>
                         </header>
                         
-                        <main className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
+                        <main className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
                             {/* Kolom Kiri */}
                             <div className="space-y-2">
                                 <DetailRow label="No. Invoice" value={product.no_invoice} />
@@ -118,7 +166,7 @@ export default function ShowReport({ product, susut_value }: PageProps) {
                                 <DetailRow label="Jenis Produk" value={product.product} />
                                 <DetailRow label="Jenis Barang" value={product.j_brg} />
                                 
-                                <div className="mt-5">
+                                <div className="mt-3">
                                     <h4 className="text-sm font-bold text-gray-500 tracking-wider mb-2">Informasi Pembeli</h4>
                                     <p className=" dark:text-gray-300 font-mono text-sm whitespace-pre-wrap">{product.desk || 'No description log available.'}</p>
                                 </div>
@@ -137,7 +185,7 @@ export default function ShowReport({ product, susut_value }: PageProps) {
                             </div>
                         </main>
                         
-                        <footer className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+                        <footer className="mt-5 pt-5 border-t border-gray-200 dark:border-gray-700">
                             <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">Rincian Keuangan</h3>
                             <div className="space-y-2">
                                 <DetailRow label="Harga / Kg" value={product.price_out} isCurrency />

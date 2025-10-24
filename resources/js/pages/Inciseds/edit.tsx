@@ -7,7 +7,21 @@ import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, useForm } from '@inertiajs/react';
-import { CircleAlert, Undo2 } from 'lucide-react';
+import { CircleAlert, Undo2, Save } from 'lucide-react'; // Impor Save icon
+import {
+    Card,
+    CardContent,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card'; // Impor Card
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select'; // Impor Select modern
+import { useEffect, useState } from 'react'; // Impor useEffect dan useState
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -36,8 +50,25 @@ interface Incised {
     kualitas: string;
     incisor?: {
         name: string;
-    }; // Tambahkan untuk relasi incisor
+    };
 }
+
+// Helper untuk Form Item agar lebih rapi
+const FormItem = ({
+    label,
+    children,
+    error,
+}: {
+    label: string;
+    children: React.ReactNode;
+    error?: string;
+}) => (
+    <div className="space-y-2">
+        <Label htmlFor={label}>{label}</Label>
+        {children}
+        {error && <p className="text-red-600 text-sm mt-1">{error}</p>}
+    </div>
+);
 
 export default function EditIncised({
     incised,
@@ -46,7 +77,6 @@ export default function EditIncised({
     incised: Incised;
     noInvoicesWithNames: NoInvoiceWithName[];
 }) {
-
     const { data, setData, put, processing, errors } = useForm({
         product: incised.product,
         date: incised.date,
@@ -56,10 +86,37 @@ export default function EditIncised({
         desk: incised.desk || '',
         qty_kg: incised.qty_kg,
         price_qty: incised.price_qty,
+        // Pastikan amount di-set sebagai number, bukan string
         amount: incised.amount,
         keping: incised.keping,
         kualitas: incised.kualitas || '',
     });
+
+    // State untuk menyimpan nama penoreh yang dipilih
+    const [selectedIncisorName, setSelectedIncisorName] = useState(
+        incised.incisor?.name || 'N/A',
+    );
+
+    // --- UX MODERN 1: Kalkulasi Otomatis Amount ---
+    useEffect(() => {
+        // Konversi ke number, jika tidak valid anggap 0
+        const qty = Number(data.qty_kg) || 0;
+        const price = Number(data.price_qty) || 0;
+        const totalAmount = qty * price;
+        
+        // Update state 'amount' hanya jika berbeda
+        if (totalAmount !== data.amount) {
+            setData('amount', totalAmount);
+        }
+    }, [data.qty_kg, data.price_qty]); // Dijalankan saat qty atau price berubah
+
+    // --- UX MODERN 2: Update Nama Penoreh Otomatis ---
+    useEffect(() => {
+        const selected = noInvoicesWithNames.find(
+            (item) => item.no_invoice === data.no_invoice,
+        );
+        setSelectedIncisorName(selected ? selected.name : 'N/A');
+    }, [data.no_invoice, noInvoicesWithNames]); // Dijalankan saat no_invoice berubah
 
     const handleUpdate = (e: React.FormEvent) => {
         e.preventDefault();
@@ -70,195 +127,210 @@ export default function EditIncised({
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Edit Incised" />
 
-            <div className="h-full flex-col rounded-xl p-4 bg-gray-50 dark:bg-black">
-                <Heading title="Edit Data Harian Penoreh" />
-
-                <div className="w-full h-auto">
+            <div className="h-full flex-col p-4 bg-gray-50 dark:bg-black">
+                <div className="flex justify-between items-center mb-4">
+                    <Heading title="Edit Data Harian Penoreh" />
                     <Link href={route('inciseds.index')}>
-                        <Button className="bg-auto w-25 hover:bg-accent hover:text-black">
-                            <Undo2 />
+                        <Button variant="outline"> {/* Style lebih modern */}
+                            <Undo2 className="w-4 h-4 mr-2" />
                             Back
                         </Button>
                     </Link>
                 </div>
 
-                <div className="w-full p-4">
-                    <div className="p-4">
-                        {Object.keys(errors).length > 0 && (
-                            <Alert>
-                                <CircleAlert className="h-4 w-4" />
-                                <AlertTitle className="text-red-600">Errors...!</AlertTitle>
-                                <AlertDescription>
-                                    <ul>
-                                        {Object.entries(errors).map(([key, message]) => (
-                                            <li key={key}>{message as string}</li>
-                                        ))}
-                                    </ul>
-                                </AlertDescription>
-                            </Alert>
-                        )}
-                    </div>
+                {Object.keys(errors).length > 0 && (
+                    <Alert variant="destructive" className="mb-4">
+                        <CircleAlert className="h-4 w-4" />
+                        <AlertTitle>Errors...!</AlertTitle>
+                        <AlertDescription>
+                            <ul>
+                                {Object.entries(errors).map(([key, message]) => (
+                                    <li key={key}>{message as string}</li>
+                                ))}
+                            </ul>
+                        </AlertDescription>
+                    </Alert>
+                )}
 
-                    <form onSubmit={handleUpdate} className="space-y-3 grid lg:grid-cols-2 md:grid-cols-1 gap-5">
-                        <div className="space-y-2">
-                            <div>
-                                <div className="gap-2">
-                                    <Label htmlFor="Product Name">Product</Label>
-                                    <select
-                                        value={data.product}
-                                        onChange={(e) => setData('product', e.target.value)}
-                                        className="w-full border p-1 rounded-md text-destructive-foreground"
-                                        required
-                                    >
-                                        <option value="" disabled>Pilih Jenis Product</option>
-                                        <option value="Karet" selected={incised.product === 'Karet'}>Karet</option>
-                                        <option value="Kelapa" selected={incised.product === 'Kelapa'}>Kelapa</option>
-                                        <option value="Pupuk" selected={incised.product === 'Pupuk'}>Pupuk</option>
-                                    </select>
-                                    {errors.product && <p className="text-red-600 text-sm">{errors.product}</p>}
-                                </div>
-                                <div className="gap-2">
-                                    <Label htmlFor="Tanggal">Tanggal</Label>
-                                    <Input
-                                        type="date"
-                                        placeholder="Tanggal"
-                                        value={data.date}
-                                        onChange={(e) => setData('date', e.target.value)}
-                                    />
-                                    {errors.date && <p className="text-red-600 text-sm">{errors.date}</p>}
-                                </div>
-
-                                <div className="gap-2">
-                                    <Label htmlFor="Kode Penoreh">Kode Penoreh</Label>
-                                    <select
-                                        value={data.no_invoice}
-                                        onChange={(e) => setData('no_invoice', e.target.value)}
-                                        className="w-full border p-1 rounded-md"
-                                        required
-                                    >
-                                        <option value="" disabled>Pilih Kode Penoreh</option>
-                                        {noInvoicesWithNames.length > 0 ? (
-                                            noInvoicesWithNames.map((item, index) => (
-                                                <option key={index} value={item.no_invoice} selected={item.no_invoice === incised.no_invoice}>
-                                                    {`${item.no_invoice} - ${item.name}`}
-                                                </option>
-                                            ))
-                                        ) : (
-                                            <option value="" disabled>Tidak ada data</option>
-                                        )}
-                                    </select>
-                                    {errors.no_invoice && <p className="text-red-600 text-sm">{errors.no_invoice}</p>}
-                                </div>
-
-                                <div className="gap-2">
-                                    <Label htmlFor="Lokasi">Lokasi Kebun</Label>
-                                    <select
-                                        value={data.lok_kebun}
-                                        onChange={(e) => setData('lok_kebun', e.target.value)}
-                                        className="w-full border p-1 rounded-md text-destructive-foreground"
-                                        required
-                                    >
-                                        <option value="" disabled>Pilih Lokasi</option>
-                                        <option value="Temadu" selected={incised.lok_kebun === 'Temadu'}>Temadu</option>
-                                        <option value="Sebayar" selected={incised.lok_kebun === 'Sebayar'}>Sebayar</option>
-                                    </select>
-                                    {errors.lok_kebun && <p className="text-red-600 text-sm">{errors.lok_kebun}</p>}
-                                </div>
-
-                                <div className="gap-2">
-                                    <Label htmlFor="Jenis Barang">Jenis Barang</Label>
-                                    <Input
-                                        placeholder="Jenis Barang"
-                                        value={data.j_brg}
-                                        onChange={(e) => setData('j_brg', e.target.value)}
-                                    />
-                                    {errors.j_brg && <p className="text-red-600 text-sm">{errors.j_brg}</p>}
-                                </div>
-
-                                <div className="gap-2">
-                                    <Label htmlFor="Description">Description</Label>
-                                    <Textarea
-                                        placeholder="Description"
-                                        value={data.desk}
-                                        onChange={(e) => setData('desk', e.target.value)}
-                                    />
-                                </div>
-                                {incised.incisor && (
-                                    <div className="gap-2">
-                                        <Label htmlFor="Nama Penoreh">Nama Penoreh</Label>
-                                        <Input
-                                            placeholder="Nama Penoreh"
-                                            value={incised.incisor.name || 'N/A'}
-                                            readOnly
-                                        />
+                <form onSubmit={handleUpdate} className="space-y-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        {/* === KOLOM KIRI (Info Utama & Detail) === */}
+                        <div className="lg:col-span-2 space-y-6">
+                            {/* --- Card 1: Informasi Utama --- */}
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Informasi Utama</CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <FormItem label="Product" error={errors.product}>
+                                            <Select
+                                                value={data.product}
+                                                onValueChange={(value) => setData('product', value)}
+                                                required
+                                            >
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Pilih Jenis Product" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="Karet">Karet</SelectItem>
+                                                    <SelectItem value="Kelapa">Kelapa</SelectItem>
+                                                    <SelectItem value="Pupuk">Pupuk</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </FormItem>
+                                        
+                                        <FormItem label="Tanggal" error={errors.date}>
+                                            <Input
+                                                type="date"
+                                                value={data.date}
+                                                onChange={(e) => setData('date', e.target.value)}
+                                            />
+                                        </FormItem>
                                     </div>
-                                )}
-                            </div>
+                                    
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <FormItem label="Kode Penoreh" error={errors.no_invoice}>
+                                            <Select
+                                                value={data.no_invoice}
+                                                onValueChange={(value) => setData('no_invoice', value)}
+                                                required
+                                            >
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Pilih Kode Penoreh" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {noInvoicesWithNames.length > 0 ? (
+                                                        noInvoicesWithNames.map((item, index) => (
+                                                            <SelectItem key={index} value={item.no_invoice}>
+                                                                {`${item.no_invoice} - ${item.name}`}
+                                                            </SelectItem>
+                                                        ))
+                                                    ) : (
+                                                        <SelectItem value="" disabled>
+                                                            Tidak ada data
+                                                        </SelectItem>
+                                                    )}
+                                                </SelectContent>
+                                            </Select>
+                                        </FormItem>
+                                        
+                                        <FormItem label="Nama Penoreh">
+                                            <Input
+                                                value={selectedIncisorName}
+                                                readOnly
+                                                className="bg-gray-100 dark:bg-gray-800"
+                                            />
+                                        </FormItem>
+                                    </div>
+                                </CardContent>
+                            </Card>
+
+                            {/* --- Card 2: Detail Tambahan --- */}
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Detail Barang & Lokasi</CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    <FormItem label="Lokasi Kebun" error={errors.lok_kebun}>
+                                        <Select
+                                            value={data.lok_kebun}
+                                            onValueChange={(value) => setData('lok_kebun', value)}
+                                            required
+                                        >
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Pilih Lokasi" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="Temadu">Temadu</SelectItem>
+                                                <SelectItem value="Sebayar">Sebayar</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </FormItem>
+                                    
+                                    <FormItem label="Jenis Barang" error={errors.j_brg}>
+                                        <Input
+                                            placeholder="cth: Karet Mingguan, Kelapa Butir, dll."
+                                            value={data.j_brg}
+                                            onChange={(e) => setData('j_brg', e.target.value)}
+                                        />
+                                    </FormItem>
+                                    
+                                    <FormItem label="Description" error={errors.desk}>
+                                        <Textarea
+                                            placeholder="Deskripsi tambahan jika ada..."
+                                            value={data.desk}
+                                            onChange={(e) => setData('desk', e.target.value)}
+                                        />
+                                    </FormItem>
+                                </CardContent>
+                            </Card>
                         </div>
 
-                        <div>
-                            <div className="p-2 mt-3 col-span-3 border-2 rounded-md h-fit">
-                                <div className="grid md:grid-cols-2 sm:grid-cols-1 gap-3 p-2">
-                                    <div className="gap-2 sm:col-span-3">
-                                        <Label htmlFor="In">MASUK</Label>
-                                    </div>
-
-                                    <div className="gap-2 md:col-span-1 sm:col-span-3">
-                                        <Label htmlFor="Quantity">Quantity (Kg)</Label>
+                        {/* === KOLOM KANAN (Rincian Pemasukan) === */}
+                        <div className="lg:col-span-1">
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Rincian Pemasukan (MASUK)</CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    <FormItem label="Quantity (Kg)" error={errors.qty_kg}>
                                         <Input
-                                            placeholder="Quantity"
+                                            type="number"
+                                            placeholder="0"
                                             value={data.qty_kg}
-                                            onChange={(e) => setData('qty_kg', e.target.value)}
+                                            onChange={(e) => setData('qty_kg', Number(e.target.value))}
                                         />
-                                        {errors.qty_kg && <p className="text-red-600 text-sm">{errors.qty_kg}</p>}
-                                    </div>
-                                    <div className="gap-2 md:col-span-1 sm:col-span-3">
-                                        <Label htmlFor="Price">Price /Qty</Label>
+                                    </FormItem>
+                                    
+                                    <FormItem label="Price /Qty" error={errors.price_qty}>
                                         <Input
-                                            placeholder="Price"
+                                            type="number"
+                                            placeholder="0"
                                             value={data.price_qty}
-                                            onChange={(e) => setData('price_qty', e.target.value)}
+                                            onChange={(e) => setData('price_qty', Number(e.target.value))}
                                         />
-                                        {errors.price_qty && <p className="text-red-600 text-sm">{errors.price_qty}</p>}
-                                    </div>
-                                    <div className="gap-2 md:col-span-1 sm:col-span-3">
-                                        <Label htmlFor="Amount">Amount</Label>
+                                    </FormItem>
+                                    
+                                    <FormItem label="Amount" error={errors.amount}>
                                         <Input
-                                            placeholder="Amount"
+                                            type="number"
+                                            placeholder="0"
                                             value={data.amount}
-                                            onChange={(e) => setData('amount', e.target.value)}
+                                            readOnly // Dibuat readOnly karena dihitung otomatis
+                                            className="bg-gray-100 dark:bg-gray-800"
                                         />
-                                        {errors.amount && <p className="text-red-600 text-sm">{errors.amount}</p>}
-                                    </div>
-                                    <div className="gap-2 md:col-span-1 sm:col-span-3">
-                                        <Label htmlFor="Keping">Keping</Label>
+                                    </FormItem>
+                                    
+                                    <FormItem label="Keping" error={errors.keping}>
                                         <Input
-                                            placeholder="Keping"
+                                            type="number"
+                                            placeholder="0"
                                             value={data.keping}
-                                            onChange={(e) => setData('keping', e.target.value)}
+                                            onChange={(e) => setData('keping', Number(e.target.value))}
                                         />
-                                        {errors.keping && <p className="text-red-600 text-sm">{errors.keping}</p>}
-                                    </div>
-                                    <div className="gap-2 md:col-span-1 sm:col-span-3">
-                                        <Label htmlFor="Kualitas">Kualitas</Label>
+                                    </FormItem>
+                                    
+                                    <FormItem label="Kualitas" error={errors.kualitas}>
                                         <Input
-                                            placeholder="Kualitas"
+                                            placeholder="cth: A, B, C, Kering, Basah"
                                             value={data.kualitas}
                                             onChange={(e) => setData('kualitas', e.target.value)}
                                         />
-                                        {errors.kualitas && <p className="text-red-600 text-sm">{errors.kualitas}</p>}
-                                    </div>
-                                </div>
-                            </div>
+                                    </FormItem>
+                                </CardContent>
+                            </Card>
                         </div>
+                    </div>
 
-                        <div className="">
-                            <Button disabled={processing} type="submit" className="bg-green-600 hover:bg-green-400">
-                                Update
-                            </Button>
-                        </div>
-                    </form>
-                </div>
+                    {/* --- Tombol Aksi --- */}
+                    <div className="flex justify-end pt-4">
+                        <Button disabled={processing} type="submit" size="lg">
+                            <Save className="mr-2 h-4 w-4" />
+                            Update Data
+                        </Button>
+                    </div>
+                </form>
             </div>
         </AppLayout>
     );

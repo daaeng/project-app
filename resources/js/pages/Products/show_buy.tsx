@@ -20,18 +20,17 @@ interface Product {
     nm_supplier: string;
     j_brg: string;
     desk: string;
-    qty_out: number;
-    price_out: number;
-    amount_out: number;
-    keping_out: number;
-    kualitas_out: string;
+    qty_kg: number;
+    price_qty: number;
+    amount: number;
+    keping: number;
+    kualitas: string;
     status: string;
 }
 
 // Interface untuk props halaman
 interface PageProps {
     product: Product;
-    susut_value: number; // Tambahkan susut_value
 }
 
 // Komponen untuk setiap baris detail
@@ -44,7 +43,7 @@ const DetailRow = ({ label, value, isCurrency = false, className = '' }: { label
     </div>
 );
 
-export default function ShowReport({ product, susut_value }: PageProps) {
+export default function ShowReport({ product }: PageProps) {
     
     const handlePrint = () => {
         window.print();
@@ -52,7 +51,7 @@ export default function ShowReport({ product, susut_value }: PageProps) {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={`Laporan Penjualan ${product.no_invoice}`} />
+            <Head title={`Laporan Pembelian ${product.no_invoice}`} />
 
             {/* CSS Khusus untuk Print */}
             <style>
@@ -83,7 +82,7 @@ export default function ShowReport({ product, susut_value }: PageProps) {
                     {/* Tombol Aksi (tidak akan di-print) */}
                     <div className="flex justify-between items-center mb-6 no-print">
                         <div>
-                             <h1 className="text-2xl font-bold text-gray-900 dark:text-white sm:text-3xl">Detail Laporan Penjualan</h1>
+                             <h1 className="text-2xl font-bold text-gray-900 dark:text-white sm:text-3xl">Detail Laporan Pembelian</h1>
                              <p className="mt-1 text-md text-gray-600 dark:text-gray-400">No. Invoice: {product.no_invoice}</p>
                         </div>
                         <div className="flex gap-2">
@@ -106,7 +105,7 @@ export default function ShowReport({ product, susut_value }: PageProps) {
                     {/* Area yang akan di-print */}
                     <div id="printable-area" className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-md">
                         <header className="pb-6 border-b border-gray-200 dark:border-gray-700">
-                            <h2 className="text-2xl font-bold text-center text-gray-900 dark:text-white">Laporan Penjualan</h2>
+                            <h2 className="text-2xl font-bold text-center text-gray-900 dark:text-white">Laporan Pembelian</h2>
                             <p className="text-sm text-center text-gray-500 dark:text-gray-400">PT. Garuda Karya Amanat</p>
                         </header>
                         
@@ -127,21 +126,18 @@ export default function ShowReport({ product, susut_value }: PageProps) {
                             {/* Kolom Kanan */}
                             <div className="space-y-2">
                                  <DetailRow label="Status" value={<Tag_Karet status={product.status}/>} />
-                                 <DetailRow label="Quantity (Kg)" value={`${product.qty_out} Kg`} />
-                                 <DetailRow label="Keping / Buah" value={product.keping_out} />
-                                 <DetailRow label="Kualitas" value={product.kualitas_out} />
-                                 {/* Tampilkan Susut hanya jika ada nilainya */}
-                                 {susut_value > 0 && (
-                                    <DetailRow label="Susut" value={`${susut_value} Kg`} className="text-yellow-600 font-bold" />
-                                 )}
+                                 <DetailRow label="Quantity (Kg)" value={`${product.qty_kg} Kg`} />
+                                 <DetailRow label="Keping / Buah" value={product.keping} />
+                                 <DetailRow label="Kualitas" value={product.kualitas} />
+                                 
                             </div>
                         </main>
                         
                         <footer className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
                             <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">Rincian Keuangan</h3>
                             <div className="space-y-2">
-                                <DetailRow label="Harga / Kg" value={product.price_out} isCurrency />
-                                <DetailRow label="Total Penjualan (Setelah PPh)" value={product.amount_out} isCurrency className="text-green-600 text-lg" />
+                                <DetailRow label="Harga / Kg" value={product.price_qty} isCurrency />
+                                <DetailRow label="Total Pembelian" value={product.amount} isCurrency className="text-green-600 text-lg" />
                             </div>
                         </footer>
                     </div>
