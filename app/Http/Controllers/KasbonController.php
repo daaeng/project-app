@@ -17,7 +17,6 @@ use Illuminate\Validation\Rule;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Pagination\Paginator;
 
-
 class KasbonController extends Controller
 {
     private $statuses = ['Pending', 'Approved', 'Rejected'];
