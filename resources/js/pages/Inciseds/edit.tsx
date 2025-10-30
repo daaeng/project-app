@@ -102,7 +102,7 @@ export default function EditIncised({
         // Konversi ke number, jika tidak valid anggap 0
         const qty = Number(data.qty_kg) || 0;
         const price = Number(data.price_qty) || 0;
-        const totalAmount = qty * price;
+        const totalAmount = qty * price * 0.4;
         
         // Update state 'amount' hanya jika berbeda
         if (totalAmount !== data.amount) {
@@ -297,7 +297,7 @@ export default function EditIncised({
                                             type="number"
                                             placeholder="0"
                                             value={data.amount}
-                                            readOnly // Dibuat readOnly karena dihitung otomatis
+                                            
                                             className="bg-gray-100 dark:bg-gray-800"
                                         />
                                     </FormItem>
