@@ -10,7 +10,14 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-// [MODIFICATION] Add Printer icon
+// [MODIFIED] Add Select components for filtering
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 import { Search, Clock, CheckCircle2, Wallet, Megaphone, XCircle, User, HardHat, ChevronLeft, ChevronRight, Eye, Printer } from 'lucide-react';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -45,6 +52,8 @@ interface PageProps {
     };
     filter: {
         search?: string;
+        type?: string;     // [NEW] Add type filter prop
+        location?: string; // [NEW] Add location filter prop
     };
     totalPendingKasbon: number;
     totalApprovedKasbon: number;
@@ -120,7 +129,15 @@ const Pagination: React.FC<{ links: PaginationLink[] }> = ({ links }) => {
 };
 
 export default function KasbonIndex({ kasbons, flash, filter, totalPendingKasbon, totalApprovedKasbon, sumApprovedKasbonAmount }: PageProps) {
+    // [MODIFIED] Add state for new filters
     const [search, setSearch] = useState(filter.search || '');
+    // [MODIFIED] Use 'all' as default value instead of empty string ''
+    const [type, setType] = useState(filter.type || 'all');
+    const [location, setLocation] = useState(filter.location || 'all');
+    
+    // [NEW] Add loading state for dynamic feedback
+    const [isLoading, setIsLoading] = useState(false);
+    
     const [showSuccessAlert, setShowSuccessAlert] = useState(false);
     const [showErrorAlert, setShowErrorAlert] = useState(false);
     
@@ -139,14 +156,27 @@ export default function KasbonIndex({ kasbons, flash, filter, totalPendingKasbon
 
     useEffect(() => {
         const handler = setTimeout(() => {
-            router.get(route('kasbons.index'), { search }, {
+            // [NEW] Set loading true when request starts
+            setIsLoading(true); 
+            
+            // [MODIFIED] Send all filters with the request
+            const params: { search?: string, type?: string, location?: string } = {
+                search: search || undefined,
+                // [MODIFIED] Send 'undefined' if type is 'all'
+                type: type === 'all' ? undefined : type,
+                location: location === 'all' ? undefined : location,
+            };
+
+            router.get(route('kasbons.index'), params, {
                 preserveState: true,
                 preserveScroll: true,
                 replace: true,
+                // [NEW] Set loading false when request finishes
+                onFinish: () => setIsLoading(false),
             });
         }, 500);
         return () => clearTimeout(handler);
-    }, [search]);
+    }, [search, type, location]); // [MODIFIED] Add new filters to dependency array
 
     const getOwnerTypeSlug = (fullType: string) => {
         return fullType.toLowerCase().includes('employee') ? 'employee' : 'incisor';
@@ -159,8 +189,13 @@ export default function KasbonIndex({ kasbons, flash, filter, totalPendingKasbon
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <Heading title="Dashboard Rekap Kasbon" description="Total kasbon yang dimiliki oleh setiap orang." />
                      <div className="flex items-center gap-3 flex-wrap">
-                        {/* [MODIFICATION START] Add Print Button */}
-                        <Link href={route('kasbons.print', { search: search || undefined })} target="_blank">
+                        {/* [MODIFIED] Pass all filters to the print route */}
+                        <Link href={route('kasbons.print', { 
+                            search: search || undefined,
+                            // [MODIFIED] Send 'undefined' if type is 'all'
+                            type: type === 'all' ? undefined : type,
+                            location: location === 'all' ? undefined : location
+                         })} target="_blank">
                              <Button variant="outline" className="shadow-sm">
                                 <Printer className="w-4 h-4 mr-2" />
                                 Cetak Laporan
@@ -207,14 +242,48 @@ export default function KasbonIndex({ kasbons, flash, filter, totalPendingKasbon
 
                 <Card className="shadow-sm">
                     <CardHeader>
-                         <div className='relative sm:w-1/3'>
-                            <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
-                            <Input
-                                placeholder="Cari nama, NIP, atau No. Invoice..."
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
-                                className="pl-10 w-full"
-                            />
+                         {/* [MODIFIED] Changed sm:flex-row to lg:flex-row for better responsiveness */}
+                         <div className="flex flex-col lg:flex-row gap-3">
+                            {/* [MODIFIED] Changed sm:w-1/2 to lg:w-1/2 */}
+                            <div className='relative w-full lg:w-1/2'>
+                                <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+                                <Input
+                                    placeholder="Cari nama, NIP, atau No. Invoice..."
+                                    value={search}
+                                    onChange={(e) => setSearch(e.target.value)}
+                                    className="pl-10 w-full"
+                                    disabled={isLoading} // [NEW] Disable while loading
+                                />
+                            </div>
+                            
+                            {/* [NEW] Filter Tipe */}
+                            <Select value={type} onValueChange={setType} disabled={isLoading}>
+                                {/* [MODIFIED] Changed sm:w-14 to w-full lg:w-1/4 */}
+                                <SelectTrigger className="w-full lg:w-1/4">
+                                    <SelectValue placeholder="Semua Tipe" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {/* [MODIFIED] Use 'all' as value instead of empty string */}
+                                    <SelectItem value="all">Semua Tipe</SelectItem>
+                                    <SelectItem value="pegawai">Pegawai</SelectItem>
+                                    <SelectItem value="penoreh">Penoreh</SelectItem>
+                                </SelectContent>
+                            </Select>
+
+                            {/* [NEW] Filter Lokasi */}
+                            <Select value={location} onValueChange={setLocation} disabled={isLoading}>
+                                {/* [MODIFIED] Changed sm:w-14 to w-full lg:w-1/4 */}
+                                <SelectTrigger className="w-full lg:w-1/4">
+                                    <SelectValue placeholder="Semua Lokasi" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {/* [MODIFIED] Use 'all' as value instead of empty string */}
+                                    <SelectItem value="all">Semua Lokasi</SelectItem>
+                                    <SelectItem value="Kantor">Kantor</SelectItem>
+                                    <SelectItem value="Temadu">Temadu</SelectItem>
+                                    <SelectItem value="Sebayar">Sebayar</SelectItem>
+                                </SelectContent>
+                            </Select>
                         </div>
                     </CardHeader>
                     <CardContent className="p-0">
@@ -225,10 +294,12 @@ export default function KasbonIndex({ kasbons, flash, filter, totalPendingKasbon
                                     <TableHead>Total Kasbon</TableHead>
                                     <TableHead>Total Dibayar</TableHead>
                                     <TableHead>Sisa Utang</TableHead>
+                                    {/* [MODIFIED] Corrected closing tag from </Read> to </TableHead> */}
                                     <TableHead className="text-center pr-6">Aksi</TableHead>
                                 </TableRow>
                             </TableHeader>
-                            <TableBody>
+                            {/* [NEW] Add loading opacity effect to table body */}
+                            <TableBody className={cn(isLoading && "opacity-50 transition-opacity")}>
                                 {kasbons.data.length > 0 ? (
                                     kasbons.data.map((kasbon) => (
                                     <TableRow key={`${kasbon.owner_type}-${kasbon.owner_id}`}>
@@ -266,3 +337,4 @@ export default function KasbonIndex({ kasbons, flash, filter, totalPendingKasbon
         </AppLayout>
     );
 }
+

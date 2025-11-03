@@ -24,14 +24,17 @@ class KasbonController extends Controller
     public function index(Request $request)
     {
         $perPage = 30;
+        // [MODIFIED] Ambil filter dari request
         $searchTerm = $request->input('search');
+        $filterType = $request->input('type'); // 'pegawai' or 'penoreh'
+        $filterLocation = $request->input('location'); // 'Kantor', 'Temadu', 'Sebayar'
 
-        $query = Kasbon::query()
-            ->select('kasbonable_id', 'kasbonable_type')
-            ->groupBy('kasbonable_id', 'kasbonable_type');
+        // [MODIFIED] Buat query dasar Kasbon yang akan menerapkan semua filter
+        $kasbonBaseQuery = Kasbon::query();
 
+        // [MODIFIED] Terapkan filter ke query dasar
         if ($searchTerm) {
-            $query->where(function ($q) use ($searchTerm) {
+            $kasbonBaseQuery->where(function ($q) use ($searchTerm) {
                 $q->whereHasMorph('kasbonable', [Employee::class], function ($query, $type) use ($searchTerm) {
                     $query->where('name', 'like', "%{$searchTerm}%")
                           ->orWhere('employee_id', 'like', "%{$searchTerm}%");
@@ -41,18 +44,49 @@ class KasbonController extends Controller
                 });
             });
         }
+
+        // [MODIFIED] Terapkan filter Tipe ke query dasar
+        if ($filterType) {
+            if ($filterType === 'pegawai') {
+                $kasbonBaseQuery->where('kasbonable_type', Employee::class);
+            } elseif ($filterType === 'penoreh') {
+                $kasbonBaseQuery->where('kasbonable_type', Incisor::class);
+            }
+        }
+
+        // [MODIFIED] Terapkan filter Lokasi ke query dasar
+        if ($filterLocation) {
+            if ($filterLocation === 'Kantor') {
+                // Lokasi 'Kantor' hanya untuk Pegawai
+                $kasbonBaseQuery->where('kasbonable_type', Employee::class);
+            } else {
+                // Lokasi 'Temadu' atau 'Sebayar' hanya untuk Penoreh
+                $kasbonBaseQuery->whereHasMorph('kasbonable', [Incisor::class], function ($q) use ($filterLocation) {
+                    $q->where('lok_toreh', $filterLocation);
+                });
+                // Pastikan juga tipenya adalah Incisor
+                $kasbonBaseQuery->where('kasbonable_type', Incisor::class);
+            }
+        }
         
+        // [MODIFIED] Buat query untuk tabel (grup) DARI query dasar
+        // Kita clone() agar grouping tidak mempengaruhi query stats
+        $query = $kasbonBaseQuery->clone()
+            ->select('kasbonable_id', 'kasbonable_type')
+            ->groupBy('kasbonable_id', 'kasbonable_type');
+
         $allGroups = $query->get();
 
         $processedGroups = $allGroups->map(function ($group) {
-            $totalKasbon = Kasbon::where('kasbonable_id', $group->kasbonable_id)
-                ->where('kasbonable_type', $group->kasbonable_type)
+            // [MODIFIED] Hitung total kasbon dan pembayaran berdasarkan ID grup
+            $kasbonsForGroup = Kasbon::where('kasbonable_id', $group->kasbonable_id)
+                ->where('kasbonable_type', $group->kasbonable_type);
+
+            $totalKasbon = $kasbonsForGroup->clone()
                 ->where('status', 'Approved')
                 ->sum('kasbon');
 
-            $kasbonIds = Kasbon::where('kasbonable_id', $group->kasbonable_id)
-                ->where('kasbonable_type', $group->kasbonable_type)
-                ->pluck('id');
+            $kasbonIds = $kasbonsForGroup->clone()->pluck('id');
 
             $totalPaid = KasbonPayment::whereIn('kasbon_id', $kasbonIds)->sum('amount');
             
@@ -96,19 +130,33 @@ class KasbonController extends Controller
             'query' => $request->query(),
         ]);
 
-        $totalPendingKasbon = Kasbon::where('status', 'Pending')->count();
-        $approvedKasbons = Kasbon::where('status', 'Approved')->get(['id', 'kasbon']);
+        // [MODIFIED] Hitung STAT CARDS menggunakan query dasar yang sudah terfilter
+        
+        // Stat 1: Total Pending (Sesuai Filter)
+        $totalPendingKasbon = $kasbonBaseQuery->clone()->where('status', 'Pending')->count();
+        
+        // Stat 2: Total Perlu Dibayar (Sesuai Filter)
+        $totalApprovedKasbon = $kasbonBaseQuery->clone()
+            ->where('status', 'Approved')
+            ->whereIn('payment_status', ['unpaid', 'partial'])
+            ->count();
+
+        // Stat 3: Total Sisa Utang (Sesuai Filter)
+        $approvedKasbons = $kasbonBaseQuery->clone()
+            ->where('status', 'Approved')
+            ->get(['id', 'kasbon']);
+            
         $totalApprovedPaid = KasbonPayment::whereIn('kasbon_id', $approvedKasbons->pluck('id'))->sum('amount');
         $sumRemainingAmount = $approvedKasbons->sum('kasbon') - $totalApprovedPaid;
-        $totalApprovedKasbon = Kasbon::where('status', 'Approved')->whereIn('payment_status', ['unpaid', 'partial'])->count();
 
 
         return Inertia::render("Kasbons/index", [
             'kasbons' => $kasbonGroups,
-            'filter' => $request->only('search'),
-            'totalPendingKasbon' => $totalPendingKasbon,
-            'totalApprovedKasbon' => $totalApprovedKasbon,
-            'sumApprovedKasbonAmount' => $sumRemainingAmount,
+            // [MODIFIED] Kirim semua filter ke frontend
+            'filter' => $request->only('search', 'type', 'location'),
+            'totalPendingKasbon' => $totalPendingKasbon, // <-- Sudah terfilter
+            'totalApprovedKasbon' => $totalApprovedKasbon, // <-- Sudah terfilter
+            'sumApprovedKasbonAmount' => $sumRemainingAmount, // <-- Sudah terfilter
         ]);
     }
     
@@ -545,14 +593,16 @@ class KasbonController extends Controller
     
     public function print(Request $request)
     {
+        // [MODIFIED] Ambil semua filter dari request
         $searchTerm = $request->input('search');
+        $filterType = $request->input('type');
+        $filterLocation = $request->input('location');
 
-        $query = Kasbon::query()
-            ->select('kasbonable_id', 'kasbonable_type')
-            ->groupBy('kasbonable_id', 'kasbonable_type');
+        // [MODIFIED] Logika filter sama dengan function index()
+        $kasbonBaseQuery = Kasbon::query();
 
         if ($searchTerm) {
-            $query->where(function ($q) use ($searchTerm) {
+            $kasbonBaseQuery->where(function ($q) use ($searchTerm) {
                 $q->whereHasMorph('kasbonable', [Employee::class], function ($query) use ($searchTerm) {
                     $query->where('name', 'like', "%{$searchTerm}%")
                           ->orWhere('employee_id', 'like', "%{$searchTerm}%");
@@ -562,18 +612,41 @@ class KasbonController extends Controller
                 });
             });
         }
+
+        if ($filterType) {
+            if ($filterType === 'pegawai') {
+                $kasbonBaseQuery->where('kasbonable_type', Employee::class);
+            } elseif ($filterType === 'penoreh') {
+                $kasbonBaseQuery->where('kasbonable_type', Incisor::class);
+            }
+        }
+
+        if ($filterLocation) {
+            if ($filterLocation === 'Kantor') {
+                $kasbonBaseQuery->where('kasbonable_type', Employee::class);
+            } else {
+                $kasbonBaseQuery->whereHasMorph('kasbonable', [Incisor::class], function ($q) use ($filterLocation) {
+                    $q->where('lok_toreh', $filterLocation);
+                });
+                $kasbonBaseQuery->where('kasbonable_type', Incisor::class);
+            }
+        }
+
+        $query = $kasbonBaseQuery->clone()
+            ->select('kasbonable_id', 'kasbonable_type')
+            ->groupBy('kasbonable_id', 'kasbonable_type');
         
         $allGroups = $query->get();
 
         $processedGroups = $allGroups->map(function ($group) {
-            $totalKasbon = Kasbon::where('kasbonable_id', $group->kasbonable_id)
-                ->where('kasbonable_type', $group->kasbonable_type)
+            $kasbonsForGroup = Kasbon::where('kasbonable_id', $group->kasbonable_id)
+                ->where('kasbonable_type', $group->kasbonable_type);
+
+            $totalKasbon = $kasbonsForGroup->clone()
                 ->where('status', 'Approved')
                 ->sum('kasbon');
 
-            $kasbonIds = Kasbon::where('kasbonable_id', $group->kasbonable_id)
-                ->where('kasbonable_type', $group->kasbonable_type)
-                ->pluck('id');
+            $kasbonIds = $kasbonsForGroup->clone()->pluck('id');
 
             $totalPaid = KasbonPayment::whereIn('kasbon_id', $kasbonIds)->sum('amount');
             
@@ -610,7 +683,8 @@ class KasbonController extends Controller
 
         return Inertia::render("Kasbons/Print", [
             'kasbons' => $kasbons,
-            'filters' => $request->only(['search']),
+            // [MODIFIED] Kirim semua filter ke view print
+            'filters' => $request->only(['search', 'type', 'location']),
             'printDate' => now()->translatedFormat('d F Y'),
         ]);
     }
@@ -688,3 +762,4 @@ class KasbonController extends Controller
         ]);
     }
 }
+
