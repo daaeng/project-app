@@ -536,9 +536,9 @@ class KasbonController extends Controller
                     ->sum('amount');
                 $gaji = $totalAmount;
                 
-                if ($validated['status'] === 'Approved' && $validated['kasbon'] > $gaji) {
-                     return back()->withErrors(['kasbon' => 'Jumlah kasbon tidak boleh melebihi total gaji penoreh pada periode ini.'])->withInput();
-                }
+                // if ($validated['status'] === 'Approved' && $validated['kasbon'] > $gaji) {
+                //      return back()->withErrors(['kasbon' => 'Jumlah kasbon tidak boleh melebihi total gaji penoreh pada periode ini.'])->withInput();
+                // }
                 
                 $dataToUpdate = $validated;
                 $dataToUpdate['kasbonable_id'] = $validated['incisor_id'];

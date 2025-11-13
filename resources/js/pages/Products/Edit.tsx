@@ -235,7 +235,7 @@ export default function Edit({ product }: Props) {
                                         <StyledInput
                                             placeholder="Amount"
                                             value={data.amount}
-                                            readOnly
+                                            // readOnly
                                             className="cursor-not-allowed bg-gray-200 dark:bg-gray-600"
                                         />
                                     </FormField>
