@@ -14,6 +14,7 @@ use App\Http\Controllers\PegawaiController;
 use App\Http\Controllers\PayrollController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\AttendanceController;
+use App\Http\Controllers\PpbController;
 
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -105,6 +106,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware("permission:requests.create|requests.edit|requests.delete|requests.view");
     Route::get('/requests/{requested}/showAct', [RequestController::class, 'showAct'])->name('requests.showAct')
         ->middleware("permission:requests.create|requests.edit|requests.delete|requests.view");
+
+    // ~~~~~~~~~~~~~ PPB (PENGAJUAN PERMINTAAN BARANG - FITUR BARU) ~~~~~~~~~~~~~
+    Route::resource('ppb', PpbController::class)
+        ->only(['index', 'create', 'store', 'show', 'destroy']) // <-- PERUBAHAN DI SINI
+        ->middleware("permission:requests.create|requests.edit|requests.delete|requests.view"); 
     
     // ~~~~~~~~~~~~~ Invoice ~~~~~~~~~~~~~
     route::get('/notas', [NotaController::class, 'index'])->name('notas.index')
@@ -118,7 +124,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     route::put('/notas/{nota}', [NotaController::class, 'update'])->name('notas.update')
         ->middleware("permission:notas.create|notas.edit|notas.delete|notas.view");
     route::get('/notas/{nota}/show', [NotaController::class, 'show'])->name('notas.show')
-        ->middleware("permission:notas.create|notas.edit|notas.delete|notas.view");
+        ->middleware("permission:notas.create|notas.edit|notas.delete|products.view");
     route::delete('/notas/{nota}', [NotaController::class, 'destroy'])->name('notas.destroy')
         ->middleware("permission:notas.create|notas.edit|notas.delete|notas.view");
     route::get('/notas/{nota}/editAct', [NotaController::class, 'editAct'])->name('notas.editAct')

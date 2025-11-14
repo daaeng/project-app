@@ -66,6 +66,12 @@ const mainNavItems: NavItem[] = [
     },
     
     {
+        title: 'PPB',
+        href: '/ppb',
+        icon: BookText ,
+    },
+    
+    {
         title: 'Invoice',
         href: '/notas',
         icon: ReceiptText ,
