@@ -55,7 +55,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'PT. Garuda Karya Amanat', href: '/products/gka' },
 ];
 
-// --- Interface & Tipe Data (Tidak berubah) ---
+// --- Interface & Tipe Data ---
 interface Product {
     id: number;
     product: string;
@@ -128,6 +128,7 @@ interface PageProps {
     klp_ready: number;
 
     dataSusut: number;
+    tm_sampai: number; // <-- [DITAMBAHKAN] Prop baru untuk total qty sampai
 
     filter?: {
         search?: string;
@@ -142,7 +143,7 @@ interface PageProps {
 }
 // --- End of Interface ---
 
-// --- Helper Formatting (Tidak berubah) ---
+// --- Helper Formatting ---
 const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('id-ID', {
         style: 'currency',
@@ -162,7 +163,7 @@ const formatShortDate = (dateString: string | null) => {
     // Format YYYY-MM-DD
     const date = new Date(dateString);
     // Tambah 1 hari karena JS sering salah interpretasi zona waktu
-    date.setDate(date.getDate() + 1); 
+    date.setDate(date.getDate() + 1);
     const year = date.getFullYear();
     const month = (date.getMonth() + 1).toString().padStart(2, '0');
     const day = date.getDate().toString().padStart(2, '0');
@@ -199,9 +200,9 @@ export default function GkaPage({
     klp_ready,
     currentMonth,
     currentYear,
+    tm_sampai, // <-- [DITAMBAHKAN] Destructure prop baru
 }: PageProps) {
     // --- Bagian Hooks (useState, useEffect) ---
-    // ... (Logika hooks sama persis seperti sebelumnya, tidak diubah) ...
     const [searchValue, setSearchValue] = useState(filter?.search || '');
 
     const [timePeriod, setTimePeriod] = useState(() => {
@@ -243,7 +244,6 @@ export default function GkaPage({
     // --- End of Hooks ---
 
     // --- Bagian Handler (handle*, performSearch, handleDelete) ---
-    // ... (Logika handler sama persis seperti sebelumnya, tidak diubah) ...
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearchValue(e.target.value);
     };
@@ -303,6 +303,7 @@ export default function GkaPage({
                 'klp_ready',
                 'currentMonth',
                 'currentYear',
+                'tm_sampai', // Pastikan tm_sampai di-request ulang
             ],
         });
     };
@@ -348,6 +349,7 @@ export default function GkaPage({
                     'klp_ready',
                     'currentMonth',
                     'currentYear',
+                    'tm_sampai', // Pastikan tm_sampai di-request ulang
                 ],
             },
         );
@@ -394,6 +396,7 @@ export default function GkaPage({
                     'klp_ready',
                     'currentMonth',
                     'currentYear',
+                    'tm_sampai', // Pastikan tm_sampai di-request ulang
                 ],
             },
         );
@@ -440,6 +443,7 @@ export default function GkaPage({
                     'klp_ready',
                     'currentMonth',
                     'currentYear',
+                    'tm_sampai', // Pastikan tm_sampai di-request ulang
                 ],
             },
         );
@@ -485,6 +489,7 @@ export default function GkaPage({
                     'klp_ready',
                     'currentMonth',
                     'currentYear',
+                    'tm_sampai', // Pastikan tm_sampai di-request ulang
                 ],
             },
         );
@@ -497,6 +502,7 @@ export default function GkaPage({
     };
 
     const handleDelete = (id: number, product: string) => {
+        // Ganti confirm bawaan dengan modal kustom jika ada
         if (confirm(`Apakah Anda ingin menghapus ini - ${id}. ${product}?`)) {
             router.delete(route('products.destroy', id), {
                 preserveState: true,
@@ -520,7 +526,7 @@ export default function GkaPage({
     // --- End of Handlers ---
 
     // --- Bagian Render Logic (Pagination, useMemo, Badge) ---
-    
+
     /**
      * Helper untuk menampilkan badge berwarna berdasarkan jenis produk.
      */
@@ -558,7 +564,6 @@ export default function GkaPage({
         }
     };
 
-    // ... (renderPagination, months, years sama persis, tidak diubah) ...
     const renderPagination = (
         pagination: PageProps['products'],
         pageParamName: string = 'page',
@@ -642,8 +647,6 @@ export default function GkaPage({
         label: String(currentYearNum - 5 + i),
     }));
 
-
-    // ... (filteredProductsIn, filteredProductsOut sama persis, tidak diubah) ...
     const filteredProductsIn = useMemo(() => {
         if (productType === 'all') {
             const combined = [
@@ -770,165 +773,92 @@ export default function GkaPage({
                     </Alert>
                 )}
 
-                {/* === Grid Kartu Statistik Berwarna === */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                    {/* Kartu Uang Masuk */}
+                {/* === [DIRANGKUM] Grid Kartu Statistik Utama === */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {/* Kartu Pendapatan Karet */}
                     <Card className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg">
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium text-blue-100">Uang Masuk (Karet)</CardTitle>
+                            <CardTitle className="text-sm font-medium text-blue-100">Pendapatan Karet</CardTitle>
                             <Coins className="w-5 h-5 text-blue-200" />
                         </CardHeader>
                         <CardContent>
                             <div className="text-3xl font-bold">{formatCurrency(tm_slou)}</div>
-                            <p className="text-xs text-blue-200">Total hasil pengiriman</p>
+                            <p className="text-xs text-blue-200">Total hasil penjualan</p>
                         </CardContent>
                     </Card>
-                    {/* Kartu Total KG */}
-                    <Card className="bg-gradient-to-br from-gray-700 to-gray-900 text-white shadow-lg">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium text-gray-200">Total KG (Karet)</CardTitle>
-                            <Warehouse className="w-5 h-5 text-gray-300" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-3xl font-bold">{formatKg(tm_sou)}</div>
-                            <p className="text-xs text-gray-300">Gudang: {formatKg(tm_sin)} | Susut: {formatKg(s_ready)}</p>
-                        </CardContent>
-                    </Card>
-                    {/* Kartu Stok Karet */}
+                    
+                    {/* Kartu Total Produksi (Karet) */}
                     <Card className="bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-lg">
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium text-orange-100">Stok Karet</CardTitle>
-                            <Sprout className="w-5 h-5 text-orange-200" />
+                            <CardTitle className="text-sm font-medium text-orange-100">Produksi Karet (Gudang)</CardTitle>
+                            <Warehouse className="w-5 h-5 text-orange-200" />
                         </CardHeader>
                         <CardContent>
-                            {/* <div className="text-3xl font-bold">{formatKg(s_ready)}</div> */}
-                            <div className="text-3x1 space-y-1 text-orange-100 mt-1">
-                                <div className="flex justify-between items-center">
-                                    <span className='flex items-center opacity-80'><ArrowDownCircle className='w-3 h-3 mr-1'/> IN</span>
-                                    <span className="font-medium">{formatCurrency(tm_slin)}</span>
-                                    <span className="font-medium">{formatCurrency(tm_sin)}</span>
-                                </div>
-                                <div className="flex justify-between items-center">
-                                    <span className='flex items-center opacity-80'><ArrowUpCircle className='w-3 h-3 mr-1'/> OUT</span>
-                                    <span className="font-medium">{formatCurrency(tm_slou)}</span>
-                                    <span className="font-medium">{formatCurrency(tm_sou)}</span>
-                                </div>
-                            </div>
+                            <div className="text-3xl font-bold">{formatKg(tm_sin)}</div>
+                            <p className="text-xs text-orange-200">Total Karet masuk GKA</p>
                         </CardContent>
                     </Card>
-                    {/* Kartu Stok Pupuk */}
-                    <Card className="bg-gradient-to-br from-green-400 to-emerald-500 text-white shadow-lg">
+                    
+                    {/* Kartu Karet Terjual (Sampai) */}
+                    <Card className="bg-gradient-to-br from-green-500 to-emerald-600 text-white shadow-lg">
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium text-emerald-100">Stok Pupuk</CardTitle>
-                            <Package className="w-5 h-5 text-emerald-200" />
+                            <CardTitle className="text-sm font-medium text-green-100">Karet Terjual (Diterima)</CardTitle>
+                            <Building2 className="w-5 h-5 text-green-200" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-3xl font-bold">{formatKg(p_ready)}</div>
-                            <div className="text-xs space-y-1 text-emerald-100 mt-1">
-                                <div className="flex justify-between items-center">
-                                    <span className='flex items-center opacity-80'><ArrowDownCircle className='w-3 h-3 mr-1'/> IN</span>
-                                    <span className="font-medium">{formatCurrency(ppk_slin)}</span>
-                                </div>
-                                <div className="flex justify-between items-center">
-                                    <span className='flex items-center opacity-80'><ArrowUpCircle className='w-3 h-3 mr-1'/> OUT</span>
-                                    <span className="font-medium">{formatCurrency(ppk_slou)}</span>
-                                </div>
-                            </div>
+                            <div className="text-3xl font-bold">{formatKg(tm_sampai)}</div>
+                            <p className="text-xs text-green-200">Total Karet diterima buyer</p>
                         </CardContent>
                     </Card>
-                    {/* Kartu Stok Kelapa */}
-                    <Card className="bg-gradient-to-br from-cyan-400 to-sky-500 text-white shadow-lg">
+
+                    {/* Kartu Total Susut */}
+                    <Card className="bg-gradient-to-br from-red-500 to-rose-600 text-white shadow-lg">
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium text-sky-100">Stok Kelapa</CardTitle>
-                            <Hand className="w-5 h-5 text-sky-200" />
+                            <CardTitle className="text-sm font-medium text-red-100">Total Susut</CardTitle>
+                            <Package className="w-5 h-5 text-red-200" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-3xl font-bold">{formatKg(klp_ready)}</div>
-                             <div className="text-xs space-y-1 text-sky-100 mt-1">
-                                <div className="flex justify-between items-center">
-                                    <span className='flex items-center opacity-80'><ArrowDownCircle className='w-3 h-3 mr-1'/> IN</span>
-                                    <span className="font-medium">{formatCurrency(klp_slin)}</span>
-                                </div>
-                                <div className="flex justify-between items-center">
-                                    <span className='flex items-center opacity-80'><ArrowUpCircle className='w-3 h-3 mr-1'/> OUT</span>
-                                    <span className="font-medium">{formatCurrency(klp_slou)}</span>
-                                </div>
-                            </div>
+                            <div className="text-3xl font-bold">{formatKg(dataSusut)}</div>
+                            <p className="text-xs text-red-200">(Qty Jual - Qty Sampai)</p>
                         </CardContent>
                     </Card>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                        <Card>
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">Saldo Karet</CardTitle>
-                                <Warehouse className="h-4 w-4 text-muted-foreground" />
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold">{formatKg(s_ready)}</div>
-                                <div className="mt-2 flex items-center gap-4 text-xs text-muted-foreground">
-                                    <div className="flex items-center gap-1">
-                                        <ArrowDownCircle className="h-3 w-3 text-green-500" />
-                                        <span>Masuk: {formatKg(tm_sin)}</span>
-                                    </div>
-                                    <div className="flex items-center gap-1">
-                                        <ArrowUpCircle className="h-3 w-3 text-red-500" />
-                                        <span>Keluar: {formatKg(tm_sou)}</span>
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
+                {/* === Grid Saldo Stok === */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Saldo Stok Karet</CardTitle>
+                            <Sprout className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{formatKg(s_ready)}</div>
+                            <p className="text-xs text-muted-foreground">(Produksi - Jual)</p>
+                        </CardContent>
+                    </Card>
 
-                        <Card>
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">Saldo Pupuk</CardTitle>
-                                <Sprout className="h-4 w-4 text-muted-foreground" />
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold">{formatKg(p_ready)}</div>
-                                <div className="mt-2 flex items-center gap-4 text-xs text-muted-foreground">
-                                    <div className="flex items-center gap-1">
-                                        <ArrowDownCircle className="h-3 w-3 text-green-500" />
-                                        <span>Masuk: {formatKg(ppk_sin)}</span>
-                                    </div>
-                                    <div className="flex items-center gap-1">
-                                        <ArrowUpCircle className="h-3 w-3 text-red-500" />
-                                        <span>Keluar: {formatKg(ppk_sou)}</span>
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Saldo Stok Pupuk</CardTitle>
+                            <Package className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{formatKg(p_ready)}</div>
+                             <p className="text-xs text-muted-foreground">(Beli - Jual)</p>
+                        </CardContent>
+                    </Card>
 
-                        <Card>
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">Saldo Kelapa</CardTitle>
-                                <Hand className="h-4 w-4 text-muted-foreground" />
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold">{formatKg(klp_ready)}</div>
-                                <div className="mt-2 flex items-center gap-4 text-xs text-muted-foreground">
-                                    <div className="flex items-center gap-1">
-                                        <ArrowDownCircle className="h-3 w-3 text-green-500" />
-                                        <span>Masuk: {formatKg(klp_sin)}</span>
-                                    </div>
-                                    <div className="flex items-center gap-1">
-                                        <ArrowUpCircle className="h-3 w-3 text-red-500" />
-                                        <span>Keluar: {formatKg(klp_sou)}</span>
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">Total Susut</CardTitle>
-                                <Package className="h-4 w-4 text-muted-foreground" />
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold text-red-600">{formatKg(dataSusut)}</div>
-                            </CardContent>
-                        </Card>
-                    </div>
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Saldo Stok Kelapa</CardTitle>
+                            <Hand className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{formatKg(klp_ready)}</div>
+                             <p className="text-xs text-muted-foreground">(Beli - Jual)</p>
+                        </CardContent>
+                    </Card>
+                </div>
 
                 {/* Kartu Filter (Desain tetap bersih) */}
                 <Card>
