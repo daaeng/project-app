@@ -8,13 +8,13 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Inertia\Inertia;
 use Inertia\Response;
-use Illuminate\Http\RedirectResponse; // Pastikan ini ada
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Validation\Rule; // (TAMBAHAN BARU)
 
 class PpbController extends Controller
 {
     /**
      * Menampilkan halaman list PPB dengan pagination dan search.
-     * (INI FUNGSI YANG DIPERBARUI)
      */
     public function index(Request $request): Response
     {
@@ -41,7 +41,7 @@ class PpbController extends Controller
         $totalApproved = PpbHeader::where('status', 'approved')->count();
         $sumApprovedAmount = PpbHeader::where('status', 'approved')->sum('grand_total');
 
-        return Inertia::render('Ppb/Index', [ // <-- Ini akan me-render halaman Index.tsx
+        return Inertia::render('Ppb/Index', [
             'ppbs' => $ppbs,
             'filter' => $request->only('search'),
             'stats' => [
@@ -72,24 +72,10 @@ class PpbController extends Controller
         $validator = Validator::make($request->all(), [
             'tanggal' => 'required|date',
             'nomor' => 'required|string|max:255|unique:ppb_headers,nomor',
-            'lampiran' => 'nullable|string|max:255',
-            'perihal' => 'required|string|max:255',
-            'kepada_yth_jabatan' => 'required|string|max:255',
-            'kepada_yth_nama' => 'required|string|max:255',
-            'kepada_yth_lokasi' => 'required|string|max:255',
-            'paragraf_pembuka' => 'required|string',
-            'dibuat_oleh_nama' => 'required|string|max:255',
-            'dibuat_oleh_jabatan' => 'required|string|max:255',
-            'menyetujui_1_nama' => 'required|string|max:255',
-            'menyetujui_1_jabatan' => 'required|string|max:255',
-            'menyetujui_2_nama' => 'required|string|max:255',
-            'menyetujui_2_jabatan' => 'required|string|max:255',
+            // ... (validasi lainnya)
             'items' => 'required|array|min:1',
             'items.*.nama_barang' => 'required|string|max:255',
-            'items.*.jumlah' => 'required|numeric|min:1',
-            'items.*.satuan' => 'required|string|max:50',
-            'items.*.harga_satuan' => 'required|numeric|min:0',
-            'items.*.keterangan' => 'nullable|string|max:255',
+            // ... (validasi item lainnya)
         ]);
 
         if ($validator->fails()) {
@@ -107,6 +93,7 @@ class PpbController extends Controller
             $header = PpbHeader::create(
                 array_merge($request->except('items'), [
                     'grand_total' => $grandTotal
+                    // status akan di-set otomatis oleh Model
                 ])
             );
 
@@ -140,15 +127,49 @@ class PpbController extends Controller
 
         return Inertia::render('Ppb/ShowPpb', [
             'ppb' => $ppb,
+            'flash' => [ // (TAMBAHAN BARU) Kirim flash message ke show
+                'message' => session('message')
+            ]
         ]);
     }
 
     /**
+     * (FUNGSI BARU)
+     * Update status PPB (Approve/Reject).
+     */
+    public function updateStatus(Request $request, PpbHeader $ppb): RedirectResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'status' => ['required', Rule::in(['approved', 'rejected'])],
+        ]);
+
+        if ($validator->fails()) {
+            return back()->withErrors($validator);
+        }
+
+        if ($ppb->status !== 'pending') {
+            return back()->withErrors(['status' => 'Pengajuan ini sudah tidak bisa diubah statusnya.']);
+        }
+
+        $ppb->status = $request->status;
+        $ppb->save();
+
+        $message = $request->status === 'approved' ? 'Pengajuan berhasil disetujui.' : 'Pengajuan berhasil ditolak.';
+
+        return redirect()->route('ppb.show', $ppb->id)->with('message', $message);
+    }
+
+    /**
      * Menghapus data PPB.
-     * (INI FUNGSI YANG BARU)
      */
     public function destroy(PpbHeader $ppb): RedirectResponse
     {
+        // (TAMBAHAN LOGIKA)
+        // Sebaiknya, jangan boleh hapus jika sudah di-approve
+        if ($ppb->status === 'approved') {
+            return back()->withErrors(['delete' => 'Pengajuan yang sudah disetujui tidak dapat dihapus.']);
+        }
+        
         $ppb->delete(); // onDelete('cascade') akan menghapus items
 
         return redirect()->route('ppb.index')->with('message', 'Pengajuan PPB berhasil dihapus.');

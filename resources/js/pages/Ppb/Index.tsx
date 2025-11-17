@@ -8,7 +8,6 @@ import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import {
-    AlertTriangle,
     CheckCircle2,
     CirclePlus,
     Clock,
@@ -103,7 +102,7 @@ export default function Index({ ppbs, flash, filter, stats }: PageProps) {
 
     // Fungsi untuk menghapus data
     const handleDelete = (id: number, nomor: string) => {
-        if (confirm(`Yakin ingin menghapus pengajuan PPB dengan nomor "${nomor}"?`)) {
+        if (window.confirm(`Yakin ingin menghapus pengajuan PPB dengan nomor "${nomor}"?`)) {
             destroy(route('ppb.destroy', id), { preserveScroll: true });
         }
     };

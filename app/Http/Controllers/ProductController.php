@@ -84,6 +84,12 @@ class ProductController extends Controller
             'keping_out' => 'nullable|numeric',
             'kualitas_out' => 'nullable|string|max:250',
             'status' => 'required|string|max:250',
+            
+            // --- [DITAMBAHKAN] Validasi untuk field baru ---
+            'tgl_kirim' => 'nullable|date',
+            'tgl_sampai' => 'nullable|date',
+            'qty_sampai' => 'nullable|numeric',
+            // --- [SELESAI DITAMBAHKAN] ---
         ]);
 
         Product::create($request->all());
@@ -118,6 +124,12 @@ class ProductController extends Controller
             'keping_out' => 'nullable|numeric',
             'kualitas_out' => 'nullable|string|max:250',
             'status' => 'required|string|max:250',
+
+            // --- [DITAMBAHKAN] Validasi untuk field baru ---
+            'tgl_kirim' => 'nullable|date',
+            'tgl_sampai' => 'nullable|date',
+            'qty_sampai' => 'nullable|numeric',
+            // --- [SELESAI DITAMBAHKAN] ---
         ]);
         
         $product->update([
@@ -138,6 +150,12 @@ class ProductController extends Controller
             'keping_out' => $request->input('keping_out'),
             'kualitas_out' => $request->input('kualitas_out'),
             'status' => $request->input('status'),
+
+            // --- [DITAMBAHKAN] Field baru untuk update ---
+            'tgl_kirim' => $request->input('tgl_kirim'),
+            'tgl_sampai' => $request->input('tgl_sampai'),
+            'qty_sampai' => $request->input('qty_sampai'),
+            // --- [SELESAI DITAMBAHKAN] ---
         ]);
 
         return redirect()->route('products.index')->with('message', 'Product Updated Successfully');        
@@ -244,37 +262,6 @@ class ProductController extends Controller
             }
         }
 
-
-        // --- START: LOGIKA PERHITUNGAN SUSUT (BERDASARKAN TANGGAL YANG SAMA) ---
-        $susutMap = [];
-
-        // 1. Ambil total qty_out per tanggal untuk status 'gka'
-        $gkaTotalsByDate = Product::where('product', 'karet')
-            ->where('status', 'gka')
-            ->groupBy('date')
-            ->select('date', DB::raw('SUM(qty_out) as total_gka_qty'))
-            ->get()
-            ->pluck('total_gka_qty', 'date');
-
-        // 2. Ambil total qty_out per tanggal untuk status 'buyer'
-        $buyerTotalsByDate = Product::where('product', 'karet')
-            ->where('status', 'buyer')
-            ->groupBy('date')
-            ->select('date', DB::raw('SUM(qty_out) as total_buyer_qty'))
-            ->get()
-            ->pluck('total_buyer_qty', 'date');
-
-        // 3. Hitung susut untuk setiap tanggal yang ada di data buyer
-        foreach ($buyerTotalsByDate as $date => $buyerTotal) {
-            // Cek apakah ada data gka di tanggal yang sama
-            if (isset($gkaTotalsByDate[$date])) {
-                $gkaTotal = $gkaTotalsByDate[$date];
-                $susutMap[$date] = $gkaTotal - $buyerTotal;
-            }
-        }
-        // --- END: LOGIKA PERHITUNGAN SUSUT ---
-
-
         // KARET - Data Pembelian (menampilkan status GKA)
         $products = $dateFilterQuery->clone()
             ->where('product', 'karet')
@@ -291,11 +278,9 @@ class ProductController extends Controller
             ->orderBy('created_at', 'DESC')
             ->paginate($perPage);
         
-        // 4. Tambahkan nilai susut ke data penjualan berdasarkan tanggal
-        $product2->getCollection()->transform(function ($item) use ($susutMap) {
-            // Mencocokkan berdasarkan tanggal dari item
-            $itemDate = Carbon::parse($item->date)->toDateString();
-            $item->susut_value = $susutMap[$itemDate] ?? 0;
+        // --- [PERBAIKAN] Hitung susut per record: qty_out - qty_sampai ---
+        $product2->getCollection()->transform(function ($item) {
+            $item->susut_value = $item->qty_out - ($item->qty_sampai ?? 0);
             return $item;
         });
 
@@ -314,8 +299,10 @@ class ProductController extends Controller
             ->orderBy('created_at', 'DESC')
             ->paginate($perPage);
         
+        // --- [PERBAIKAN] Hitung susut per record: qty_out - qty_sampai ---
         $product4->getCollection()->transform(function ($item) {
-            $item->susut_value = 0; return $item;
+            $item->susut_value = $item->qty_out - ($item->qty_sampai ?? 0);
+            return $item;
         });
         
         // KELAPA
@@ -333,8 +320,10 @@ class ProductController extends Controller
             ->orderBy('created_at', 'DESC')
             ->paginate($perPage);
  
+        // --- [PERBAIKAN] Hitung susut per record: qty_out - qty_sampai ---
         $product6->getCollection()->transform(function ($item) {
-            $item->susut_value = 0; return $item;
+            $item->susut_value = $item->qty_out - ($item->qty_sampai ?? 0);
+            return $item;
         });
 
         $statsQuery = Product::query()
@@ -378,6 +367,9 @@ class ProductController extends Controller
         $tm_sin = $statsQuery->clone()->where('status', 'gka')->where('product', 'karet')->SUM('qty_out');
         $tm_sou = $statsQuery->clone()->where('status', 'buyer')->where('product', 'karet')->SUM('qty_out');
         
+        // --- [BARU] Total Karet Terjual/Dikirim ---
+        $tm_sampai = $statsQuery->clone()->where('status', 'buyer')->where('product', 'karet')->sum('qty_sampai');
+        
         // Statistik PUPUK
         $ppk_slin = $statsQuery->clone()->where('status', 'gka')->where('product', 'pupuk')->SUM('amount_out');
         $ppk_slou = $statsQuery->clone()->where('status', 'buyer')->where('product', 'pupuk')->SUM('amount_out');
@@ -390,53 +382,44 @@ class ProductController extends Controller
         $klp_sin = $statsQuery->clone()->where('status', 'gka')->where('product', 'kelapa')->SUM('qty_out');
         $klp_sou = $statsQuery->clone()->where('status', 'buyer')->where('product', 'kelapa')->SUM('qty_out');
 
-        //keping
-        $keping = $statsQuery->clone()->where('status', 'gka')->where('product', 'karet')->sum('keping_out');
-        $keping2 = $statsQuery->clone()->where('status', 'buyer')->where('product', 'karet')->sum('keping_out');
+        $dataSusut = $statsQuery->clone()->where('status', 'buyer')->SUM(DB::raw('qty_out - COALESCE(qty_sampai, 0)'));
+
+        $s_ready = $statsQuery->clone()->where('status', 'gka')->where('product', 'karet')->SUM('qty_out') - $statsQuery->clone()->where('status', 'buyer')->where('product', 'karet')->SUM('qty_out');
+        $p_ready = $statsQuery->clone()->where('status', 'gka')->where('product', 'pupuk')->SUM('qty_out') - $statsQuery->clone()->where('status', 'buyer')->where('product', 'pupuk')->SUM('qty_out');
+        $klp_ready = $statsQuery->clone()->where('status', 'gka')->where('product', 'kelapa')->SUM('qty_out') - $statsQuery->clone()->where('status', 'buyer')->where('product', 'kelapa')->SUM('qty_out');
+        
+        $keping_in = $statsQuery->clone()->where('status', 'gka')->where('product', 'karet')->SUM('keping_out');
+        $keping_out = $statsQuery->clone()->where('status', 'buyer')->where('product', 'karet')->SUM('keping_out');
 
         return Inertia::render("Products/gka", [
             "products" => $products,
             "products2" => $product2,
-
             "products3" => $products3,
             "products4" => $product4,
-            
             "products5" => $products5,
             "products6" => $product6,
-            "filter" => $request->only(['search', 'time_period', 'product_type', 'month', 'year']),
-            "currentMonth" => (int)$selectedMonth,
+            "filter" => $request->only(['search', 'time_period', 'month', 'year', 'product_type']), 
+            "currentMonth" => (int)$selectedMonth, 
             "currentYear" => (int)$selectedYear,   
-            
-            // KARET
+            "keping_in" => $keping_in,
+            "keping_out" => $keping_out,
             "tm_slin" => $tm_slin,
             "tm_slou" => $tm_slou,
-            
             "tm_sin" => $tm_sin,
             "tm_sou" => $tm_sou,
-
-            "s_ready" => $tm_sin - $tm_sou,
-
-            //keping
-            "keping_in" => $keping,
-            "keping_out" => $keping2,
-            
-            // PUPUK
+            "tm_sampai" => $tm_sampai, 
+            "s_ready" => $s_ready,
             "ppk_slin" => $ppk_slin,
             "ppk_slou" => $ppk_slou,
-            
             "ppk_sin" => $ppk_sin,
             "ppk_sou" => $ppk_sou,
-
-            "p_ready" => $ppk_sin - $ppk_sou,
-            
-            // KELAPA
+            "p_ready" => $p_ready,
+            "dataSusut" => $dataSusut,
             "klp_slin" => $klp_slin,
             "klp_slou" => $klp_slou,
-            
             "klp_sin" => $klp_sin,
             "klp_sou" => $klp_sou,
-
-            "klp_ready" => $klp_sin - $klp_sou,
+            "klp_ready" => $klp_ready,
         ]);
     }
     
@@ -578,6 +561,9 @@ class ProductController extends Controller
         $susut_awal = Product::where('status', 'tsa')->where('product', 'karet')->sum('qty_kg');
         $susut_akhir = Product::where('status', 'gka')->where('product', 'karet')->sum('qty_out');
 
+        $st_awal = Product::where('status', 'gka')->where('product', 'karet')->sum('qty_out');
+        $st_akhir = Product::where('status', 'gka')->where('product', 'karet')->sum('qty_sampai');
+
         return Inertia::render("Products/tsa", [
             "products" => $products,
             "products2" => $product2,
@@ -608,7 +594,7 @@ class ProductController extends Controller
             "ts_sin" => $ts_sin,
             "ts_sou" => $ts_sou,
 
-            "s_ready" => $susut_awal - $susut_akhir,
+            "s_ready" => $st_awal - $st_akhir,
         ]);
     }
 
@@ -835,4 +821,3 @@ class ProductController extends Controller
         return redirect()->route('products.index')->with('message', 'Product deleted Successfully');
     }
 }
-

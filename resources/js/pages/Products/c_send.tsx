@@ -57,6 +57,8 @@ export default function SendProduct() {
     const {data, setData, post, processing, errors } = useForm({
         product: '', date: '', no_invoice: '', nm_supplier: '', j_brg: '', desk: '',
         qty_out: '', price_out: '', amount_out: '', keping_out: '', kualitas_out: '', status: '',
+        tgl_kirim: '', // --- [DITAMBAHKAN] Field baru ---
+        // tgl_sampai dan qty_sampai tidak ditambahkan di sini, diasumsikan diisi saat edit
     });
 
     useEffect(() => {
@@ -80,7 +82,7 @@ export default function SendProduct() {
                 <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                      <div className="flex justify-between items-center mb-8">
                         <div>
-                             <h1 className="text-2xl font-bold text-gray-800 dark:text-white sm:text-3xl">Send Product to GKA</h1>
+                             <h1 className="text-2xl font-bold text-gray-800 dark:text-white sm:text-3xl">Send Product to Customer</h1>
                              <p className="mt-1 text-md text-gray-500 dark:text-gray-400">Buat catatan pengiriman produk baru.</p>
                         </div>
                         <Link href={route('products.index')}>
@@ -109,8 +111,12 @@ export default function SendProduct() {
                                     <option value="Pupuk">Pupuk</option>
                                 </StyledSelect>
                             </FormField>
-                            <FormField label="Tanggal Kirim">
+                            <FormField label="Tanggal Nota">
                                 <StyledInput type='date' value={data.date} onChange={(e) => setData('date', e.target.value)} />
+                            </FormField>
+                             {/* --- [DITAMBAHKAN] Field Tanggal Kirim --- */}
+                            <FormField label="Tanggal Kirim">
+                                <StyledInput type='date' value={data.tgl_kirim} onChange={(e) => setData('tgl_kirim', e.target.value)} />
                             </FormField>
                             <FormField label="No. Bukti">
                                 <StyledInput placeholder='Nomor Bukti' value={data.no_invoice} onChange={(e) => setData('no_invoice', e.target.value)} />
@@ -167,4 +173,3 @@ export default function SendProduct() {
         </AppLayout>
     );
 }
-

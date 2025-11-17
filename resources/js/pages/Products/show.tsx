@@ -26,6 +26,11 @@ interface Product {
     keping_out: number;
     kualitas_out: string;
     status: string;
+    // --- [DITAMBAHKAN] Interface untuk field baru ---
+    tgl_kirim: string;
+    tgl_sampai: string;
+    qty_sampai: number;
+    // --- [SELESAI DITAMBAHKAN] ---
 }
 
 // Interface untuk props halaman
@@ -33,6 +38,16 @@ interface PageProps {
     product: Product;
     susut_value: number; // Tambahkan susut_value
 }
+
+// Fungsi helper untuk format tanggal
+const formatDate = (dateString: string | null) => {
+    if (!dateString) return '-';
+    return new Date(dateString).toLocaleDateString('id-ID', {
+        day: '2-digit',
+        month: 'long',
+        year: 'numeric',
+    });
+};
 
 // Komponen untuk setiap baris detail
 const DetailRow = ({ label, value, isCurrency = false, className = '' }: { label: string, value: any, isCurrency?: boolean, className?: string }) => (
@@ -53,29 +68,6 @@ export default function ShowReport({ product, susut_value }: PageProps) {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={`Laporan Penjualan ${product.no_invoice}`} />
-
-            {/* CSS Khusus untuk Print
-            <style>
-                {`
-                    @media print {
-                        body * {
-                            visibility: hidden;
-                        }
-                        #printable-area, #printable-area * {
-                            visibility: visible;
-                        }
-                        #printable-area {
-                            position: absolute;
-                            left: 0;
-                            top: 0;
-                            width: 100%;
-                        }
-                        .no-print {
-                            display: none;
-                        }
-                    }
-                `}
-            </style> */}
 
             {/* --- CSS KHUSUS PRINT (DIPERBARUI) --- */}
             <style>
@@ -162,7 +154,7 @@ export default function ShowReport({ product, susut_value }: PageProps) {
                             {/* Kolom Kiri */}
                             <div className="space-y-2">
                                 <DetailRow label="No. Invoice" value={product.no_invoice} />
-                                <DetailRow label="Tanggal Penjualan" value={new Date(product.date).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })} />
+                                <DetailRow label="Tanggal Nota" value={formatDate(product.date)} />
                                 <DetailRow label="Jenis Produk" value={product.product} />
                                 <DetailRow label="Jenis Barang" value={product.j_brg} />
                                 
@@ -182,6 +174,18 @@ export default function ShowReport({ product, susut_value }: PageProps) {
                                  {susut_value > 0 && (
                                     <DetailRow label="Susut" value={`${susut_value} Kg`} className="text-yellow-600 font-bold" />
                                  )}
+                                 
+                                 {/* --- [DITAMBAHKAN] Tampilkan data baru jika ada --- */}
+                                 {product.tgl_kirim && (
+                                    <DetailRow label="Tanggal Kirim" value={formatDate(product.tgl_kirim)} className="text-blue-600" />
+                                 )}
+                                 {product.tgl_sampai && (
+                                    <DetailRow label="Tanggal Sampai" value={formatDate(product.tgl_sampai)} className="text-green-600" />
+                                 )}
+                                 {product.qty_sampai > 0 && (
+                                    <DetailRow label="Qty Sampai" value={`${product.qty_sampai} Kg`} className="text-green-600 font-bold" />
+                                 )}
+                                 {/* --- [SELESAI DITAMBAHKAN] --- */}
                             </div>
                         </main>
                         
@@ -199,4 +203,3 @@ export default function ShowReport({ product, susut_value }: PageProps) {
         </AppLayout>
     );
 }
-

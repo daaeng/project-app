@@ -10,14 +10,8 @@ class PpbHeader extends Model
 {
     use HasFactory;
 
-    /**
-     * Nama tabel
-     */
     protected $table = 'ppb_headers';
 
-    /**
-     * Kolom yang boleh diisi
-     */
     protected $fillable = [
         'tanggal',
         'nomor',
@@ -37,20 +31,24 @@ class PpbHeader extends Model
         'status',
     ];
 
-    /**
-     * Cast tipe data
-     */
     protected $casts = [
         'tanggal' => 'date',
         'grand_total' => 'float',
     ];
 
-    /**
-     * Relasi one-to-many ke PpbItem
-     * Satu PpbHeader memiliki banyak PpbItem
-     */
     public function items(): HasMany
     {
         return $this->hasMany(PpbItem::class, 'ppb_header_id');
+    }
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($header) {
+            if (empty($header->status)) {
+                $header->status = 'pending';
+            }
+        });
     }
 }

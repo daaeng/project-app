@@ -23,6 +23,8 @@ class Product extends Model
         'keping_out', 
         'kualitas_out',
         'status',
-
+        'tgl_kirim',    
+        'tgl_sampai', 
+        'qty_sampai',
     ];
 }

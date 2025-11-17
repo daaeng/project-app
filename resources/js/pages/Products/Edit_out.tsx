@@ -28,6 +28,11 @@ interface Product{
     keping_out: string,
     kualitas_out: string,
     status: string,
+    // --- [DITAMBAHKAN] Interface untuk field baru ---
+    tgl_kirim: string,
+    tgl_sampai: string,
+    qty_sampai: string,
+    // --- [SELESAI DITAMBAHKAN] ---
 }
 
 interface props{
@@ -89,6 +94,11 @@ export default function EditOut({product} : props) {
         keping_out: product.keping_out,
         kualitas_out: product.kualitas_out,
         status: product.status,
+        // --- [DITAMBAHKAN] Ambil data baru dari prop 'product' ---
+        tgl_kirim: product.tgl_kirim || '', // Beri nilai default string kosong jika null
+        tgl_sampai: product.tgl_sampai || '',
+        qty_sampai: product.qty_sampai || '',
+        // --- [SELESAI DITAMBAHKAN] ---
     })
 
     const handleUpdate = (e: React.FormEvent) =>{
@@ -137,7 +147,7 @@ export default function EditOut({product} : props) {
                                     <FormField label="Product">
                                         <StyledInput value={data.product} readOnly className="cursor-not-allowed bg-gray-200 dark:bg-gray-600" />
                                     </FormField>
-                                    <FormField label="Tanggal">
+                                    <FormField label="Tanggal Nota">
                                         <StyledInput type='date' value={data.date} onChange={(e) => setData('date', e.target.value)} />
                                     </FormField>
                                     <FormField label="No. Invoice">
@@ -188,6 +198,17 @@ export default function EditOut({product} : props) {
                                      <FormField label="Kualitas">
                                         <StyledInput placeholder='Kualitas' value={data.kualitas_out} onChange={(e) => setData('kualitas_out', e.target.value)} />
                                      </FormField>
+                                      {/* --- [DITAMBAHKAN] Field-field baru untuk edit --- */}
+                                     <FormField label="Tanggal Kirim">
+                                        <StyledInput type='date' value={data.tgl_kirim} onChange={(e) => setData('tgl_kirim', e.target.value)} />
+                                     </FormField>
+                                     <FormField label="Tanggal Sampai">
+                                        <StyledInput type='date' value={data.tgl_sampai} onChange={(e) => setData('tgl_sampai', e.target.value)} />
+                                     </FormField>
+                                     <FormField label="Qty Sampai (Kg)">
+                                        <StyledInput type='number' placeholder='Qty Sampai' value={data.qty_sampai} onChange={(e) => setData('qty_sampai', e.target.value)} />
+                                     </FormField>
+                                     {/* --- [SELESAI DITAMBAHKAN] --- */}
                                  </div>
                             </div>
                         </div>
@@ -206,4 +227,3 @@ export default function EditOut({product} : props) {
         </AppLayout>
     );
 }
-

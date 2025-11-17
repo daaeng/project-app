@@ -1,11 +1,11 @@
-import Heading from '../../components/heading';
-import { Alert, AlertDescription, AlertTitle } from '../../components/ui/alert';
-import { Button } from '../../components/ui/button';
-import { Input } from '../../components/ui/input';
-import { Label } from '../../components/ui/label';
-import { Textarea } from '../../components/ui/textarea';
-import AppLayout from '../../layouts/app-layout';
-import { type BreadcrumbItem } from '../../types';
+import Heading from '@/components/heading';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import AppLayout from '@/layouts/app-layout';
+import { type BreadcrumbItem } from '@/types';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { AlertTriangle, ArrowLeft, Plus, Sparkles, Trash2 } from 'lucide-react';
 import { useMemo } from 'react';
@@ -232,7 +232,7 @@ export default function CreatePpb() {
                                             </td>
                                             <td className="p-2">
                                                 {/* Harga total dihitung otomatis, read-only */}
-                                                <Input value={formatCurrency(item.harga_total)} readOnly className="bg-slate-800 border-slate-700" />
+                                                <Input value={formatCurrency(item.harga_total)} readOnly className="bg-slate-200 text-black" />
                                             </td>
                                             <td className="p-2">
                                                 <Input value={item.keterangan} onChange={(e) => handleItemChange(index, 'keterangan', e.target.value)} placeholder="cth: Untuk Rudi Efendi" />
@@ -280,7 +280,7 @@ export default function CreatePpb() {
                             </div>
                             {/* Menyetujui 1 */}
                             <div className="space-y-4">
-                                <Label className="font-medium text-slate-400">Menyetujui (1)</Label>
+                                <Label className="font-medium text-slate-400">Mengetahui</Label>
                                 <div>
                                     <Label htmlFor="menyetujui_1_nama">Nama</Label>
                                     <Input id="menyetujui_1_nama" value={data.menyetujui_1_nama} onChange={(e) => setData('menyetujui_1_nama', e.target.value)} className="mt-2" />
@@ -292,7 +292,7 @@ export default function CreatePpb() {
                             </div>
                             {/* Menyetujui 2 */}
                             <div className="space-y-4">
-                                <Label className="font-medium text-slate-400">Menyetujui (2)</Label>
+                                <Label className="font-medium text-slate-400">Menyetujui</Label>
                                 <div>
                                     <Label htmlFor="menyetujui_2_nama">Nama</Label>
                                     <Input id="menyetujui_2_nama" value={data.menyetujui_2_nama} onChange={(e) => setData('menyetujui_2_nama', e.target.value)} className="mt-2" />

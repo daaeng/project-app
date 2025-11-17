@@ -75,6 +75,11 @@ interface Product {
     keping_out: number;
     kualitas_out: string;
     susut_value?: number;
+    // --- [DITAMBAHKAN] Interface untuk field baru ---
+    tgl_kirim: string;
+    tgl_sampai: string;
+    qty_sampai: number;
+    // --- [SELESAI DITAMBAHKAN] ---
 }
 
 interface PaginationLink {
@@ -147,7 +152,21 @@ const formatCurrency = (value: number) => {
 };
 
 const formatKg = (value: number) => {
+    if (!value) return '0 Kg';
     return new Intl.NumberFormat('id-ID').format(value) + ' Kg';
+};
+
+// Fungsi helper untuk format tanggal singkat
+const formatShortDate = (dateString: string | null) => {
+    if (!dateString) return '-';
+    // Format YYYY-MM-DD
+    const date = new Date(dateString);
+    // Tambah 1 hari karena JS sering salah interpretasi zona waktu
+    date.setDate(date.getDate() + 1); 
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    return `${day}/${month}/${year}`;
 };
 // --- End of Helper ---
 
@@ -732,7 +751,7 @@ export default function GkaPage({
                             </Link>
                         )}
                         <Link href={route('products.create')}>
-                            <Button className="bg-green-600 hover:bg-green-700 text-white shadow-lg transform transition hover:scale-105">
+                            <Button className="bg-green-600 hover:bg-green-700 text-white shadow-lg transform transition hover:scale-1OS">
                                 <CirclePlus size={18} className="mr-2" />
                                 Tambah Produk
                             </Button>
@@ -838,6 +857,78 @@ export default function GkaPage({
                         </CardContent>
                     </Card>
                 </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                        <Card>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">Saldo Karet</CardTitle>
+                                <Warehouse className="h-4 w-4 text-muted-foreground" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold">{formatKg(s_ready)}</div>
+                                <div className="mt-2 flex items-center gap-4 text-xs text-muted-foreground">
+                                    <div className="flex items-center gap-1">
+                                        <ArrowDownCircle className="h-3 w-3 text-green-500" />
+                                        <span>Masuk: {formatKg(tm_sin)}</span>
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                        <ArrowUpCircle className="h-3 w-3 text-red-500" />
+                                        <span>Keluar: {formatKg(tm_sou)}</span>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        <Card>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">Saldo Pupuk</CardTitle>
+                                <Sprout className="h-4 w-4 text-muted-foreground" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold">{formatKg(p_ready)}</div>
+                                <div className="mt-2 flex items-center gap-4 text-xs text-muted-foreground">
+                                    <div className="flex items-center gap-1">
+                                        <ArrowDownCircle className="h-3 w-3 text-green-500" />
+                                        <span>Masuk: {formatKg(ppk_sin)}</span>
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                        <ArrowUpCircle className="h-3 w-3 text-red-500" />
+                                        <span>Keluar: {formatKg(ppk_sou)}</span>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        <Card>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">Saldo Kelapa</CardTitle>
+                                <Hand className="h-4 w-4 text-muted-foreground" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold">{formatKg(klp_ready)}</div>
+                                <div className="mt-2 flex items-center gap-4 text-xs text-muted-foreground">
+                                    <div className="flex items-center gap-1">
+                                        <ArrowDownCircle className="h-3 w-3 text-green-500" />
+                                        <span>Masuk: {formatKg(klp_sin)}</span>
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                        <ArrowUpCircle className="h-3 w-3 text-red-500" />
+                                        <span>Keluar: {formatKg(klp_sou)}</span>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        <Card>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">Total Susut</CardTitle>
+                                <Package className="h-4 w-4 text-muted-foreground" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold text-red-600">{formatKg(dataSusut)}</div>
+                            </CardContent>
+                        </Card>
+                    </div>
 
                 {/* Kartu Filter (Desain tetap bersih) */}
                 <Card>
@@ -975,7 +1066,7 @@ export default function GkaPage({
                                             {filteredProductsIn.length > 0 ? (
                                                 filteredProductsIn.map((product) => (
                                                     <TableRow key={product.id}>
-                                                        <TableCell>{product.date}</TableCell>
+                                                        <TableCell>{formatShortDate(product.date)}</TableCell>
                                                         {productType === 'all' && <TableCell>{getProductBadge(product.product_type_display)}</TableCell>}
                                                         <TableCell>{product.nm_supplier}</TableCell>
                                                         <TableCell>{product.keping_out}</TableCell>
@@ -1002,17 +1093,21 @@ export default function GkaPage({
                                 <CardTitle>Data Penjualan {productType === 'all' ? 'Semua Produk' : 'Karet'}</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <div className="rounded-md border">
-                                    <Table>
+                                <div className="rounded-md border overflow-x-auto">
+                                    <Table className="min-w-full">
                                         <TableHeader>
                                             <TableRow>
-                                                <TableHead>Tanggal</TableHead>
+                                                <TableHead>Tgl. Nota</TableHead>
                                                 {productType === 'all' && <TableHead>Jenis</TableHead>}
                                                 <TableHead>Supplier</TableHead>
-                                                <TableHead>Susut</TableHead>
-                                                <TableHead>Keping</TableHead>
-                                                <TableHead>Qty</TableHead>
+                                                <TableHead>Qty Jual</TableHead>
                                                 <TableHead>Income</TableHead>
+                                                {/* --- [DITAMBAHKAN] Kolom baru di tabel --- */}
+                                                <TableHead>Tgl. Kirim</TableHead>
+                                                <TableHead>Tgl. Sampai</TableHead>
+                                                <TableHead>Qty Sampai</TableHead>
+                                                <TableHead>Susut</TableHead>
+                                                {/* --- [SELESAI DITAMBAHKAN] --- */}
                                                 <TableHead className="text-center">Aksi</TableHead>
                                             </TableRow>
                                         </TableHeader>
@@ -1020,13 +1115,17 @@ export default function GkaPage({
                                             {filteredProductsOut.length > 0 ? (
                                                 filteredProductsOut.map((product) => (
                                                     <TableRow key={product.id}>
-                                                        <TableCell>{product.date}</TableCell>
+                                                        <TableCell>{formatShortDate(product.date)}</TableCell>
                                                         {productType === 'all' && <TableCell>{getProductBadge(product.product_type_display)}</TableCell>}
                                                         <TableCell>{product.nm_supplier}</TableCell>
-                                                        <TableCell className="font-medium text-orange-600">{formatKg(product.susut_value || 0)}</TableCell>
-                                                        <TableCell>{product.keping_out}</TableCell>
                                                         <TableCell>{formatKg(product.qty_out)}</TableCell>
                                                         <TableCell className="font-medium text-green-600">{formatCurrency(product.amount_out)}</TableCell>
+                                                        {/* --- [DITAMBAHKAN] Data baru di sel --- */}
+                                                        <TableCell>{formatShortDate(product.tgl_kirim)}</TableCell>
+                                                        <TableCell>{formatShortDate(product.tgl_sampai)}</TableCell>
+                                                        <TableCell className="font-medium text-green-600">{formatKg(product.qty_sampai)}</TableCell>
+                                                        <TableCell className="font-medium text-orange-600">{formatKg(product.susut_value || 0)}</TableCell>
+                                                        {/* --- [SELESAI DITAMBAHKAN] --- */}
                                                         <TableCell className="text-center space-x-1">
                                                             {can('products.view') && (<Link href={route('products.show', product.id)}><Button variant="ghost" size="icon"><Eye className="w-4 h-4 text-gray-500" /></Button></Link>)}
                                                             {can('roles.edit') && (<Link href={route('products.edit_out', product.id)}><Button variant="ghost" size="icon"><Pencil className="w-4 h-4 text-blue-500" /></Button></Link>)}
@@ -1035,7 +1134,7 @@ export default function GkaPage({
                                                     </TableRow>
                                                 ))
                                             ) : (
-                                                <TableRow><TableCell colSpan={productType === 'all' ? 8 : 7} className="h-24 text-center">Tidak ada hasil ditemukan.</TableCell></TableRow>
+                                                <TableRow><TableCell colSpan={productType === 'all' ? 10 : 9} className="h-24 text-center">Tidak ada hasil ditemukan.</TableCell></TableRow>
                                             )}
                                         </TableBody>
                                     </Table>
@@ -1068,7 +1167,7 @@ export default function GkaPage({
                                             {products3.data.length > 0 ? (
                                                 products3.data.map((product) => (
                                                     <TableRow key={product.id}>
-                                                        <TableCell>{product.date}</TableCell>
+                                                        <TableCell>{formatShortDate(product.date)}</TableCell>
                                                         <TableCell>{product.nm_supplier}</TableCell>
                                                         <TableCell>{product.j_brg}</TableCell>
                                                         <TableCell>{formatKg(product.qty_kg)}</TableCell>
@@ -1092,15 +1191,20 @@ export default function GkaPage({
                         <Card>
                             <CardHeader><CardTitle>Data Penjualan Pupuk</CardTitle></CardHeader>
                             <CardContent>
-                                <div className="rounded-md border">
-                                    <Table>
+                                <div className="rounded-md border overflow-x-auto">
+                                    <Table className="min-w-full">
                                         <TableHeader>
                                             <TableRow>
-                                                <TableHead>Tanggal</TableHead>
+                                                <TableHead>Tgl. Nota</TableHead>
                                                 <TableHead>Supplier</TableHead>
                                                 <TableHead>Barang</TableHead>
-                                                <TableHead>Qty</TableHead>
+                                                <TableHead>Qty Jual</TableHead>
                                                 <TableHead>Income</TableHead>
+                                                {/* --- [DITAMBAHKAN] Kolom baru di tabel --- */}
+                                                <TableHead>Tgl. Kirim</TableHead>
+                                                <TableHead>Tgl. Sampai</TableHead>
+                                                <TableHead>Qty Sampai</TableHead>
+                                                {/* --- [SELESAI DITAMBAHKAN] --- */}
                                                 <TableHead className="text-center">Aksi</TableHead>
                                             </TableRow>
                                         </TableHeader>
@@ -1108,11 +1212,16 @@ export default function GkaPage({
                                             {products4.data.length > 0 ? (
                                                 products4.data.map((product) => (
                                                     <TableRow key={product.id}>
-                                                        <TableCell>{product.date}</TableCell>
+                                                        <TableCell>{formatShortDate(product.date)}</TableCell>
                                                         <TableCell>{product.nm_supplier}</TableCell>
                                                         <TableCell>{product.j_brg}</TableCell>
                                                         <TableCell>{formatKg(product.qty_out)}</TableCell>
                                                         <TableCell className="font-medium text-green-600">{formatCurrency(product.amount_out)}</TableCell>
+                                                        {/* --- [DITAMBAHKAN] Data baru di sel --- */}
+                                                        <TableCell>{formatShortDate(product.tgl_kirim)}</TableCell>
+                                                        <TableCell>{formatShortDate(product.tgl_sampai)}</TableCell>
+                                                        <TableCell className="font-medium text-green-600">{formatKg(product.qty_sampai)}</TableCell>
+                                                        {/* --- [SELESAI DITAMBAHKAN] --- */}
                                                         <TableCell className="text-center space-x-1">
                                                             {can('products.view') && (<Link href={route('products.show', product.id)}><Button variant="ghost" size="icon"><Eye className="w-4 h-4 text-gray-500" /></Button></Link>)}
                                                             {can('roles.edit') && (<Link href={route('products.edit_out', product.id)}><Button variant="ghost" size="icon"><Pencil className="w-4 h-4 text-blue-500" /></Button></Link>)}
@@ -1121,7 +1230,7 @@ export default function GkaPage({
                                                     </TableRow>
                                                 ))
                                             ) : (
-                                                <TableRow><TableCell colSpan={6} className="h-24 text-center">Tidak ada hasil ditemukan.</TableCell></TableRow>
+                                                <TableRow><TableCell colSpan={9} className="h-24 text-center">Tidak ada hasil ditemukan.</TableCell></TableRow>
                                             )}
                                         </TableBody>
                                     </Table>
@@ -1154,7 +1263,7 @@ export default function GkaPage({
                                             {products5.data.length > 0 ? (
                                                 products5.data.map((product) => (
                                                     <TableRow key={product.id}>
-                                                        <TableCell>{product.date}</TableCell>
+                                                        <TableCell>{formatShortDate(product.date)}</TableCell>
                                                         <TableCell>{product.nm_supplier}</TableCell>
                                                         <TableCell>{product.j_brg}</TableCell>
                                                         <TableCell>{formatKg(product.qty_kg)}</TableCell>
@@ -1178,15 +1287,20 @@ export default function GkaPage({
                         <Card>
                             <CardHeader><CardTitle>Data Penjualan Kelapa</CardTitle></CardHeader>
                             <CardContent>
-                                <div className="rounded-md border">
-                                    <Table>
+                                <div className="rounded-md border overflow-x-auto">
+                                    <Table className="min-w-full">
                                         <TableHeader>
                                             <TableRow>
-                                                <TableHead>Tanggal</TableHead>
+                                                <TableHead>Tgl. Nota</TableHead>
                                                 <TableHead>Supplier</TableHead>
                                                 <TableHead>Barang</TableHead>
-                                                <TableHead>Qty</TableHead>
+                                                <TableHead>Qty Jual</TableHead>
                                                 <TableHead>Income</TableHead>
+                                                {/* --- [DITAMBAHKAN] Kolom baru di tabel --- */}
+                                                {/* <TableHead>Tgl. Kirim</TableHead> */}
+                                                <TableHead>Tgl. Sampai</TableHead>
+                                                <TableHead>Qty Sampai</TableHead>
+                                                {/* --- [SELESAI DITAMBAHKAN] --- */}
                                                 <TableHead className="text-center">Aksi</TableHead>
                                             </TableRow>
                                         </TableHeader>
@@ -1194,11 +1308,16 @@ export default function GkaPage({
                                             {products6.data.length > 0 ? (
                                                 products6.data.map((product) => (
                                                     <TableRow key={product.id}>
-                                                        <TableCell>{product.date}</TableCell>
+                                                        <TableCell>{formatShortDate(product.date)}</TableCell>
                                                         <TableCell>{product.nm_supplier}</TableCell>
                                                         <TableCell>{product.j_brg}</TableCell>
                                                         <TableCell>{formatKg(product.qty_out)}</TableCell>
                                                         <TableCell className="font-medium text-green-600">{formatCurrency(product.amount_out)}</TableCell>
+                                                         {/* --- [DITAMBAHKAN] Data baru di sel --- */}
+                                                        {/* <TableCell>{formatShortDate(product.tgl_kirim)}</TableCell> */}
+                                                        <TableCell>{formatShortDate(product.tgl_sampai)}</TableCell>
+                                                        <TableCell className="font-medium text-green-600">{formatKg(product.qty_sampai)}</TableCell>
+                                                        {/* --- [SELESAI DITAMBAHKAN] --- */}
                                                         <TableCell className="text-center space-x-1">
                                                             {can('products.view') && (<Link href={route('products.show', product.id)}><Button variant="ghost" size="icon"><Eye className="w-4 h-4 text-gray-500" /></Button></Link>)}
                                                             {can('roles.edit') && (<Link href={route('products.edit_out', product.id)}><Button variant="ghost" size="icon"><Pencil className="w-4 h-4 text-blue-500" /></Button></Link>)}
@@ -1207,7 +1326,7 @@ export default function GkaPage({
                                                     </TableRow>
                                                 ))
                                             ) : (
-                                                <TableRow><TableCell colSpan={6} className="h-24 text-center">Tidak ada hasil ditemukan.</TableCell></TableRow>
+                                                <TableRow><TableCell colSpan={9} className="h-24 text-center">Tidak ada hasil ditemukan.</TableCell></TableRow>
                                             )}
                                         </TableBody>
                                     </Table>
@@ -1222,4 +1341,3 @@ export default function GkaPage({
         </AppLayout>
     );
 }
-

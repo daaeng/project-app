@@ -112,6 +112,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->only(['index', 'create', 'store', 'show', 'destroy']) // <-- PERUBAHAN DI SINI
         ->middleware("permission:requests.create|requests.edit|requests.delete|requests.view"); 
     
+    Route::patch('/ppb/{ppb}/status', [PpbController::class, 'updateStatus'])
+        ->name('ppb.updateStatus')
+        ->middleware("permission:requests.edit");
+    
     // ~~~~~~~~~~~~~ Invoice ~~~~~~~~~~~~~
     route::get('/notas', [NotaController::class, 'index'])->name('notas.index')
         ->middleware("permission:notas.create|notas.edit|notas.delete|notas.view");
