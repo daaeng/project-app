@@ -55,7 +55,7 @@ export default function index() {
             {can('products.view') && (
                 <>
                     {/* Container utama dengan latar belakang abu-abu terang dan padding */}
-                    <div className="h-full flex-col rounded-xl p-6 space-y-6 bg-gray-50 dark:bg-black">
+                    <div className="h-full flex-col rounded-xl p-4 md:p-6 space-y-6 bg-gray-50 dark:bg-black">
                         <Heading title='Product Information' />
 
                         {/* Bagian kartu produk */}
@@ -68,7 +68,8 @@ export default function index() {
                                                 <div className={`p-2 rounded-lg bg-${product.color}-100 dark:bg-gray-700`}>
                                                     {product.icon}
                                                 </div>
-                                                <CardTitle className={`ml-3 text-lg font-semibold text-gray-700 dark:text-gray-200`}>
+                                                {/* --- UPDATE: Ukuran font dibuat responsif --- */}
+                                                <CardTitle className={`ml-3 text-base sm:text-lg font-semibold text-gray-700 dark:text-gray-200`}>
                                                     {product.name}
                                                 </CardTitle>
                                             </div>
@@ -92,7 +93,8 @@ export default function index() {
                         {can('products.create') && 
                             <div className="w-full flex justify-center">
                                 <Link href={route('products.allof')}>
-                                    <Button className="bg-gray-800 text-white font-semibold py-3 px-6 rounded-full shadow-lg hover:bg-gray-700 transition-colors duration-200">
+                                    {/* --- UPDATE: Padding dan ukuran teks dibuat responsif --- */}
+                                    <Button className="bg-gray-800 text-white font-semibold py-2 px-4 md:py-3 md:px-6 text-sm md:text-base rounded-full shadow-lg hover:bg-gray-700 transition-colors duration-200">
                                         <FolderOpen size={20} className="mr-2" />
                                         All Product Data
                                     </Button>
@@ -106,4 +108,3 @@ export default function index() {
         </AppLayout>
     );
 }
-
