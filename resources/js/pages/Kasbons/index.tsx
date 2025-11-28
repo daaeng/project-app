@@ -201,6 +201,7 @@ export default function KasbonIndex({ kasbons, flash, filter, totalPendingKasbon
                                 Cetak Laporan
                             </Button>
                         </Link>
+
                         {/* [MODIFICATION END] */}
                         {can('kasbons.create') && (
                             <Link href={route('kasbons.create')}>
@@ -216,6 +217,7 @@ export default function KasbonIndex({ kasbons, flash, filter, totalPendingKasbon
                                 </Button>
                             </Link>
                         )}
+                        
                     </div>
                 </div>
 

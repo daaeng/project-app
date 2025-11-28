@@ -12,7 +12,6 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { cn } from '@/lib/utils';
 
 // --- INTERFACES ---
 interface Owner {
@@ -68,6 +67,10 @@ export default function KasbonDetail() {
 
     const [showPayDialog, setShowPayDialog] = useState(false);
     const [showEditDialog, setShowEditDialog] = useState(false);
+
+    // [FIX] Inisialisasi form delete di Top Level Component
+    // Kita namakan 'deleteForm' agar tidak bentrok dengan form lain
+    const deleteForm = useForm({});
 
     const payForm = useForm({
         amount: '',
@@ -140,6 +143,7 @@ export default function KasbonDetail() {
         setShowEditDialog(true);
     };
 
+    // [FIX] Menggunakan deleteForm instance yang sudah dideklarasikan di atas
     const handleDelete = (type: 'kasbon' | 'payment', id: number) => {
         const confirmMessage = type === 'kasbon'
             ? 'Yakin ingin menghapus pinjaman ini? Semua pembayaran terkait juga akan terhapus.'
@@ -147,7 +151,14 @@ export default function KasbonDetail() {
 
         if (confirm(confirmMessage)) {
             const targetRoute = type === 'kasbon' ? route('kasbons.destroy', id) : route('kasbon-payments.destroy', id);
-            (useForm({}).delete)(targetRoute, { preserveScroll: true });
+            
+            // Gunakan method delete dari instance deleteForm
+            deleteForm.delete(targetRoute, { 
+                preserveScroll: true,
+                onSuccess: () => {
+                    // Opsional: Reset form atau beri notifikasi jika perlu
+                }
+            });
         }
     };
     
@@ -209,12 +220,17 @@ export default function KasbonDetail() {
                                                 <Button variant="ghost" size="icon" onClick={() => tx.transaction_type === 'kasbon' ? (window.location.href = route('kasbons.edit', tx.transaction_ref.id)) : openEditDialog(tx)}>
                                                     <Edit className="w-4 h-4 text-blue-600"/>
                                                 </Button>
-                                                {/* [PERUBAHAN] Tombol Hapus hanya akan muncul untuk tipe 'kasbon' (pinjaman) */}
-                                                {tx.transaction_type === 'kasbon' && (
-                                                    <Button variant="ghost" size="icon" onClick={() => handleDelete(tx.transaction_type, tx.transaction_ref.id)}>
-                                                        <Trash2 className="w-4 h-4 text-red-500"/>
-                                                    </Button>
-                                                )}
+                                                
+                                                {/* Tombol Delete dengan logika yang sudah diperbaiki */}
+                                                <Button 
+                                                    variant="ghost" 
+                                                    size="icon" 
+                                                    onClick={() => handleDelete(tx.transaction_type, tx.transaction_ref.id)}
+                                                    // Disable tombol saat sedang proses delete
+                                                    disabled={deleteForm.processing}
+                                                >
+                                                    <Trash2 className={`w-4 h-4 ${deleteForm.processing ? 'text-gray-400' : 'text-red-500'}`}/>
+                                                </Button>
                                             </div>
                                         </TableCell>
                                     </TableRow>

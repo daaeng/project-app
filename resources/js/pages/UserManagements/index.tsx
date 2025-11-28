@@ -1,15 +1,15 @@
+// ./resources/js/Pages/UserManagements/Index.tsx
+
 import Heading from '@/components/heading';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { CardContent } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Input } from '@/components/ui/input';
 import AppLayout from '@/layouts/app-layout';
-import { type BreadcrumbItem } from '@/types';
-import { Head, Link, useForm, router } from '@inertiajs/react'; // Added 'router'
-import { CirclePlus, Eye, Megaphone, Pencil, Search, Trash } from 'lucide-react'; // Added 'Search' icon
 import { can } from '@/lib/can';
-import { Input } from '@/components/ui/input'; // Added Input component
-import { useState, useEffect } from 'react'; // Added useState and useEffect
+import { type BreadcrumbItem } from '@/types';
+import { Head, Link, router, useForm } from '@inertiajs/react';
+import { CheckCircle2, CirclePlus, Eye, Mail, Pencil, Search, Trash2, User, Users } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -18,19 +18,19 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-interface Role { // Define Role interface as it's used in User
+interface Role {
     id: number;
     name: string;
 }
 
 interface User {
-    id: number; // Added id as it's used for keys and delete
+    id: number;
     name: string;
-    email: string; // Added email as it's displayed in table
-    roles: Role[]; // Added roles as it's displayed in table
+    email: string;
+    roles: Role[];
 }
 
-interface PaginationLink { // Added PaginationLink interface for consistency
+interface PaginationLink {
     url: string | null;
     label: string;
     active: boolean;
@@ -40,7 +40,7 @@ interface PageProps {
     flash: {
         message?: string;
     };
-    usermanagements: { // Updated to be paginated data structure
+    usermanagements: {
         data: User[];
         links: PaginationLink[];
         meta: {
@@ -50,75 +50,71 @@ interface PageProps {
             total: number;
         };
     };
-    filter?: { search?: string }; // Added filter prop for search value
+    filter?: { search?: string };
 }
 
-export default function Index({ usermanagements, flash, filter } : PageProps) { // Destructure filter from props
-
+export default function Index({ usermanagements, flash, filter }: PageProps) {
     const { processing, delete: destroy } = useForm();
-
-    const [searchValue, setSearchValue] = useState(filter?.search || ''); // Initialize search value from filter prop
+    const [searchValue, setSearchValue] = useState(filter?.search || '');
 
     useEffect(() => {
-        setSearchValue(filter?.search || ''); // Update search value when filter prop changes
+        setSearchValue(filter?.search || '');
     }, [filter?.search]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setSearchValue(e.target.value); // Update search value as user types
+        setSearchValue(e.target.value);
     };
 
     const performSearch = () => {
         router.get(
             route('usermanagements.index'),
-            { search: searchValue }, // Send the search term to the backend
+            { search: searchValue },
             {
                 preserveState: true,
                 replace: true,
-                only: ['usermanagements', 'filter'], // Only update 'usermanagements' and 'filter' props
+                only: ['usermanagements', 'filter'],
             }
         );
     };
 
     const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'Enter') {
-            performSearch(); // Trigger search on Enter key press
+            performSearch();
         }
     };
 
     const handleDelete = (id: number, name: string) => {
-        if (confirm(`Do you want to delete this - ${id}. ${name} `)) {
+        if (confirm(`Are you sure you want to delete user: ${name}?`)) {
             destroy(route('usermanagements.destroy', id), {
                 preserveState: true,
                 preserveScroll: true,
                 onSuccess: () => {
-                    // After successful deletion, refresh the data with the current search filter
                     router.get(route('usermanagements.index'), { search: searchValue }, { preserveState: true });
                 },
             });
         }
     };
 
-    // Fungsi untuk render link paginasi
-    const renderPagination = (pagination: PageProps['usermanagements']) => { // Adjusted type for better type safety
+    const renderPagination = (links: PaginationLink[]) => {
         return (
-            <div className="flex justify-center items-center mt-6 space-x-1"> {/* Added styling for better layout */}
-                {pagination.links.map((link: PaginationLink, index: number) => (
+            <div className="flex justify-center items-center py-4 space-x-1 border-t border-gray-200 dark:border-gray-700">
+                {links.map((link, index) => (
                     link.url === null ? (
                         <div
                             key={index}
-                            className="px-4 py-2 text-sm text-gray-400"
+                            className="px-3 py-1 text-xs text-gray-400 border border-transparent"
                             dangerouslySetInnerHTML={{ __html: link.label }}
                         />
                     ) : (
                         <Link
                             key={`link-${index}`}
                             href={link.url}
-                            className={`px-4 py-2 text-sm rounded-md transition ${
+                            className={`px-3 py-1 text-xs rounded-md transition-colors border ${
                                 link.active
-                                    ? 'bg-blue-600 text-white shadow-md'
-                                    : 'bg-white text-gray-700 hover:bg-gray-100'
+                                    ? 'bg-indigo-50 border-indigo-500 text-indigo-700 font-medium'
+                                    : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400'
                             }`}
-                            preserveState // Maintain form state and scroll position
+                            preserveState
                             preserveScroll
                         >
                             <span dangerouslySetInnerHTML={{ __html: link.label }} />
@@ -133,121 +129,160 @@ export default function Index({ usermanagements, flash, filter } : PageProps) { 
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="User Management" />
 
-            {can('usermanagements.view') && (
-                <>
-                    <div className="h-full flex-col rounded-xl p-4 bg-gray-50 dark:bg-black">
-                        <Heading title='User Management' />
-
-                        <div className='border h-auto p-3 rounded-lg'>
-                            {can('usermanagements.create') &&
-                                <div className='w-full mb-2 justify-end h-auto flex gap-2'>
-                                    <Link href={route('usermanagements.create')}>
-                                        <Button className='bg-blue-600 w-30 hover:bg-blue-500 text-white'>
-                                            <CirclePlus className="w-4 h-4 mr-2" /> {/* Added class for icon spacing */}
-                                            Add User
-                                        </Button>
-                                    </Link>
-                                </div>
-                            }
-
-                            <div>
-                                {flash.message && (
-                                    <Alert className="mb-4"> {/* Added margin-bottom */}
-                                        <Megaphone className='h-4 w-4' /> {/* Corrected class from h4-w4 */}
-                                        <AlertTitle className='text-green-600'>
-                                            Notification
-                                        </AlertTitle>
-                                        <AlertDescription>
-                                            {flash.message}
-                                        </AlertDescription>
-                                    </Alert>
-                                )}
-                            </div>
-
-                            <div className='flex flex-col gap-4 py-4 sm:flex-row sm:items-center'> {/* Changed layout for search and button */}
-                                <div className='relative flex-1'> {/* Make search input flexible */}
-                                    <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
-                                    <Input
-                                        placeholder="Search by Name, Email, Role..."
-                                        value={searchValue} // Bind value to state
-                                        onChange={handleInputChange} // Handle input changes
-                                        onKeyPress={handleKeyPress} // Handle Enter key press
-                                        className="pl-10"
-                                    />
-                                </div>
-                                <Button onClick={performSearch}> {/* Added search button */}
-                                    <Search className="h-4 w-4 mr-2" /> Search
+            <div className="px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+                {/* Header Section */}
+                <div className="sm:flex sm:items-center sm:justify-between">
+                    <div>
+                        <Heading 
+                            title="User Management" 
+                            description="Manage user accounts, assign roles, and monitor access."
+                        />
+                    </div>
+                    {can('usermanagements.create') && (
+                        <div className="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
+                            <Link href={route('usermanagements.create')}>
+                                <Button className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition-all duration-200">
+                                    <CirclePlus className="mr-2 h-4 w-4" />
+                                    Add New User
                                 </Button>
+                            </Link>
+                        </div>
+                    )}
+                </div>
+
+                {/* Flash Message */}
+                {flash.message && (
+                    <Alert className="bg-white dark:bg-gray-800 border-l-4 border-l-emerald-500 border-y border-r border-gray-200 dark:border-gray-700 shadow-sm">
+                        <CheckCircle2 className="h-5 w-5 text-emerald-500" />
+                        <div className="ml-2">
+                            <AlertTitle className="text-gray-900 dark:text-gray-100 font-medium">Success</AlertTitle>
+                            <AlertDescription className="text-gray-600 dark:text-gray-400">
+                                {flash.message}
+                            </AlertDescription>
+                        </div>
+                    </Alert>
+                )}
+
+                {/* Main Content Card */}
+                <div className="bg-white dark:bg-gray-800 shadow-sm ring-1 ring-gray-900/5 sm:rounded-xl overflow-hidden">
+                    {/* Toolbar: Search */}
+                    <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/20 flex flex-col sm:flex-row gap-4 justify-between items-center">
+                        <div className="relative w-full sm:max-w-md">
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <Search className="h-4 w-4 text-gray-400" />
                             </div>
+                            <Input
+                                placeholder="Search by name, email, or role..."
+                                value={searchValue}
+                                onChange={handleInputChange}
+                                onKeyPress={handleKeyPress}
+                                className="pl-10 bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-700 focus:ring-indigo-500 focus:border-indigo-500"
+                            />
+                        </div>
+                        <Button variant="secondary" onClick={performSearch} className="w-full sm:w-auto">
+                            Search
+                        </Button>
+                    </div>
 
-                            <CardContent className='border rounded-lg mt-4'> {/* Added mt-4 for spacing */}
-                                <div className="rounded-md">
-                                    {usermanagements.data.length > 0 ? ( // Conditional rendering based on data existence
-                                        <Table>
-                                            <TableHeader>
-                                                <TableRow>
-                                                    <TableHead>ID</TableHead>
-                                                    <TableHead>NAME</TableHead>
-                                                    <TableHead>EMAIL</TableHead>
-                                                    <TableHead>ROLES</TableHead>
-                                                    <TableHead className="text-center">ACTION</TableHead>
-                                                </TableRow>
-                                            </TableHeader>
-
-                                            <TableBody>
-                                                {usermanagements.data.map(({ id, name, email, roles }) => ( // Use usermanagements.data
-                                                    <TableRow key={id}>
-                                                        <TableCell>{id}</TableCell>
-                                                        <TableCell>{name}</TableCell>
-                                                        <TableCell>{email}</TableCell>
-                                                        <TableCell>
-                                                            {roles.map((role) =>
-                                                                <span key={role.id} className='mr-1 bg-green-100 text-green-800 text-xs font-medium rounded-lg p-1.5 w-auto'>
+                    {/* Table */}
+                    {usermanagements.data.length > 0 ? (
+                        <>
+                            <div className="overflow-x-auto">
+                                <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                                    <thead className="bg-gray-50 dark:bg-gray-700/50">
+                                        <tr>
+                                            <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 sm:pl-6 w-20">ID</th>
+                                            <th scope="col" className="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">User</th>
+                                            <th scope="col" className="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Email</th>
+                                            <th scope="col" className="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Roles</th>
+                                            <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6 text-right text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-800">
+                                        {usermanagements.data.map((user) => (
+                                            <tr key={user.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors duration-150">
+                                                <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-400 sm:pl-6">
+                                                    #{user.id}
+                                                </td>
+                                                <td className="whitespace-nowrap px-3 py-4 text-sm font-medium text-gray-900 dark:text-white">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="h-8 w-8 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center text-indigo-700 dark:text-indigo-300">
+                                                            <User className="h-4 w-4" />
+                                                        </div>
+                                                        <span className="capitalize">{user.name}</span>
+                                                    </div>
+                                                </td>
+                                                <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
+                                                    <div className="flex items-center gap-2">
+                                                        <Mail className="w-3 h-3 text-gray-400" />
+                                                        {user.email}
+                                                    </div>
+                                                </td>
+                                                <td className="px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
+                                                    <div className="flex flex-wrap items-center gap-2 max-w-xs">
+                                                        {user.roles.length > 0 ? (
+                                                            user.roles.map((role) => (
+                                                                <span 
+                                                                    key={role.id} 
+                                                                    className="inline-flex items-center rounded-md bg-indigo-50 dark:bg-indigo-900/20 px-2 py-1 text-xs font-medium text-indigo-700 dark:text-indigo-300 ring-1 ring-inset ring-indigo-700/10"
+                                                                >
                                                                     {role.name}
                                                                 </span>
-                                                            )}
-                                                        </TableCell>
-
-                                                        <TableCell className="text-center space-x-2">
-                                                            {can('usermanagements.view') &&
-                                                                <Link href={route('usermanagements.show', id)}>
-                                                                    <Button className='bg-transparent hover:bg-gray-700'>
-                                                                        <Eye color='gray' />
-                                                                    </Button>
-                                                                </Link>
-                                                            }
-
-                                                            {can('usermanagements.edit') &&
-                                                                <Link href={route('usermanagements.edit', id)}>
-                                                                    <Button className='bg-transparent hover:bg-gray-700'>
-                                                                        <Pencil color='blue' />
-                                                                    </Button>
-                                                                </Link>
-                                                            }
-
-                                                            {can('usermanagements.delete') &&
-                                                                <Button disabled={processing} onClick={() => handleDelete(id, name)} className='bg-transparent hover:bg-gray-700'>
-                                                                    <Trash color='red' />
-                                                                </Button>
-                                                            }
-                                                        </TableCell>
-                                                    </TableRow>
-                                                ))}
-                                            </TableBody>
-                                        </Table>
-                                    ) : (
-                                        <div className="p-4 text-center text-gray-500">
-                                            No results found.
-                                        </div>
-                                    )}
-                                </div>
-                                {usermanagements.data.length > 0 && renderPagination(usermanagements)} {/* Add pagination navigation */}
-                            </CardContent>
+                                                            ))
+                                                        ) : (
+                                                            <span className="text-gray-400 italic text-xs">No roles assigned</span>
+                                                        )}
+                                                    </div>
+                                                </td>
+                                                <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                                                    <div className="flex items-center justify-end gap-2">
+                                                        {can('usermanagements.view') && (
+                                                            <Link 
+                                                                href={route('usermanagements.show', user.id)}
+                                                                className="text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
+                                                            >
+                                                                <Eye className="h-4 w-4" />
+                                                            </Link>
+                                                        )}
+                                                        {can('usermanagements.edit') && (
+                                                            <Link 
+                                                                href={route('usermanagements.edit', user.id)}
+                                                                className="text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
+                                                            >
+                                                                <Pencil className="h-4 w-4" />
+                                                            </Link>
+                                                        )}
+                                                        {can('usermanagements.delete') && (
+                                                            <button
+                                                                onClick={() => handleDelete(user.id, user.name)}
+                                                                disabled={processing}
+                                                                className="text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full"
+                                                            >
+                                                                <Trash2 className="h-4 w-4" />
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {renderPagination(usermanagements.links)}
+                        </>
+                    ) : (
+                        <div className="text-center py-16">
+                            <div className="mx-auto h-12 w-12 text-gray-300 dark:text-gray-600">
+                                <Users className="h-12 w-12" />
+                            </div>
+                            <h3 className="mt-2 text-sm font-semibold text-gray-900 dark:text-white">No users found</h3>
+                            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                                {searchValue ? 'Try adjusting your search terms.' : 'Get started by creating a new user.'}
+                            </p>
                         </div>
-                    </div>
-                </>
-            )}
-
+                    )}
+                </div>
+            </div>
         </AppLayout>
     );
 }

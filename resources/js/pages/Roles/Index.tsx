@@ -7,7 +7,7 @@ import AppLayout from '@/layouts/app-layout';
 import { can } from '@/lib/can';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, useForm } from '@inertiajs/react';
-import { CirclePlus, Eye, Megaphone, Pencil, ShieldCheck, Trash } from 'lucide-react';
+import { CheckCircle2, CirclePlus, Pencil, Shield, Trash2, Users } from 'lucide-react';
 import React from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -17,20 +17,17 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-// Interface untuk tipe data Permission
 interface Permission {
     id: number;
     name: string;
 }
 
-// Interface untuk tipe data Role
 interface Role {
     id: number;
     name: string;
     permissions: Permission[];
 }
 
-// Interface untuk props halaman
 interface PageProps {
     flash: {
         message?: string;
@@ -41,9 +38,7 @@ interface PageProps {
 export default function Index({ roles, flash }: PageProps) {
     const { processing, delete: destroy } = useForm();
 
-    // Fungsi untuk menangani penghapusan role
     const handleDelete = (id: number, name: string) => {
-        // Mengganti confirm() bawaan browser dengan modal kustom akan lebih baik di masa depan
         if (confirm(`Are you sure you want to delete the role: ${name}?`)) {
             destroy(route('roles.destroy', id), {
                 preserveScroll: true,
@@ -53,97 +48,149 @@ export default function Index({ roles, flash }: PageProps) {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Roles" />
-            
-            {/* Container utama dengan gaya "Holographic" */}
-            <div className="holo-container p-4 md:p-8 min-h-screen">
-                <div className="flex justify-between items-center mb-8">
-                    <Heading title="Role Access Matrix" className="title-sheen" />
+            <Head title="Roles Management" />
+
+            <div className="px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+                {/* Page Header */}
+                <div className="sm:flex sm:items-center sm:justify-between">
+                    <div>
+                        <Heading 
+                            title="Roles & Permissions" 
+                            description="Define roles and assign permissions to control access across the system."
+                        />
+                    </div>
                     {can('roles.create') && (
-                        <Link href={route('roles.create')}>
-                            <Button className="btn-sleek">
-                                <CirclePlus className="mr-2 h-4 w-4" />
-                                New Role
-                            </Button>
-                        </Link>
+                        <div className="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
+                            <Link href={route('roles.create')}>
+                                <Button className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition-all duration-200">
+                                    <CirclePlus className="mr-2 h-4 w-4" />
+                                    Add New Role
+                                </Button>
+                            </Link>
+                        </div>
                     )}
                 </div>
 
-                {/* Notifikasi flash message */}
+                {/* Flash Message - Clean Style */}
                 {flash.message && (
-                    <Alert className="mb-6 bg-blue-900/30 border border-blue-500/30 text-blue-200 backdrop-blur-sm">
-                        <Megaphone className="h-4 w-4 text-blue-400" />
-                        <AlertTitle className="font-semibold text-blue-200">System Notification</AlertTitle>
-                        <AlertDescription>{flash.message}</AlertDescription>
+                    <Alert className="bg-white dark:bg-gray-800 border-l-4 border-l-emerald-500 border-y border-r border-gray-200 dark:border-gray-700 shadow-sm">
+                        <CheckCircle2 className="h-5 w-5 text-emerald-500" />
+                        <div className="ml-2">
+                            <AlertTitle className="text-gray-900 dark:text-gray-100 font-medium">Success</AlertTitle>
+                            <AlertDescription className="text-gray-600 dark:text-gray-400">
+                                {flash.message}
+                            </AlertDescription>
+                        </div>
                     </Alert>
                 )}
 
-                {/* Grid untuk kartu-kartu role */}
-                {roles.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-                        {roles.map(({ id, name, permissions }) => (
-                            // Kartu individu untuk setiap role
-                            <div key={id} className="holo-card group">
-                                <div className="holo-shimmer"></div>
-                                <div className="relative z-10 flex flex-col h-full p-6">
-                                    {/* Header Kartu */}
-                                    <div className="flex items-start justify-between mb-4">
-                                        <h3 className="text-2xl font-light text-gray-500 dark:text-white uppercase tracking-widest">
-                                            {name}
-                                        </h3>
-                                        <ShieldCheck className="w-7 h-7 text-gray-500 group-hover:text-cyan-300 transition-colors duration-300" />
-                                    </div>
-
-                                    {/* Daftar Permissions */}
-                                    <div className="flex-grow mb-4">
-                                        <p className="text-xs text-gray-400 mb-2 uppercase">Permissions Granted:</p>
-                                        <div className="flex flex-wrap gap-2 max-h-36 overflow-y-auto custom-scrollbar-sleek">
-                                            {permissions.length > 0 ? (
-                                                permissions.map((permission) => (
-                                                    <span key={permission.id} className="permission-chip">
-                                                        {permission.name}
-                                                    </span>
-                                                ))
-                                            ) : (
-                                                <span className="text-xs text-gray-600 italic">
-                                                    No specific permissions.
-                                                </span>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    {/* Tombol Aksi (View, Edit, Delete) */}
-                                    <div className="border-t border-gray-500/20 pt-4 mt-auto flex justify-end space-x-2">
-                                        {can('roles.view') && (
-                                            <Link href={route('roles.show', id)}>
-                                                <Button variant="ghost" size="icon" className="action-icon text-gray-500 hover:text-cyan-400">
-                                                    <Eye className="h-5 w-5" />
-                                                </Button>
-                                            </Link>
-                                        )}
-                                        {can('roles.edit') && (
-                                            <Link href={route('roles.edit', id)}>
-                                                <Button variant="ghost" size="icon" className="action-icon text-gray-500 hover:text-green-400">
-                                                    <Pencil className="h-5 w-5" />
-                                                </Button>
-                                            </Link>
-                                        )}
-                                        {can('roles.delete') && (
-                                            <Button variant="ghost" size="icon" disabled={processing} onClick={() => handleDelete(id, name)} className="action-icon text-gray-500 hover:text-red-500">
-                                                <Trash className="h-5 w-5" />
-                                            </Button>
-                                        )}
-                                    </div>
-                                </div>
+                {/* Main Content Card */}
+                <div className="bg-white dark:bg-gray-800 shadow-sm ring-1 ring-gray-900/5 sm:rounded-xl overflow-hidden">
+                    {roles.length > 0 ? (
+                        <div className="overflow-x-auto">
+                            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                                <thead className="bg-gray-50 dark:bg-gray-700/50">
+                                    <tr>
+                                        <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 sm:pl-6 w-20">
+                                            ID
+                                        </th>
+                                        <th scope="col" className="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                            Role Name
+                                        </th>
+                                        <th scope="col" className="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                            Permissions
+                                        </th>
+                                        <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6 text-right text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                            Actions
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-800">
+                                    {roles.map((role) => (
+                                        <tr key={role.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors duration-150">
+                                            <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-400 sm:pl-6">
+                                                #{role.id}
+                                            </td>
+                                            <td className="whitespace-nowrap px-3 py-4 text-sm font-medium text-gray-900 dark:text-white">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="h-8 w-8 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+                                                        <Shield className="h-4 w-4" />
+                                                    </div>
+                                                    <span className="capitalize">{role.name}</span>
+                                                </div>
+                                            </td>
+                                            <td className="px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
+                                                <div className="flex flex-wrap items-center gap-2 max-w-2xl">
+                                                    {role.permissions.length > 0 ? (
+                                                        <>
+                                                            {role.permissions.slice(0, 4).map((permission) => (
+                                                                <span 
+                                                                    key={permission.id} 
+                                                                    className="inline-flex items-center rounded-md bg-gray-50 dark:bg-gray-700 px-2 py-1 text-xs font-medium text-gray-600 dark:text-gray-300 ring-1 ring-inset ring-gray-500/10"
+                                                                >
+                                                                    {permission.name}
+                                                                </span>
+                                                            ))}
+                                                            {role.permissions.length > 4 && (
+                                                                <span className="inline-flex items-center rounded-md bg-indigo-50 dark:bg-indigo-900/20 px-2 py-1 text-xs font-medium text-indigo-700 dark:text-indigo-300 ring-1 ring-inset ring-indigo-700/10">
+                                                                    +{role.permissions.length - 4} more
+                                                                </span>
+                                                            )}
+                                                        </>
+                                                    ) : (
+                                                        <span className="text-gray-400 italic text-xs">No specific permissions assigned</span>
+                                                    )}
+                                                </div>
+                                            </td>
+                                            <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                                                <div className="flex items-center justify-end gap-2">
+                                                    {can('roles.edit') && (
+                                                        <Link 
+                                                            href={route('roles.edit', role.id)}
+                                                            className="text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
+                                                            title="Edit Role"
+                                                        >
+                                                            <Pencil className="h-4 w-4" />
+                                                        </Link>
+                                                    )}
+                                                    {can('roles.delete') && (
+                                                        <button
+                                                            onClick={() => handleDelete(role.id, role.name)}
+                                                            disabled={processing}
+                                                            className="text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full"
+                                                            title="Delete Role"
+                                                        >
+                                                            <Trash2 className="h-4 w-4" />
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    ) : (
+                        // Empty State - Clean
+                        <div className="text-center py-24 bg-white dark:bg-gray-800">
+                            <div className="mx-auto h-12 w-12 text-gray-300 dark:text-gray-600">
+                                <Users className="h-12 w-12" />
                             </div>
-                        ))}
-                    </div>
-                ) : (
-                    // Tampilan jika tidak ada role
-                    <div className="text-center py-20 text-gray-600">
-                        <p className="text-lg">No Roles Defined in the System.</p>
-                    </div>
-                )}
+                            <h3 className="mt-2 text-sm font-semibold text-gray-900 dark:text-white">No roles found</h3>
+                            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Get started by creating a new role.</p>
+                            {can('roles.create') && (
+                                <div className="mt-6">
+                                    <Link href={route('roles.create')}>
+                                        <Button variant="outline" className="border-gray-300 dark:border-gray-600">
+                                            <CirclePlus className="mr-2 h-4 w-4" />
+                                            Create Role
+                                        </Button>
+                                    </Link>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
             </div>
         </AppLayout>
     );
