@@ -18,8 +18,6 @@ import {
     Trash,
     Undo2,
     Warehouse,
-    ArrowDownCircle, // Ikon baru
-    ArrowUpCircle, // Ikon baru
     CalendarDays,
     Filter,
 } from 'lucide-react';
@@ -46,9 +44,21 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge'; // <-- Impor Badge
+import { Badge } from '@/components/ui/badge';
 import { can } from '@/lib/can';
-import { useState, useEffect, useMemo, ReactNode } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+
+// --- [BARU] Import Recharts untuk Grafik ---
+import {
+    BarChart,
+    Bar,
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    Tooltip,
+    Legend,
+    ResponsiveContainer,
+} from 'recharts';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Product Information', href: '/products' },
@@ -75,17 +85,22 @@ interface Product {
     keping_out: number;
     kualitas_out: string;
     susut_value?: number;
-    // --- [DITAMBAHKAN] Interface untuk field baru ---
     tgl_kirim: string;
     tgl_sampai: string;
     qty_sampai: number;
-    // --- [SELESAI DITAMBAHKAN] ---
 }
 
 interface PaginationLink {
     url: string | null;
     label: string;
     active: boolean;
+}
+
+// --- [BARU] Interface untuk data chart ---
+interface ChartDataPoint {
+    name: string;
+    Produksi: number;
+    Penjualan: number;
 }
 
 interface PageProps {
@@ -128,7 +143,10 @@ interface PageProps {
     klp_ready: number;
 
     dataSusut: number;
-    tm_sampai: number; // <-- [DITAMBAHKAN] Prop baru untuk total qty sampai
+    tm_sampai: number;
+
+    // --- [BARU] Prop Chart Data ---
+    chartData: ChartDataPoint[];
 
     filter?: {
         search?: string;
@@ -141,7 +159,6 @@ interface PageProps {
     currentYear: number;
     auth?: any;
 }
-// --- End of Interface ---
 
 // --- Helper Formatting ---
 const formatCurrency = (value: number) => {
@@ -157,19 +174,15 @@ const formatKg = (value: number) => {
     return new Intl.NumberFormat('id-ID').format(value) + ' Kg';
 };
 
-// Fungsi helper untuk format tanggal singkat
 const formatShortDate = (dateString: string | null) => {
     if (!dateString) return '-';
-    // Format YYYY-MM-DD
     const date = new Date(dateString);
-    // Tambah 1 hari karena JS sering salah interpretasi zona waktu
     date.setDate(date.getDate() + 1);
     const year = date.getFullYear();
     const month = (date.getMonth() + 1).toString().padStart(2, '0');
     const day = date.getDate().toString().padStart(2, '0');
     return `${day}/${month}/${year}`;
 };
-// --- End of Helper ---
 
 export default function GkaPage({
     flash,
@@ -200,9 +213,9 @@ export default function GkaPage({
     klp_ready,
     currentMonth,
     currentYear,
-    tm_sampai, // <-- [DITAMBAHKAN] Destructure prop baru
+    tm_sampai,
+    chartData, // --- [BARU] Destructure chartData
 }: PageProps) {
-    // --- Bagian Hooks (useState, useEffect) ---
     const [searchValue, setSearchValue] = useState(filter?.search || '');
 
     const [timePeriod, setTimePeriod] = useState(() => {
@@ -210,9 +223,6 @@ export default function GkaPage({
         if (urlParams.has('time_period')) {
             return urlParams.get('time_period') || 'all-time';
         }
-        // if (filter?.time_period === 'all-time') {
-        //     return 'this-month';
-        // }
         return filter?.time_period || 'all-time';
     });
 
@@ -241,22 +251,14 @@ export default function GkaPage({
         currentYear,
         filter?.product_type,
     ]);
-    // --- End of Hooks ---
 
-    // --- Bagian Handler (handle*, performSearch, handleDelete) ---
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearchValue(e.target.value);
     };
 
     const handleTimePeriodChange = (value: string) => {
         setTimePeriod(value);
-        const params: {
-            search: string;
-            time_period: string;
-            product_type: string;
-            month?: string;
-            year?: string;
-        } = {
+        const params: any = {
             search: searchValue,
             time_period: value,
             product_type: productType,
@@ -276,130 +278,18 @@ export default function GkaPage({
         router.get(route('products.gka'), params, {
             preserveState: true,
             replace: true,
-            only: [
-                'products',
-                'products2',
-                'products3',
-                'products4',
-                'products5',
-                'products6',
-                'keping_in',
-                'keping_out',
-                'filter',
-                'tm_slin',
-                'tm_slou',
-                'tm_sin',
-                'tm_sou',
-                's_ready',
-                'ppk_slin',
-                'ppk_slou',
-                'ppk_sin',
-                'ppk_sou',
-                'p_ready',
-                'klp_slin',
-                'klp_slou',
-                'klp_sin',
-                'klp_sou',
-                'klp_ready',
-                'currentMonth',
-                'currentYear',
-                'tm_sampai', // Pastikan tm_sampai di-request ulang
-            ],
+            only: ['products', 'products2', 'products3', 'products4', 'products5', 'products6', 'keping_in', 'keping_out', 'filter', 'tm_slin', 'tm_slou', 'tm_sin', 'tm_sou', 's_ready', 'ppk_slin', 'ppk_slou', 'ppk_sin', 'ppk_sou', 'p_ready', 'klp_slin', 'klp_slou', 'klp_sin', 'klp_sou', 'klp_ready', 'currentMonth', 'currentYear', 'tm_sampai', 'chartData'],
         });
     };
 
     const handleMonthChange = (value: string) => {
         setSelectedMonth(value);
-        router.get(
-            route('products.gka'),
-            {
-                search: searchValue,
-                time_period: timePeriod,
-                product_type: productType,
-                month: value,
-                year: selectedYear,
-            },
-            {
-                preserveState: true,
-                replace: true,
-                only: [
-                    'products',
-                    'products2',
-                    'products3',
-                    'products4',
-                    'products5',
-                    'products6',
-                    'keping_in',
-                    'keping_out',
-                    'filter',
-                    'tm_slin',
-                    'tm_slou',
-                    'tm_sin',
-                    'tm_sou',
-                    's_ready',
-                    'ppk_slin',
-                    'ppk_slou',
-                    'ppk_sin',
-                    'ppk_sou',
-                    'p_ready',
-                    'klp_slin',
-                    'klp_slou',
-                    'klp_sin',
-                    'klp_sou',
-                    'klp_ready',
-                    'currentMonth',
-                    'currentYear',
-                    'tm_sampai', // Pastikan tm_sampai di-request ulang
-                ],
-            },
-        );
+        performSearch(value, selectedYear);
     };
 
     const handleYearChange = (value: string) => {
         setSelectedYear(value);
-        router.get(
-            route('products.gka'),
-            {
-                search: searchValue,
-                time_period: timePeriod,
-                product_type: productType,
-                month: selectedMonth,
-                year: value,
-            },
-            {
-                preserveState: true,
-                replace: true,
-                only: [
-                    'products',
-                    'products2',
-                    'products3',
-                    'products4',
-                    'products5',
-                    'products6',
-                    'keping_in',
-                    'keping_out',
-                    'filter',
-                    'tm_slin',
-                    'tm_slou',
-                    'tm_sin',
-                    'tm_sou',
-                    's_ready',
-                    'ppk_slin',
-                    'ppk_slou',
-                    'ppk_sin',
-                    'ppk_sou',
-                    'p_ready',
-                    'klp_slin',
-                    'klp_slou',
-                    'klp_sin',
-                    'klp_sou',
-                    'klp_ready',
-                    'currentMonth',
-                    'currentYear',
-                    'tm_sampai', // Pastikan tm_sampai di-request ulang
-                ],
-            },
-        );
+        performSearch(selectedMonth, value);
     };
 
     const handleProductTypeChange = (value: string) => {
@@ -416,81 +306,25 @@ export default function GkaPage({
             {
                 preserveState: true,
                 replace: true,
-                only: [
-                    'products',
-                    'products2',
-                    'products3',
-                    'products4',
-                    'products5',
-                    'products6',
-                    'keping_in',
-                    'keping_out',
-                    'filter',
-                    'tm_slin',
-                    'tm_slou',
-                    'tm_sin',
-                    'tm_sou',
-                    's_ready',
-                    'ppk_slin',
-                    'ppk_slou',
-                    'ppk_sin',
-                    'ppk_sou',
-                    'p_ready',
-                    'klp_slin',
-                    'klp_slou',
-                    'klp_sin',
-                    'klp_sou',
-                    'klp_ready',
-                    'currentMonth',
-                    'currentYear',
-                    'tm_sampai', // Pastikan tm_sampai di-request ulang
-                ],
+                only: ['products', 'products2', 'products3', 'products4', 'products5', 'products6', 'keping_in', 'keping_out', 'filter', 'tm_slin', 'tm_slou', 'tm_sin', 'tm_sou', 's_ready', 'ppk_slin', 'ppk_slou', 'ppk_sin', 'ppk_sou', 'p_ready', 'klp_slin', 'klp_slou', 'klp_sin', 'klp_sou', 'klp_ready', 'currentMonth', 'currentYear', 'tm_sampai', 'chartData'],
             },
         );
     };
 
-    const performSearch = () => {
+    const performSearch = (monthOverride?: string, yearOverride?: string) => {
         router.get(
             route('products.gka'),
             {
                 search: searchValue,
                 time_period: timePeriod,
                 product_type: productType,
-                month: selectedMonth,
-                year: selectedYear,
+                month: monthOverride || selectedMonth,
+                year: yearOverride || selectedYear,
             },
             {
                 preserveState: true,
                 replace: true,
-                only: [
-                    'products',
-                    'products2',
-                    'products3',
-                    'products4',
-                    'products5',
-                    'products6',
-                    'keping_in',
-                    'keping_out',
-                    'filter',
-                    'tm_slin',
-                    'tm_slou',
-                    'tm_sin',
-                    'tm_sou',
-                    's_ready',
-                    'ppk_slin',
-                    'ppk_slou',
-                    'ppk_sin',
-                    'ppk_sou',
-                    'p_ready',
-                    'klp_slin',
-                    'klp_slou',
-                    'klp_sin',
-                    'klp_sou',
-                    'klp_ready',
-                    'currentMonth',
-                    'currentYear',
-                    'tm_sampai', // Pastikan tm_sampai di-request ulang
-                ],
+                only: ['products', 'products2', 'products3', 'products4', 'products5', 'products6', 'keping_in', 'keping_out', 'filter', 'tm_slin', 'tm_slou', 'tm_sin', 'tm_sou', 's_ready', 'ppk_slin', 'ppk_slou', 'ppk_sin', 'ppk_sou', 'p_ready', 'klp_slin', 'klp_slou', 'klp_sin', 'klp_sou', 'klp_ready', 'currentMonth', 'currentYear', 'tm_sampai', 'chartData'],
             },
         );
     };
@@ -502,133 +336,55 @@ export default function GkaPage({
     };
 
     const handleDelete = (id: number, product: string) => {
-        // Ganti confirm bawaan dengan modal kustom jika ada
         if (confirm(`Apakah Anda ingin menghapus ini - ${id}. ${product}?`)) {
             router.delete(route('products.destroy', id), {
                 preserveState: true,
                 preserveScroll: true,
-                onSuccess: () => {
-                    router.get(
-                        route('products.gka'),
-                        {
-                            search: searchValue,
-                            time_period: timePeriod,
-                            product_type: productType,
-                            month: selectedMonth,
-                            year: selectedYear,
-                        },
-                        { preserveState: true },
-                    );
-                },
+                onSuccess: () => performSearch(),
             });
         }
     };
-    // --- End of Handlers ---
 
-    // --- Bagian Render Logic (Pagination, useMemo, Badge) ---
-
-    /**
-     * Helper untuk menampilkan badge berwarna berdasarkan jenis produk.
-     */
     const getProductBadge = (type: string) => {
         switch (type) {
             case 'Karet':
-                return (
-                    <Badge
-                        variant="default"
-                        className="bg-amber-100 text-amber-800 border-amber-200 hover:bg-amber-100"
-                    >
-                        Karet
-                    </Badge>
-                );
+                return <Badge className="bg-amber-100 text-amber-800 border-amber-200 hover:bg-amber-100">Karet</Badge>;
             case 'Pupuk':
-                return (
-                    <Badge
-                        variant="default"
-                        className="bg-green-100 text-green-800 border-green-200 hover:bg-green-100"
-                    >
-                        Pupuk
-                    </Badge>
-                );
+                return <Badge className="bg-green-100 text-green-800 border-green-200 hover:bg-green-100">Pupuk</Badge>;
             case 'Kelapa':
-                return (
-                    <Badge
-                        variant="default"
-                        className="bg-cyan-100 text-cyan-800 border-cyan-200 hover:bg-cyan-100"
-                    >
-                        Kelapa
-                    </Badge>
-                );
+                return <Badge className="bg-cyan-100 text-cyan-800 border-cyan-200 hover:bg-cyan-100">Kelapa</Badge>;
             default:
                 return <Badge variant="secondary">{type}</Badge>;
         }
     };
 
-    const renderPagination = (
-        pagination: PageProps['products'],
-        pageParamName: string = 'page',
-    ) => {
+    const renderPagination = (pagination: PageProps['products'], pageParamName: string = 'page') => {
         return (
             <div className="flex justify-center items-center mt-6 space-x-1">
                 {pagination.links.map((link: PaginationLink, index: number) => {
-                    let url: URL | null = null;
-                    try {
-                        if (link.url) {
-                            url = new URL(link.url);
-                        }
-                    } catch (e) {
-                        console.error('Invalid URL encountered:', link.url, e);
-                        return (
-                            <div
-                                key={index}
-                                className="px-4 py-2 text-sm text-gray-400"
-                                dangerouslySetInnerHTML={{ __html: link.label }}
-                            />
-                        );
-                    }
+                     let url: URL | null = null;
+                     try { if (link.url) url = new URL(link.url); } catch (e) { return null; }
+                     
+                     const currentParams = url ? new URLSearchParams(url.search) : new URLSearchParams();
+                     currentParams.set(pageParamName, currentParams.get('page') || currentParams.get('page2') || link.label.replace(/&laquo;/g, '').replace(/&raquo;/g, ''));
+                     if (searchValue) currentParams.set('search', searchValue);
+                     if (timePeriod) currentParams.set('time_period', timePeriod);
+                     if (productType) currentParams.set('product_type', productType);
+                     if (timePeriod === 'specific-month') {
+                         currentParams.set('month', selectedMonth);
+                         currentParams.set('year', selectedYear);
+                     }
 
-                    const currentParams = url
-                        ? new URLSearchParams(url.search)
-                        : new URLSearchParams();
-
-                    currentParams.set(
-                        pageParamName,
-                        currentParams.get('page') ||
-                            currentParams.get('page2') ||
-                            link.label.replace(/&laquo;/g, '').replace(/&raquo;/g, ''),
-                    );
-
-                    if (searchValue) currentParams.set('search', searchValue);
-                    if (timePeriod !== 'all-time')
-                        currentParams.set('time_period', timePeriod);
-                    if (productType !== 'all')
-                        currentParams.set('product_type', productType);
-                    if (timePeriod === 'specific-month' && selectedMonth)
-                        currentParams.set('month', selectedMonth);
-                    if (timePeriod === 'specific-month' && selectedYear)
-                        currentParams.set('year', selectedYear);
-
-                    return link.url === null || !url ? (
-                        <div
-                            key={index}
-                            className="px-4 py-2 text-sm text-gray-400"
-                            dangerouslySetInnerHTML={{ __html: link.label }}
-                        />
+                    return !link.url ? (
+                        <div key={index} className="px-4 py-2 text-sm text-gray-400" dangerouslySetInnerHTML={{ __html: link.label }} />
                     ) : (
                         <Link
                             key={`link-${index}`}
-                            href={`${url.origin}${url.pathname}?${currentParams.toString()}`}
-                            className={`px-4 py-2 text-sm rounded-md transition ${
-                                link.active
-                                    ? 'bg-blue-600 text-white shadow-md'
-                                    : 'bg-white text-gray-700 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
-                            }`}
-                            preserveState
-                            preserveScroll
+                            href={`${url!.origin}${url!.pathname}?${currentParams.toString()}`}
+                            className={`px-4 py-2 text-sm rounded-md transition ${link.active ? 'bg-blue-600 text-white shadow-md' : 'bg-white text-gray-700 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-300'}`}
+                            preserveState preserveScroll
                         >
-                            <span
-                                dangerouslySetInnerHTML={{ __html: link.label }}
-                            />
+                            <span dangerouslySetInnerHTML={{ __html: link.label }} />
                         </Link>
                     );
                 })}
@@ -650,83 +406,31 @@ export default function GkaPage({
     const filteredProductsIn = useMemo(() => {
         if (productType === 'all') {
             const combined = [
-                ...products.data.map((p) => ({
-                    ...p,
-                    product_type_display: 'Karet',
-                })),
-                ...products3.data.map((p) => ({
-                    ...p,
-                    product_type_display: 'Pupuk',
-                })),
-                ...products5.data.map((p) => ({
-                    ...p,
-                    product_type_display: 'Kelapa',
-                })),
+                ...products.data.map((p) => ({ ...p, product_type_display: 'Karet' })),
+                ...products3.data.map((p) => ({ ...p, product_type_display: 'Pupuk' })),
+                ...products5.data.map((p) => ({ ...p, product_type_display: 'Kelapa' })),
             ];
-            return combined.sort(
-                (a, b) =>
-                    new Date(b.date).getTime() - new Date(a.date).getTime(),
-            );
-        } else if (productType === 'karet') {
-            return products.data.map((p) => ({
-                ...p,
-                product_type_display: 'Karet',
-            }));
-        } else if (productType === 'pupuk') {
-            return products3.data.map((p) => ({
-                ...p,
-                product_type_display: 'Pupuk',
-            }));
-        } else if (productType === 'kelapa') {
-            return products5.data.map((p) => ({
-                ...p,
-                product_type_display: 'Kelapa',
-            }));
-        }
+            return combined.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        } else if (productType === 'karet') return products.data.map((p) => ({ ...p, product_type_display: 'Karet' }));
+        else if (productType === 'pupuk') return products3.data.map((p) => ({ ...p, product_type_display: 'Pupuk' }));
+        else if (productType === 'kelapa') return products5.data.map((p) => ({ ...p, product_type_display: 'Kelapa' }));
         return [];
     }, [productType, products.data, products3.data, products5.data]);
 
     const filteredProductsOut = useMemo(() => {
         if (productType === 'all') {
             const combined = [
-                ...products2.data.map((p) => ({
-                    ...p,
-                    product_type_display: 'Karet',
-                })),
-                ...products4.data.map((p) => ({
-                    ...p,
-                    product_type_display: 'Pupuk',
-                })),
-                ...products6.data.map((p) => ({
-                    ...p,
-                    product_type_display: 'Kelapa',
-                })),
+                ...products2.data.map((p) => ({ ...p, product_type_display: 'Karet' })),
+                ...products4.data.map((p) => ({ ...p, product_type_display: 'Pupuk' })),
+                ...products6.data.map((p) => ({ ...p, product_type_display: 'Kelapa' })),
             ];
-            return combined.sort(
-                (a, b) =>
-                    new Date(b.date).getTime() - new Date(a.date).getTime(),
-            );
-        } else if (productType === 'karet') {
-            return products2.data.map((p) => ({
-                ...p,
-                product_type_display: 'Karet',
-            }));
-        } else if (productType === 'pupuk') {
-            return products4.data.map((p) => ({
-                ...p,
-                product_type_display: 'Pupuk',
-            }));
-        } else if (productType === 'kelapa') {
-            return products6.data.map((p) => ({
-                ...p,
-                product_type_display: 'Kelapa',
-            }));
-        }
+            return combined.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        } else if (productType === 'karet') return products2.data.map((p) => ({ ...p, product_type_display: 'Karet' }));
+        else if (productType === 'pupuk') return products4.data.map((p) => ({ ...p, product_type_display: 'Pupuk' }));
+        else if (productType === 'kelapa') return products6.data.map((p) => ({ ...p, product_type_display: 'Kelapa' }));
         return [];
     }, [productType, products2.data, products4.data, products6.data]);
-    // --- End of Render Logic ---
 
-    // --- JSX Render ---
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="PT. Garuda Karya Amanat" />
@@ -735,47 +439,26 @@ export default function GkaPage({
                 <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
                     <div>
                         <Heading title="PT. Garuda Karya Amanat" />
-                        <p className="text-muted-foreground text-sm">
-                            Dashboard ringkasan produk dan stok.
-                        </p>
+                        <p className="text-muted-foreground text-sm">Dashboard ringkasan produk dan stok.</p>
                     </div>
                     <div className="flex items-center gap-2">
-                        <Link href={route('products.index')}>
-                            <Button variant="outline">
-                                <Undo2 className="w-4 h-4 mr-2" /> Kembali
-                            </Button>
-                        </Link>
-                        {can('products.create') && (
-                            <Link href={route('products.c_send')}>
-                                <Button className="bg-purple-600 hover:bg-purple-700 text-white shadow-lg transform transition hover:scale-105">
-                                    <Building2 size={18} className="mr-2" />
-                                    Kirim Barang
-                                </Button>
-                            </Link>
-                        )}
-                        <Link href={route('products.create')}>
-                            <Button className="bg-green-600 hover:bg-green-700 text-white shadow-lg transform transition hover:scale-1OS">
-                                <CirclePlus size={18} className="mr-2" />
-                                Tambah Produk
-                            </Button>
-                        </Link>
+                        <Link href={route('products.index')}><Button variant="outline"><Undo2 className="w-4 h-4 mr-2" /> Kembali</Button></Link>
+                        {can('products.create') && <Link href={route('products.c_send')}><Button className="bg-purple-600 hover:bg-purple-700 text-white shadow-lg"><Building2 size={18} className="mr-2" /> Kirim Barang</Button></Link>}
+                        <Link href={route('products.create')}><Button className="bg-green-600 hover:bg-green-700 text-white shadow-lg"><CirclePlus size={18} className="mr-2" /> Tambah Produk</Button></Link>
                     </div>
                 </div>
 
-                {/* Alert Pemberitahuan */}
+                {/* Alert */}
                 {flash?.message && (
-                    <Alert variant="default" className="bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-800">
+                    <Alert variant="default" className="bg-green-50 dark:bg-green-900/30 border-green-200">
                         <Megaphone className="h-4 w-4 text-green-600" />
-                        <AlertTitle className="text-green-700 dark:text-green-300">Pemberitahuan</AlertTitle>
-                        <AlertDescription className="text-green-600 dark:text-green-400">
-                            {flash.message}
-                        </AlertDescription>
+                        <AlertTitle className="text-green-700">Pemberitahuan</AlertTitle>
+                        <AlertDescription className="text-green-600">{flash.message}</AlertDescription>
                     </Alert>
                 )}
 
-                {/* === [DIRANGKUM] Grid Kartu Statistik Utama === */}
+                {/* Grid Kartu Statistik Utama */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {/* Kartu Pendapatan Karet */}
                     <Card className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg">
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium text-blue-100">Pendapatan Karet</CardTitle>
@@ -787,7 +470,6 @@ export default function GkaPage({
                         </CardContent>
                     </Card>
                     
-                    {/* Kartu Total Produksi (Karet) */}
                     <Card className="bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-lg">
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium text-orange-100">Produksi Karet (Gudang)</CardTitle>
@@ -799,7 +481,6 @@ export default function GkaPage({
                         </CardContent>
                     </Card>
                     
-                    {/* Kartu Karet Terjual (Sampai) */}
                     <Card className="bg-gradient-to-br from-green-500 to-emerald-600 text-white shadow-lg">
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium text-green-100">Karet Terjual (Diterima)</CardTitle>
@@ -811,7 +492,6 @@ export default function GkaPage({
                         </CardContent>
                     </Card>
 
-                    {/* Kartu Total Susut */}
                     <Card className="bg-gradient-to-br from-red-500 to-rose-600 text-white shadow-lg">
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium text-red-100">Total Susut</CardTitle>
@@ -824,7 +504,42 @@ export default function GkaPage({
                     </Card>
                 </div>
 
-                {/* === Grid Saldo Stok === */}
+                {/* === [BAGIAN BARU] CHART VISUALIZATION === */}
+                <div className="grid grid-cols-1 gap-4">
+                    <Card className="shadow-sm">
+                        <CardHeader>
+                            <CardTitle>Statistik Produksi vs Penjualan Karet ({selectedYear})</CardTitle>
+                            <CardDescription>Grafik perbandingan total produksi (masuk) dan penjualan (keluar) per bulan.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="h-[350px]">
+                             <ResponsiveContainer width="100%" height="100%">
+                                <BarChart
+                                    data={chartData}
+                                    margin={{
+                                        top: 20,
+                                        right: 30,
+                                        left: 20,
+                                        bottom: 5,
+                                    }}
+                                >
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                                    <XAxis dataKey="name" />
+                                    <YAxis tickFormatter={(value) => `${value / 1000}k`} />
+                                    <Tooltip 
+                                        formatter={(value: number) => [`${new Intl.NumberFormat('id-ID').format(value)} Kg`, '']}
+                                        labelStyle={{ color: 'black' }}
+                                    />
+                                    <Legend />
+                                    <Bar dataKey="Produksi" fill="#f59e0b" name="Produksi (Masuk)" radius={[4, 4, 0, 0]} />
+                                    <Bar dataKey="Penjualan" fill="#10b981" name="Penjualan (Keluar)" radius={[4, 4, 0, 0]} />
+                                </BarChart>
+                            </ResponsiveContainer>
+                        </CardContent>
+                    </Card>
+                </div>
+                {/* === [SELESAI BAGIAN CHART] === */}
+
+                {/* Grid Saldo Stok */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -836,7 +551,6 @@ export default function GkaPage({
                             <p className="text-xs text-muted-foreground">(Produksi - Jual)</p>
                         </CardContent>
                     </Card>
-
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">Saldo Stok Pupuk</CardTitle>
@@ -847,7 +561,6 @@ export default function GkaPage({
                              <p className="text-xs text-muted-foreground">(Beli - Jual)</p>
                         </CardContent>
                     </Card>
-
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">Saldo Stok Kelapa</CardTitle>
@@ -860,35 +573,21 @@ export default function GkaPage({
                     </Card>
                 </div>
 
-                {/* Kartu Filter (Desain tetap bersih) */}
+                {/* Kartu Filter */}
                 <Card>
                     <CardHeader>
                         <CardTitle>Filter Data</CardTitle>
-                        <CardDescription>
-                            Cari atau filter data berdasarkan kriteria di bawah ini.
-                        </CardDescription>
+                        <CardDescription>Cari atau filter data berdasarkan kriteria di bawah ini.</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <div className="flex flex-col md:flex-row md:flex-wrap gap-4">
                             <div className="relative flex-grow">
                                 <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
-                                <Input
-                                    placeholder="Cari berdasarkan supplier, invoice, item..."
-                                    value={searchValue}
-                                    onChange={handleInputChange}
-                                    onKeyPress={handleKeyPress}
-                                    className="pl-10"
-                                />
+                                <Input placeholder="Cari berdasarkan supplier, invoice, item..." value={searchValue} onChange={handleInputChange} onKeyPress={handleKeyPress} className="pl-10" />
                             </div>
-                            <Select
-                                value={productType}
-                                onValueChange={handleProductTypeChange}
-                            >
+                            <Select value={productType} onValueChange={handleProductTypeChange}>
                                 <SelectTrigger className="w-full md:w-[180px]">
-                                    <div className='flex items-center gap-2'>
-                                        <Filter className='w-4 h-4' />
-                                        <SelectValue placeholder="Pilih Jenis Produk" />
-                                    </div>
+                                    <div className='flex items-center gap-2'><Filter className='w-4 h-4' /><SelectValue placeholder="Pilih Jenis Produk" /></div>
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="all">Semua Produk</SelectItem>
@@ -897,87 +596,43 @@ export default function GkaPage({
                                     <SelectItem value="pupuk">Pupuk</SelectItem>
                                 </SelectContent>
                             </Select>
-                            <Select
-                                value={timePeriod}
-                                onValueChange={handleTimePeriodChange}
-                            >
+                            <Select value={timePeriod} onValueChange={handleTimePeriodChange}>
                                 <SelectTrigger className="w-full md:w-[180px]">
-                                    <div className='flex items-center gap-2'>
-                                        <CalendarDays className='w-4 h-4' />
-                                        <SelectValue placeholder="Pilih Periode Waktu" />
-                                    </div>
+                                    <div className='flex items-center gap-2'><CalendarDays className='w-4 h-4' /><SelectValue placeholder="Pilih Periode Waktu" /></div>
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="all-time">
-                                        Semua Waktu
-                                    </SelectItem>
+                                    <SelectItem value="all-time">Semua Waktu</SelectItem>
                                     <SelectItem value="today">Hari Ini</SelectItem>
                                     <SelectItem value="this-week">Minggu Ini</SelectItem>
                                     <SelectItem value="this-month">Bulan Ini</SelectItem>
-                                    <SelectItem value="last-month">
-                                        Bulan Lalu
-                                    </SelectItem>
+                                    <SelectItem value="last-month">Bulan Lalu</SelectItem>
                                     <SelectItem value="this-year">Tahun Ini</SelectItem>
-                                    <SelectItem value="specific-month">
-                                        Pilih Bulan & Tahun
-                                    </SelectItem>
+                                    <SelectItem value="specific-month">Pilih Bulan & Tahun</SelectItem>
                                 </SelectContent>
                             </Select>
 
                             {timePeriod === 'specific-month' && (
                                 <>
-                                    <Select
-                                        value={selectedMonth}
-                                        onValueChange={handleMonthChange}
-                                    >
-                                        <SelectTrigger className="w-full md:w-[140px]">
-                                            <SelectValue placeholder="Pilih Bulan" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {months.map((month) => (
-                                                <SelectItem
-                                                    key={month.value}
-                                                    value={month.value}
-                                                >
-                                                    {month.label}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
+                                    <Select value={selectedMonth} onValueChange={handleMonthChange}>
+                                        <SelectTrigger className="w-full md:w-[140px]"><SelectValue placeholder="Pilih Bulan" /></SelectTrigger>
+                                        <SelectContent>{months.map((m) => (<SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>))}</SelectContent>
                                     </Select>
-                                    <Select
-                                        value={selectedYear}
-                                        onValueChange={handleYearChange}
-                                    >
-                                        <SelectTrigger className="w-full md:w-[100px]">
-                                            <SelectValue placeholder="Pilih Tahun" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {years.map((year) => (
-                                                <SelectItem
-                                                    key={year.value}
-                                                    value={year.value}
-                                                >
-                                                    {year.label}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
+                                    <Select value={selectedYear} onValueChange={handleYearChange}>
+                                        <SelectTrigger className="w-full md:w-[100px]"><SelectValue placeholder="Pilih Tahun" /></SelectTrigger>
+                                        <SelectContent>{years.map((y) => (<SelectItem key={y.value} value={y.value}>{y.label}</SelectItem>))}</SelectContent>
                                     </Select>
                                 </>
                             )}
-                             <Button onClick={performSearch} className="w-full md:w-auto">
-                                <Search className="h-4 w-4 mr-2" /> Cari
-                            </Button>
+                             <Button onClick={() => performSearch()} className="w-full md:w-auto"><Search className="h-4 w-4 mr-2" /> Cari</Button>
                         </div>
                     </CardContent>
                 </Card>
 
-                {/* === Konten Tabel (Gabungan atau Karet) === */}
+                {/* Tabel (Karet/All) */}
                 {(productType === 'all' || productType === 'karet') && (
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         <Card>
-                            <CardHeader>
-                                <CardTitle>Data Pembelian {productType === 'all' ? 'Semua Produk' : 'Karet'}</CardTitle>
-                            </CardHeader>
+                            <CardHeader><CardTitle>Data Pembelian {productType === 'all' ? 'Semua Produk' : 'Karet'}</CardTitle></CardHeader>
                             <CardContent>
                                 <div className="rounded-md border">
                                     <Table>
@@ -1019,9 +674,7 @@ export default function GkaPage({
                         </Card>
 
                         <Card>
-                            <CardHeader>
-                                <CardTitle>Data Penjualan {productType === 'all' ? 'Semua Produk' : 'Karet'}</CardTitle>
-                            </CardHeader>
+                            <CardHeader><CardTitle>Data Penjualan {productType === 'all' ? 'Semua Produk' : 'Karet'}</CardTitle></CardHeader>
                             <CardContent>
                                 <div className="rounded-md border overflow-x-auto">
                                     <Table className="min-w-full">
@@ -1032,12 +685,10 @@ export default function GkaPage({
                                                 <TableHead>Supplier</TableHead>
                                                 <TableHead>Qty Jual</TableHead>
                                                 <TableHead>Income</TableHead>
-                                                {/* --- [DITAMBAHKAN] Kolom baru di tabel --- */}
                                                 <TableHead>Tgl. Kirim</TableHead>
                                                 <TableHead>Tgl. Sampai</TableHead>
                                                 <TableHead>Qty Sampai</TableHead>
                                                 <TableHead>Susut</TableHead>
-                                                {/* --- [SELESAI DITAMBAHKAN] --- */}
                                                 <TableHead className="text-center">Aksi</TableHead>
                                             </TableRow>
                                         </TableHeader>
@@ -1050,12 +701,10 @@ export default function GkaPage({
                                                         <TableCell>{product.nm_supplier}</TableCell>
                                                         <TableCell>{formatKg(product.qty_out)}</TableCell>
                                                         <TableCell className="font-medium text-green-600">{formatCurrency(product.amount_out)}</TableCell>
-                                                        {/* --- [DITAMBAHKAN] Data baru di sel --- */}
                                                         <TableCell>{formatShortDate(product.tgl_kirim)}</TableCell>
                                                         <TableCell>{formatShortDate(product.tgl_sampai)}</TableCell>
                                                         <TableCell className="font-medium text-green-600">{formatKg(product.qty_sampai)}</TableCell>
                                                         <TableCell className="font-medium text-orange-600">{formatKg(product.susut_value || 0)}</TableCell>
-                                                        {/* --- [SELESAI DITAMBAHKAN] --- */}
                                                         <TableCell className="text-center space-x-1">
                                                             {can('products.view') && (<Link href={route('products.show', product.id)}><Button variant="ghost" size="icon"><Eye className="w-4 h-4 text-gray-500" /></Button></Link>)}
                                                             {can('roles.edit') && (<Link href={route('products.edit_out', product.id)}><Button variant="ghost" size="icon"><Pencil className="w-4 h-4 text-blue-500" /></Button></Link>)}
@@ -1075,7 +724,7 @@ export default function GkaPage({
                     </div>
                 )}
                 
-                {/* === Tampilan Pupuk === */}
+                {/* Tabel Pupuk */}
                 {productType === 'pupuk' && (
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         <Card>
@@ -1130,11 +779,9 @@ export default function GkaPage({
                                                 <TableHead>Barang</TableHead>
                                                 <TableHead>Qty Jual</TableHead>
                                                 <TableHead>Income</TableHead>
-                                                {/* --- [DITAMBAHKAN] Kolom baru di tabel --- */}
                                                 <TableHead>Tgl. Kirim</TableHead>
                                                 <TableHead>Tgl. Sampai</TableHead>
                                                 <TableHead>Qty Sampai</TableHead>
-                                                {/* --- [SELESAI DITAMBAHKAN] --- */}
                                                 <TableHead className="text-center">Aksi</TableHead>
                                             </TableRow>
                                         </TableHeader>
@@ -1147,11 +794,9 @@ export default function GkaPage({
                                                         <TableCell>{product.j_brg}</TableCell>
                                                         <TableCell>{formatKg(product.qty_out)}</TableCell>
                                                         <TableCell className="font-medium text-green-600">{formatCurrency(product.amount_out)}</TableCell>
-                                                        {/* --- [DITAMBAHKAN] Data baru di sel --- */}
                                                         <TableCell>{formatShortDate(product.tgl_kirim)}</TableCell>
                                                         <TableCell>{formatShortDate(product.tgl_sampai)}</TableCell>
                                                         <TableCell className="font-medium text-green-600">{formatKg(product.qty_sampai)}</TableCell>
-                                                        {/* --- [SELESAI DITAMBAHKAN] --- */}
                                                         <TableCell className="text-center space-x-1">
                                                             {can('products.view') && (<Link href={route('products.show', product.id)}><Button variant="ghost" size="icon"><Eye className="w-4 h-4 text-gray-500" /></Button></Link>)}
                                                             {can('roles.edit') && (<Link href={route('products.edit_out', product.id)}><Button variant="ghost" size="icon"><Pencil className="w-4 h-4 text-blue-500" /></Button></Link>)}
@@ -1171,7 +816,7 @@ export default function GkaPage({
                     </div>
                 )}
                 
-                {/* === Tampilan Kelapa === */}
+                {/* Tabel Kelapa */}
                 {productType === 'kelapa' && (
                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         <Card>
@@ -1226,11 +871,8 @@ export default function GkaPage({
                                                 <TableHead>Barang</TableHead>
                                                 <TableHead>Qty Jual</TableHead>
                                                 <TableHead>Income</TableHead>
-                                                {/* --- [DITAMBAHKAN] Kolom baru di tabel --- */}
-                                                {/* <TableHead>Tgl. Kirim</TableHead> */}
                                                 <TableHead>Tgl. Sampai</TableHead>
                                                 <TableHead>Qty Sampai</TableHead>
-                                                {/* --- [SELESAI DITAMBAHKAN] --- */}
                                                 <TableHead className="text-center">Aksi</TableHead>
                                             </TableRow>
                                         </TableHeader>
@@ -1243,11 +885,8 @@ export default function GkaPage({
                                                         <TableCell>{product.j_brg}</TableCell>
                                                         <TableCell>{formatKg(product.qty_out)}</TableCell>
                                                         <TableCell className="font-medium text-green-600">{formatCurrency(product.amount_out)}</TableCell>
-                                                         {/* --- [DITAMBAHKAN] Data baru di sel --- */}
-                                                        {/* <TableCell>{formatShortDate(product.tgl_kirim)}</TableCell> */}
                                                         <TableCell>{formatShortDate(product.tgl_sampai)}</TableCell>
                                                         <TableCell className="font-medium text-green-600">{formatKg(product.qty_sampai)}</TableCell>
-                                                        {/* --- [SELESAI DITAMBAHKAN] --- */}
                                                         <TableCell className="text-center space-x-1">
                                                             {can('products.view') && (<Link href={route('products.show', product.id)}><Button variant="ghost" size="icon"><Eye className="w-4 h-4 text-gray-500" /></Button></Link>)}
                                                             {can('roles.edit') && (<Link href={route('products.edit_out', product.id)}><Button variant="ghost" size="icon"><Pencil className="w-4 h-4 text-blue-500" /></Button></Link>)}

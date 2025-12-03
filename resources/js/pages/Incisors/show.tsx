@@ -1,288 +1,97 @@
+// ./resources/js/Pages/Incisors/show.tsx
+
 import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head, Link } from '@inertiajs/react'; // Menghapus useForm karena tidak lagi diperlukan
-import {
-    CircleAlert,
-    Undo2,
-    Banknote,
-    Wallet,
-    Scale,
-    CalendarCheck,
-} from 'lucide-react'; // Menambahkan ikon
-import React from 'react'; // Impor React
+import { Head, Link } from '@inertiajs/react';
+import { Banknote, CalendarCheck, CreditCard, MapPin, Scale, Undo2, Wallet } from 'lucide-react';
+import React from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Penoreh',
-        href: route('incisors.index'),
-    },
-    {
-        title: 'Informasi Penoreh',
-        href: '#', // Halaman saat ini
-    },
+    { title: 'Penoreh', href: route('incisors.index') },
+    { title: 'Detail', href: '#' },
 ];
 
-interface Incisor {
-    id: number;
-    name: string;
-    nik: string; // <-- NIK DITAMBAHKAN
-    ttl: string;
-    gender: string;
-    address: string;
-    agama: string;
-    status: string;
-    no_invoice: string;
-    lok_toreh: string;
-}
+// Helper Format
+const formatCurrency = (val: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(val);
+const formatDate = (d: string) => d ? new Date(d).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' }) : '-';
 
-interface DailyData {
-    product: string;
-    tanggal: string;
-    kode_penoreh: string;
-    kebun: string;
-    jenis_barang: string;
-    qty_kg: number;
-    total_harga: number;
-}
-
-interface Props {
-    incisor: Incisor;
-    totalQtyKg: number;
-    totalQtyKgThisMonth: number;
-    pendapatanBulanIni: number;
-    sisaKasbon: number;
-    dailyData: DailyData[];
-    errors?: Record<string, string>; // Opsional jika ada error passing
-}
-
-// Helper untuk format Rupiah
-const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('id-ID', { // Menggunakan 'id-ID' untuk format Rupiah
-        style: 'currency',
-        currency: 'IDR',
-        minimumFractionDigits: 0, // Menghilangkan ,00
-    }).format(value);
-};
-
-// Helper untuk format Tanggal
-const formatDate = (dateString: string) => {
-    if (!dateString) return '-';
-    try {
-        return new Date(dateString).toLocaleDateString('id-ID', {
-            day: '2-digit',
-            month: 'long',
-            year: 'numeric',
-        });
-    } catch (e) {
-        return dateString; // Fallback jika format tidak valid
-    }
-};
-
-// Komponen kecil untuk Kartu Statistik
-const StatCard = ({
-    title,
-    value,
-    icon: Icon,
-    className = '',
-}: {
-    title: string;
-    value: string;
-    icon: React.ElementType;
-    className?: string;
-}) => (
-    <Card className={`shadow-md dark:bg-gray-800 ${className}`}>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-300">
-                {title}
-            </CardTitle>
-            <Icon className="h-5 w-5 text-gray-400" />
-        </CardHeader>
-        <CardContent>
-            <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">{value}</div>
-        </CardContent>
-    </Card>
-);
-
-// Komponen kecil untuk item data profil
-const ProfileDataItem = ({
-    label,
-    value,
-}: {
-    label: string;
-    value: string | undefined | null;
-}) => (
-    <div className="flex justify-between py-3 border-b border-gray-200 dark:border-gray-700">
-        <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">{label}</dt>
-        <dd className="text-sm text-gray-900 dark:text-gray-100 text-right">{value || '-'}</dd>
-    </div>
-);
-
-export default function ShowIncisor({ // Mengganti nama 'index' menjadi 'ShowIncisor' agar lebih jelas
-    incisor,
-    totalQtyKg,
-    totalQtyKgThisMonth,
-    pendapatanBulanIni,
-    sisaKasbon,
-    dailyData,
-    errors,
-}: Props) {
-    
-    // Fallback jika incisor null/undefined
-    if (!incisor) {
-        return (
-            <AppLayout breadcrumbs={breadcrumbs}>
-                 <Head title="Error" />
-                 <div className="p-4 text-red-500">Data penoreh tidak ditemukan.</div>
-            </AppLayout>
-        )
-    }
+export default function ShowIncisor({ incisor, totalQtyKg, totalQtyKgThisMonth, pendapatanBulanIni, sisaKasbon, dailyData }: any) {
+    if (!incisor) return <div className="p-8">Data tidak ditemukan.</div>;
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={`Info Penoreh: ${incisor.name}`} />
-
-            <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 sm:p-6 lg:p-8">
-                {/* Header Halaman */}
-                <div className="flex justify-between items-center mb-6">
-                    <Heading
-                        title="Informasi Data Penoreh"
-                        className="text-2xl font-semibold text-gray-800 dark:text-gray-100"
-                    />
-                    <Link href={route('incisors.index')}>
-                        <Button className="bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 transition-all duration-200 rounded-lg shadow-sm flex items-center">
-                            <Undo2 className="h-4 w-4 mr-2" />
-                            Kembali
-                        </Button>
-                    </Link>
+            <Head title={`Info: ${incisor.name}`} />
+            <div className="px-4 sm:px-6 lg:px-8 py-8 space-y-8 bg-gray-50 dark:bg-black min-h-screen">
+                
+                {/* Header */}
+                <div className="flex justify-between items-center">
+                    <Heading title="Detail Profil Penoreh" description="Statistik dan riwayat kerja." />
+                    <Link href={route('incisors.index')}><Button variant="outline"><Undo2 className="mr-2 h-4 w-4" /> Kembali</Button></Link>
                 </div>
 
-                {/* Kartu Statistik */}
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
-                    <StatCard
-                        title="Pendapatan Bulan Ini"
-                        value={formatCurrency(pendapatanBulanIni || 0)}
-                        icon={Banknote}
-                        className="border-l-4 border-green-500"
-                    />
-                    <StatCard
-                        title="Jumlah Kasbon"
-                        value={formatCurrency(sisaKasbon || 0)}
-                        icon={Wallet}
-                        className="border-l-4 border-red-500"
-                    />
-                    <StatCard
-                        title="Toreh Bulan Ini"
-                        value={`${totalQtyKgThisMonth || 0} kg`}
-                        icon={CalendarCheck}
-                        className="border-l-4 border-blue-500"
-                    />
-                    <StatCard
-                        title="Total Toreh (Semua)"
-                        value={`${totalQtyKg || 0} kg`}
-                        icon={Scale}
-                        className="border-l-4 border-gray-500"
-                    />
+                {/* Stats */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    {[
+                        { title: 'Pendapatan Bulan Ini', val: formatCurrency(pendapatanBulanIni || 0), icon: Banknote, color: 'bg-emerald-50 text-emerald-600' },
+                        { title: 'Sisa Kasbon', val: formatCurrency(sisaKasbon || 0), icon: Wallet, color: 'bg-red-50 text-red-600' },
+                        { title: 'Toreh Bulan Ini', val: `${totalQtyKgThisMonth || 0} Kg`, icon: CalendarCheck, color: 'bg-blue-50 text-blue-600' },
+                        { title: 'Total Toreh (Semua)', val: `${totalQtyKg || 0} Kg`, icon: Scale, color: 'bg-purple-50 text-purple-600' }
+                    ].map((s, i) => (
+                        <Card key={i} className="shadow-sm border-0"><CardContent className="p-6 flex items-center gap-4"><div className={`p-3 rounded-xl ${s.color}`}><s.icon className="w-6 h-6"/></div><div><p className="text-sm text-gray-500">{s.title}</p><p className="text-xl font-bold">{s.val}</p></div></CardContent></Card>
+                    ))}
                 </div>
 
-                {/* Konten Utama (Profil & Tabel Riwayat) */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    {/* Kolom Kiri: Informasi Profil */}
-                    <div className="lg:col-span-1 space-y-6">
-                        <Card className="shadow-lg dark:bg-gray-800">
-                            <CardHeader>
-                                <CardTitle className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-                                    Informasi Pribadi
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <dl className="divide-y divide-gray-200 dark:divide-gray-700">
-                                    <ProfileDataItem label="Nama Lengkap" value={incisor.name} />
-                                    <ProfileDataItem label="NIK" value={incisor.nik} /> {/* <-- NIK DITAMPILKAN */}
-                                    <ProfileDataItem label="Tanggal Lahir" value={formatDate(incisor.ttl)} />
-                                    <ProfileDataItem label="Jenis Kelamin" value={incisor.gender} />
-                                    <ProfileDataItem label="Agama" value={incisor.agama} />
-                                    <ProfileDataItem label="Status" value={incisor.status} />
-                                    <ProfileDataItem label="Alamat" value={incisor.address} />
-                                </dl>
-                            </CardContent>
-                        </Card>
-
-                        <Card className="shadow-lg dark:bg-gray-800">
-                            <CardHeader>
-                                <CardTitle className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-                                    Informasi Administrasi
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <dl className="divide-y divide-gray-200 dark:divide-gray-700">
-                                    <ProfileDataItem label="Kode Penoreh" value={incisor.no_invoice} />
-                                    <ProfileDataItem label="Lokasi Kerja" value={incisor.lok_toreh} />
-                                </dl>
-                            </CardContent>
-                        </Card>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    {/* Profil Card */}
+                    <div className="lg:col-span-1 bg-white dark:bg-gray-800 rounded-xl shadow-sm border p-0 overflow-hidden h-fit">
+                        <div className="p-6 text-center bg-gray-50 dark:bg-gray-900 border-b">
+                            <div className="relative inline-block">
+                                <div className="w-24 h-24 mx-auto bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-3xl font-bold">{incisor.name.charAt(0)}</div>
+                                <span className={`absolute bottom-1 right-1 px-2 py-0.5 text-[10px] font-bold text-white rounded-full ${incisor.is_active ? 'bg-emerald-500' : 'bg-gray-500'}`}>
+                                    {incisor.is_active ? 'AKTIF' : 'NON-AKTIF'}
+                                </span>
+                            </div>
+                            <h2 className="text-xl font-bold mt-3">{incisor.name}</h2>
+                            <p className="text-sm text-gray-500 font-mono">{incisor.no_invoice}</p>
+                            <div className="mt-2 inline-flex items-center px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-medium"><MapPin className="w-3 h-3 mr-1"/> {incisor.lok_toreh}</div>
+                        </div>
+                        <div className="p-6 space-y-3">
+                            <div className="flex justify-between border-b pb-2"><span className="text-gray-500 text-sm">NIK</span><span className="font-medium text-sm">{incisor.nik}</span></div>
+                            <div className="flex justify-between border-b pb-2"><span className="text-gray-500 text-sm">Tgl Lahir</span><span className="font-medium text-sm">{formatDate(incisor.ttl)}</span></div>
+                            <div className="flex justify-between border-b pb-2"><span className="text-gray-500 text-sm">Gender</span><span className="font-medium text-sm">{incisor.gender}</span></div>
+                            <div className="flex justify-between border-b pb-2"><span className="text-gray-500 text-sm">Agama</span><span className="font-medium text-sm">{incisor.agama}</span></div>
+                            <div className="flex justify-between border-b pb-2"><span className="text-gray-500 text-sm">Status</span><span className="font-medium text-sm">{incisor.status}</span></div>
+                            <div><span className="text-gray-500 text-sm block mb-1">Alamat</span><span className="font-medium text-sm">{incisor.address}</span></div>
+                        </div>
                     </div>
 
-                    {/* Kolom Kanan: Tabel Riwayat */}
-                    <div className="lg:col-span-2">
-                        <Card className="shadow-lg dark:bg-gray-800">
-                            <CardHeader>
-                                <CardTitle className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-                                    Riwayat Toreh Harian
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="rounded-md border dark:border-gray-700">
-                                    <Table>
-                                        <TableHeader>
-                                            <TableRow className="dark:border-gray-700">
-                                                <TableHead className="dark:text-gray-300">Product</TableHead>
-                                                <TableHead className="dark:text-gray-300">Tanggal</TableHead>
-                                                <TableHead className="dark:text-gray-300">Kode/Penoreh</TableHead>
-                                                <TableHead className="dark:text-gray-300">Kebun</TableHead>
-                                                <TableHead className="dark:text-gray-300">Qty (kg)</TableHead>
-                                                <TableHead className="dark:text-gray-300 text-right">Total Harga</TableHead>
-                                            </TableRow>
-                                        </TableHeader>
-                                        <TableBody>
-                                            {dailyData.length > 0 ? (
-                                                dailyData.map((item, index) => (
-                                                    <TableRow key={index} className="dark:border-gray-700">
-                                                        <TableCell className="dark:text-gray-200">{item.product}</TableCell>
-                                                        <TableCell className="dark:text-gray-200">{formatDate(item.tanggal)}</TableCell>
-                                                        <TableCell className="dark:text-gray-200">{item.kode_penoreh}</TableCell>
-                                                        <TableCell className="dark:text-gray-200">{item.kebun}</TableCell>
-                                                        <TableCell className="dark:text-gray-200">{item.qty_kg}</TableCell>
-                                                        <TableCell className="dark:text-gray-200 text-right">
-                                                            {formatCurrency(item.total_harga)}
-                                                        </TableCell>
-                                                    </TableRow>
-                                                ))
-                                            ) : (
-                                                <TableRow>
-                                                    <TableCell
-                                                        colSpan={6}
-                                                        className="text-center text-gray-500 dark:text-gray-400"
-                                                    >
-                                                        Tidak ada data riwayat bulan ini.
-                                                    </TableCell>
-                                                </TableRow>
-                                            )}
-                                        </TableBody>
-                                    </Table>
-                                </div>
-                            </CardContent>
-                        </Card>
+                    {/* Table Riwayat */}
+                    <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl shadow-sm border overflow-hidden">
+                        <div className="p-5 border-b font-bold text-lg">Riwayat Toreh Harian</div>
+                        <div className="overflow-x-auto">
+                            <Table>
+                                <TableHeader className="bg-gray-50">
+                                    <TableRow>
+                                        <TableHead>Tanggal</TableHead><TableHead>Produk</TableHead><TableHead>Kebun</TableHead><TableHead className="text-right">Qty (Kg)</TableHead><TableHead className="text-right">Total (Rp)</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {dailyData.length > 0 ? dailyData.map((d: any, i: number) => (
+                                        <TableRow key={i}>
+                                            <TableCell>{formatDate(d.tanggal)}</TableCell>
+                                            <TableCell>{d.product}</TableCell>
+                                            <TableCell><span className="bg-gray-100 px-2 py-1 rounded text-xs">{d.kebun}</span></TableCell>
+                                            <TableCell className="text-right font-mono">{d.qty_kg}</TableCell>
+                                            <TableCell className="text-right font-bold">{formatCurrency(d.total_harga)}</TableCell>
+                                        </TableRow>
+                                    )) : <TableRow><TableCell colSpan={5} className="text-center h-24 text-gray-500">Belum ada data.</TableCell></TableRow>}
+                                </TableBody>
+                            </Table>
+                        </div>
                     </div>
                 </div>
             </div>

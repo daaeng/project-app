@@ -1,27 +1,52 @@
-import React, { useEffect, useState } from 'react';
+// ./resources/js/Pages/Index.tsx
+
+import Heading from '@/components/heading';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import {
-    LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
-    XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
+    Area,
+    AreaChart,
+    Bar,
+    BarChart,
+    CartesianGrid,
+    Cell,
+    Legend,
+    Pie,
+    PieChart,
+    ResponsiveContainer,
+    Tooltip,
+    XAxis,
+    YAxis,
 } from 'recharts';
 import {
-  FaChartBar,
-  FaUserTie,
-  FaUsers,
-  FaBoxOpen,
-  FaClipboardList,
-  FaFileInvoice,
-  FaMoneyBill,
-  FaChartPie,
-  FaUserFriends,
-} from 'react-icons/fa';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import Tag_Karet from '@/components/ui/tag_karet';
+    Activity,
+    Archive,
+    Box,
+    Calendar,
+    CreditCard,
+    DollarSign,
+    FileClock,
+    Filter,
+    LayoutDashboard,
+    TrendingUp,
+    Truck,
+    Users,
+    Wallet,
+    Zap,
+} from 'lucide-react';
+import React, { useEffect, useState } from 'react';
 
-// Breadcrumbs for navigation
+// --- Konfigurasi Awal ---
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Dashboard',
@@ -29,483 +54,488 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-const pieColors = ['#22C55E', '#3B82F6', '#FACC15', '#EF4444'];
+const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444'];
 
+// --- Helper Functions ---
 const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('id-ID', {
         style: 'currency',
         currency: 'IDR',
         minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
     }).format(value);
 };
 
-// --- PERBAIKAN 1: Fungsi Helper untuk menyingkat angka Chart ---
-// Mengubah 1.500.000 menjadi 1.5jt agar chart lebih rapi
-const formatYAxisTick = (value: number) => {
-    if (value === 0) return '0';
-    if (value >= 1000000000) {
-        return (value / 1000000000).toFixed(1).replace(/\.0$/, '') + 'M'; // Milyar
-    }
-    if (value >= 1000000) {
-        return (value / 1000000).toFixed(1).replace(/\.0$/, '') + 'jt'; // Juta
-    }
-    if (value >= 1000) {
-        return (value / 1000).toFixed(0) + 'k'; // Ribu
-    }
-    return value.toString();
+const formatCompactNumber = (number: number) => {
+    return Intl.NumberFormat('id-ID', {
+        notation: "compact",
+        maximumFractionDigits: 1
+    }).format(number);
 };
 
-interface StatCardProps {
-  icon: React.ElementType;
-  title: string;
-  value: string;
-  subtitle: string;
-  gradient: string;
-}
+// --- Komponen StatCard Futuristik (Aesthetic Glass) ---
+const StatCard = ({ icon: Icon, title, value, subtitle, color }: any) => {
+    // Definisi tema warna untuk Glow dan Icon
+    const themes: any = {
+        emerald: {
+            bg: "hover:shadow-emerald-500/20 hover:border-emerald-500/50",
+            icon: "bg-emerald-500 shadow-emerald-500/40",
+            text: "text-emerald-500",
+            glow: "from-emerald-500/20 via-emerald-500/5 to-transparent",
+        },
+        blue: {
+            bg: "hover:shadow-blue-500/20 hover:border-blue-500/50",
+            icon: "bg-blue-500 shadow-blue-500/40",
+            text: "text-blue-500",
+            glow: "from-blue-500/20 via-blue-500/5 to-transparent",
+        },
+        rose: {
+            bg: "hover:shadow-rose-500/20 hover:border-rose-500/50",
+            icon: "bg-rose-500 shadow-rose-500/40",
+            text: "text-rose-500",
+            glow: "from-rose-500/20 via-rose-500/5 to-transparent",
+        },
+        amber: {
+            bg: "hover:shadow-amber-500/20 hover:border-amber-500/50",
+            icon: "bg-amber-500 shadow-amber-500/40",
+            text: "text-amber-500",
+            glow: "from-amber-500/20 via-amber-500/5 to-transparent",
+        },
+        violet: {
+            bg: "hover:shadow-violet-500/20 hover:border-violet-500/50",
+            icon: "bg-violet-500 shadow-violet-500/40",
+            text: "text-violet-500",
+            glow: "from-violet-500/20 via-violet-500/5 to-transparent",
+        },
+        indigo: {
+            bg: "hover:shadow-indigo-500/20 hover:border-indigo-500/50",
+            icon: "bg-indigo-500 shadow-indigo-500/40",
+            text: "text-indigo-500",
+            glow: "from-indigo-500/20 via-indigo-500/5 to-transparent",
+        },
+        cyan: {
+            bg: "hover:shadow-cyan-500/20 hover:border-cyan-500/50",
+            icon: "bg-cyan-500 shadow-cyan-500/40",
+            text: "text-cyan-500",
+            glow: "from-cyan-500/20 via-cyan-500/5 to-transparent",
+        },
+        orange: {
+            bg: "hover:shadow-orange-500/20 hover:border-orange-500/50",
+            icon: "bg-orange-500 shadow-orange-500/40",
+            text: "text-orange-500",
+            glow: "from-orange-500/20 via-orange-500/5 to-transparent",
+        },
+        pink: {
+            bg: "hover:shadow-pink-500/20 hover:border-pink-500/50",
+            icon: "bg-pink-500 shadow-pink-500/40",
+            text: "text-pink-500",
+            glow: "from-pink-500/20 via-pink-500/5 to-transparent",
+        },
+    };
 
-const StatCard: React.FC<StatCardProps> = ({ icon: Icon, title, value, subtitle, gradient }) => (
-    <div className={`p-4 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 bg-gradient-to-r ${gradient} text-white`}>
-        <div className="flex items-center gap-3">
-            <div className="bg-white bg-opacity-20 p-3 rounded-full">
-                <Icon className="text-blue-500 text-xl" />
-            </div>
-            <div>
-                <h4 className="text-sm font-medium">{title}</h4>
-                <p className="text-xl font-semibold">{value}</p>
-                <p className="text-xs opacity-90">{subtitle}</p>
+    const t = themes[color] || themes.blue;
+
+    return (
+        <div className={`relative group overflow-hidden rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 transition-all duration-300 ${t.bg} hover:-translate-y-1`}>
+            {/* Ambient Glow Background */}
+            <div className={`absolute -top-10 -right-10 w-32 h-32 rounded-full bg-gradient-to-br ${t.glow} blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
+            
+            <div className="p-6 relative z-10">
+                <div className="flex justify-between items-start mb-4">
+                    <div className={`p-3 rounded-xl ${t.icon} text-white shadow-lg`}>
+                        <Icon className="w-6 h-6" />
+                    </div>
+                    {/* Decorative Chip */}
+                    <div className={`flex items-center gap-1 px-2 py-1 rounded-full bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700`}>
+                        <div className={`w-1.5 h-1.5 rounded-full ${t.icon}`} />
+                        <span className="text-[10px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Metric</span>
+                    </div>
+                </div>
+                
+                <div className="space-y-1">
+                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{title}</p>
+                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">{value}</h3>
+                </div>
+                
+                <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between">
+                    <p className="text-xs text-gray-400 font-medium truncate max-w-[150px]">{subtitle}</p>
+                    <Activity className={`w-4 h-4 ${t.text} opacity-50 group-hover:opacity-100 transition-opacity`} />
+                </div>
             </div>
         </div>
-    </div>
-);
+    );
+};
 
+// --- Tipe Data ---
 interface PageProps {
-    totalAmountOutKaret : number;
-    hsl_tsa : number;
-    hsl_beli : number;
-    totalPendingRequests : number;
+    totalAmountOutKaret: number;
+    hsl_tsa: number;
+    hsl_beli: number;
+    totalPendingRequests: number;
     stok_gka: number;
-    jml_penoreh : number;
-    jml_pegawai : number;
-    totalPendingNota : number;
+    jml_penoreh: number;
+    jml_pegawai: number;
+    totalPendingNota: number;
     totalRevenueAmount: number;
     totalRevenueKg: number;
     filter?: { search?: string; time_period?: string; month?: string; year?: string };
-    products: {
-        data: Product[];
-        links: PaginationLink[];
-        meta: {
-            current_page: number;
-            last_page: number;
-            per_page: number;
-            total: number;
-        };
-    };
     monthlyData: { name: string; temadu: number; sebayar: number; penjualan: number }[];
     monthlyRevenueData: { name: string; value: number }[];
     topIncisorRevenue: { name: string; value: number; qty_karet: number }[];
     qualityDistribution: { name: string; value: number }[];
 }
 
-interface Product {
-    id: number;
-    product: string;
-    date: string;
-    no_invoice: string;
-    nm_supplier: string;
-    j_brg: string;
-    desk: string;
-    qty_kg: number;
-    price_qty: number;
-    amount: number;
-    keping: number;
-    kualitas: string;
-    qty_out: number;
-    price_out: number;
-    amount_out: number;
-    keping_out: number;
-    kualitas_out: string;
-    status: string;
-}
-
-interface PaginationLink {
-    url: string | null;
-    label: string;
-    active: boolean;
-}
-
-export default function Dashboard({ totalAmountOutKaret, hsl_tsa, hsl_beli, totalPendingRequests, stok_gka, jml_penoreh, jml_pegawai, totalPendingNota, totalRevenueAmount, totalRevenueKg, filter, products, monthlyData, monthlyRevenueData, qualityDistribution, topIncisorRevenue }: PageProps) {
-
-    const [searchValue, setSearchValue] = useState(filter?.search || '');
+export default function Dashboard({
+    totalAmountOutKaret,
+    hsl_tsa,
+    hsl_beli,
+    totalPendingRequests,
+    stok_gka,
+    jml_penoreh,
+    jml_pegawai,
+    totalPendingNota,
+    totalRevenueAmount,
+    filter,
+    monthlyData,
+    monthlyRevenueData,
+    qualityDistribution,
+    topIncisorRevenue,
+}: PageProps) {
+    const [timePeriod, setTimePeriod] = useState(filter?.time_period || 'this-month');
     const [selectedMonth, setSelectedMonth] = useState(filter?.month || '');
     const [selectedYear, setSelectedYear] = useState(filter?.year || '');
-    const [timePeriod, setTimePeriod] = useState(filter?.time_period || 'this-month');
+
+    const currentYear = new Date().getFullYear();
+    const months = [
+        { value: '01', label: 'Jan' }, { value: '02', label: 'Feb' },
+        { value: '03', label: 'Mar' }, { value: '04', label: 'Apr' },
+        { value: '05', label: 'Mei' }, { value: '06', label: 'Jun' },
+        { value: '07', label: 'Jul' }, { value: '08', label: 'Ags' },
+        { value: '09', label: 'Sep' }, { value: '10', label: 'Okt' },
+        { value: '11', label: 'Nov' }, { value: '12', label: 'Des' },
+    ];
+    const years = Array.from({ length: 5 }, (_, i) => ({
+        value: (currentYear - i).toString(),
+        label: (currentYear - i).toString(),
+    }));
 
     useEffect(() => {
-        setSearchValue(filter?.search || '');
         setTimePeriod(filter?.time_period || 'this-month');
         setSelectedMonth(filter?.month || '');
         setSelectedYear(filter?.year || '');
-    }, [filter?.search, filter?.time_period, filter?.month, filter?.year]);
+    }, [filter]);
 
-
-    const handleFilterChange = (newFilters: { [key: string]: string | number | null }) => {
-        const filters = {
-            search: searchValue,
+    const handleFilterChange = (newFilter: any) => {
+        const query = {
             time_period: timePeriod,
             month: selectedMonth,
             year: selectedYear,
-            ...newFilters,
+            ...newFilter,
         };
-        
-        router.get(route('dashboard'), filters as any, {
-            preserveState: true,
-            replace: true,
-            only: ['products', 'filter', 'monthlyData', 'monthlyRevenueData', 'qualityDistribution', 'topIncisorRevenue', 'totalRevenueAmount', 'totalRevenueKg', 'totalAmountOutKaret', 'hsl_tsa', 'hsl_beli', 'totalPendingRequests', 'stok_gka', 'jml_penoreh', 'jml_pegawai', 'totalPendingNota'],
-        });
+        router.get(route('dashboard'), query, { preserveState: true, replace: true });
     };
-
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setSearchValue(e.target.value);
-    };
-
-    const renderPagination = (pagination: PageProps['products']) => {
-        const filterString = `&search=${searchValue || ''}&time_period=${timePeriod || ''}&month=${selectedMonth || ''}&year=${selectedYear || ''}`;
-        return (
-            <div className="flex justify-center items-center mt-6 space-x-1">
-                {pagination.links.map((link: PaginationLink, index: number) => (
-                    link.url === null ? (
-                        <div key={index} className="px-4 py-2 text-sm text-gray-400" dangerouslySetInnerHTML={{ __html: link.label }} />
-                    ) : (
-                        <Link
-                            key={`link-${index}`}
-                            href={link.url + filterString}
-                            className={`px-4 py-2 text-sm rounded-md transition ${link.active ? 'bg-blue-600 text-white shadow-md' : 'bg-white text-gray-700 hover:bg-gray-100'}`}
-                            preserveState
-                            preserveScroll
-                        >
-                            <span dangerouslySetInnerHTML={{ __html: link.label }} />
-                        </Link>
-                    )
-                ))}
-            </div>
-        );
-    };
-
-    const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === 'Enter') performSearch();
-    };
-
-    const handleTimePeriodChange = (value: string) => {
-        setTimePeriod(value);
-        if (value !== 'custom') {
-            handleFilterChange({ time_period: value, month: null, year: null });
-        }
-    };
-    
-    const handleMonthChange = (value: string) => {
-        setSelectedMonth(value);
-        handleFilterChange({ time_period: 'custom', month: value, year: selectedYear });
-    };
-
-    const handleYearChange = (value: string) => {
-        setSelectedYear(value);
-        handleFilterChange({ time_period: 'custom', month: selectedMonth, year: value });
-    };
-    
-    const performSearch = () => {
-        handleFilterChange({});
-    };
-
-    const getMonthOptions = () => [
-        { value: '01', label: 'Januari' }, { value: '02', label: 'Februari' }, { value: '03', label: 'Maret' },
-        { value: '04', label: 'April' }, { value: '05', label: 'Mei' }, { value: '06', label: 'Juni' },
-        { value: '07', label: 'Juli' }, { value: '08', label: 'Agustus' }, { value: '09', label: 'September' },
-        { value: '10', label: 'Oktober' }, { value: '11', label: 'November' }, { value: '12', label: 'Desember' },
-    ];
-
-    const getYearOptions = () => {
-        const currentYear = new Date().getFullYear();
-        const years = [];
-        for (let i = currentYear; i >= 2020; i--) {
-            years.push({ value: i.toString(), label: i.toString() });
-        }
-        return years;
-    };
-
-    const hasQualityData = qualityDistribution.some(item => item.value > 0);
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Dashboard" />
-            <div className="min-h-screen p-6 sm:p-8 bg-gray-50 dark:bg-black font-inter">
 
-                <div className="bg-[#2b75c4] rounded-xl p-5 shadow-md mb-6">
-                    <h2 className="text-2xl font-bold text-white">Dashboard Analitik Bisnis Karet</h2>
-                    <p className="text-sm text-gray-200 mt-1">Selamat datang kembali 👋 Berikut adalah gambaran performa PT GKA, TSA, dan GK Agro.</p>
-                </div>
+            <div className="min-h-screen bg-gray-50/30 dark:bg-black p-4 sm:p-6 lg:p-8 space-y-8 font-sans">
+                
+                {/* 1. Header Section with Glass Effect */}
+                <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl p-6 rounded-3xl border border-white/20 shadow-sm">
+                    <div>
+                        <div className="flex items-center gap-3 mb-1">
+                            <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg">
+                                <LayoutDashboard className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
+                            </div>
+                            <h1 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">Business Command Center</h1>
+                        </div>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 pl-11">
+                            Real-time analytics and performance monitoring.
+                        </p>
+                    </div>
 
-                <div className="mb-6 flex flex-wrap gap-2 justify-end items-center">
-                    <div className="flex items-center gap-2 p-1">
-                        <span className="text-black dark:text-white text-sm">Filter Waktu:</span>
-                        <div className='bg-accent dark:bg-white text-black rounded-xl'>
-                            <Select value={timePeriod} onValueChange={handleTimePeriodChange}>
-                                <SelectTrigger className="w-[180px]"><SelectValue placeholder="Pilih periode waktu" /></SelectTrigger>
+                    <div className="flex flex-wrap items-center gap-2">
+                        <div className="flex items-center bg-gray-100 dark:bg-gray-800 p-1 rounded-xl">
+                            <Select
+                                value={timePeriod}
+                                onValueChange={(val) => {
+                                    setTimePeriod(val);
+                                    if (val !== 'custom') handleFilterChange({ time_period: val, month: null, year: null });
+                                }}
+                            >
+                                <SelectTrigger className="w-[140px] border-0 h-9 bg-transparent focus:ring-0 text-sm font-medium">
+                                    <SelectValue placeholder="Periode" />
+                                </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="all-time">Semua Waktu</SelectItem>
-                                    <SelectItem value="all-years">Semua Tahun</SelectItem>
-                                    <SelectItem value="this-year">Tahun Ini</SelectItem>
                                     <SelectItem value="this-month">Bulan Ini</SelectItem>
                                     <SelectItem value="last-month">Bulan Lalu</SelectItem>
-                                    <SelectItem value="this-week">Minggu Ini</SelectItem>
-                                    <SelectItem value="today">Hari Ini</SelectItem>
-                                    <SelectItem value="custom">Pilih Bulan & Tahun</SelectItem>
+                                    <SelectItem value="this-year">Tahun Ini</SelectItem>
+                                    <SelectItem value="all-time">Semua Data</SelectItem>
+                                    <SelectItem value="custom">Custom...</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
-                    </div>
 
-                    {timePeriod === 'custom' && (
-                        <>
-                            <div className='bg-accent dark:bg-white text-black rounded-xl'>
-                                <Select value={selectedMonth} onValueChange={handleMonthChange}>
-                                    <SelectTrigger className="w-[140px]"><SelectValue placeholder="Bulan" /></SelectTrigger>
-                                    <SelectContent>
-                                        {getMonthOptions().map(month => <SelectItem key={month.value} value={month.value}>{month.label}</SelectItem>)}
-                                    </SelectContent>
+                        {timePeriod === 'custom' && (
+                            <div className="flex gap-2 animate-in fade-in zoom-in duration-300">
+                                <Select
+                                    value={selectedMonth}
+                                    onValueChange={(val) => { setSelectedMonth(val); handleFilterChange({ month: val, time_period: 'custom' }); }}
+                                >
+                                    <SelectTrigger className="w-[90px] h-11 rounded-xl border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-xs"><SelectValue placeholder="Bulan" /></SelectTrigger>
+                                    <SelectContent>{months.map((m) => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}</SelectContent>
+                                </Select>
+                                <Select
+                                    value={selectedYear}
+                                    onValueChange={(val) => { setSelectedYear(val); handleFilterChange({ year: val, time_period: 'custom' }); }}
+                                >
+                                    <SelectTrigger className="w-[90px] h-11 rounded-xl border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-xs"><SelectValue placeholder="Tahun" /></SelectTrigger>
+                                    <SelectContent>{years.map((y) => <SelectItem key={y.value} value={y.value}>{y.label}</SelectItem>)}</SelectContent>
                                 </Select>
                             </div>
-                            <div className='bg-accent dark:bg-white text-black rounded-xl'>
-                                <Select value={selectedYear} onValueChange={handleYearChange}>
-                                    <SelectTrigger className="w-[120px]"><SelectValue placeholder="Tahun" /></SelectTrigger>
-                                    <SelectContent>
-                                        {getYearOptions().map(year => <SelectItem key={year.value} value={year.value}>{year.label}</SelectItem>)}
-                                    </SelectContent>
-                                </Select>
+                        )}
+                        
+                        <Button variant="outline" size="icon" className="h-11 w-11 rounded-xl border-gray-200 dark:border-gray-700" onClick={() => handleFilterChange({})}>
+                            <Filter className="w-4 h-4 text-gray-500" />
+                        </Button>
+                    </div>
+                </div>
+
+                {/* 2. Stat Cards Grid (Aesthetic) */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
+                    <StatCard
+                        title="Pendapatan Bersih"
+                        value={formatCurrency(totalRevenueAmount || 0)}
+                        subtitle="Akumulasi Penjualan GKA"
+                        icon={DollarSign}
+                        color="emerald"
+                    />
+                    <StatCard
+                        title="Produksi Karet"
+                        value={`${formatCompactNumber(hsl_tsa)} Kg`}
+                        subtitle="Total Output TSA"
+                        icon={Box}
+                        color="blue"
+                    />
+                    <StatCard
+                        title="Pengajuan Pending"
+                        value={`${totalPendingRequests}`}
+                        subtitle="Menunggu Persetujuan"
+                        icon={Archive}
+                        color="rose"
+                    />
+                    <StatCard
+                        title="Stok Terkirim"
+                        value={`${formatCompactNumber(stok_gka)} Kg`}
+                        subtitle="Shipment ke Buyer"
+                        icon={Truck}
+                        color="amber"
+                    />
+                    
+                    <StatCard
+                        title="Total Penoreh"
+                        value={`${jml_penoreh}`}
+                        subtitle="Tenaga Kerja Aktif"
+                        icon={Users}
+                        color="violet"
+                    />
+                    <StatCard
+                        title="Total Pengeluaran"
+                        value={formatCurrency(hsl_beli || 0)}
+                        subtitle="Pembelian Karet"
+                        icon={Wallet}
+                        color="pink"
+                    />
+                    <StatCard
+                        title="Nota Pending"
+                        value={formatCurrency(totalPendingNota || 0)}
+                        subtitle="Menunggu Konfirmasi"
+                        icon={FileClock}
+                        color="orange"
+                    />
+                    <StatCard
+                        title="System Users"
+                        value={`${jml_pegawai}`}
+                        subtitle="Pengguna Terdaftar"
+                        icon={CreditCard}
+                        color="indigo"
+                    />
+                </div>
+
+                {/* 3. Main Charts Section */}
+                <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                    
+                    {/* Revenue Trend - Focus Chart (2/3 width) */}
+                    <Card className="xl:col-span-2 shadow-sm border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 rounded-3xl overflow-hidden">
+                        <CardHeader className="bg-gray-50/50 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-800 px-8 py-6">
+                            <div className="flex justify-between items-center">
+                                <div>
+                                    <CardTitle className="text-lg font-bold">Tren Pertumbuhan Pendapatan</CardTitle>
+                                    <p className="text-sm text-gray-500 mt-1">Visualisasi performa penjualan finansial.</p>
+                                </div>
+                                <div className="p-2 bg-emerald-100 dark:bg-emerald-900/30 rounded-xl">
+                                    <TrendingUp className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                                </div>
                             </div>
-                        </>
-                    )}
+                        </CardHeader>
+                        <CardContent className="p-6">
+                            <div className="h-[350px] w-full">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <AreaChart data={monthlyRevenueData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                                        <defs>
+                                            <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                                                <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
+                                                <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                                            </linearGradient>
+                                        </defs>
+                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
+                                        <XAxis 
+                                            dataKey="name" 
+                                            axisLine={false} 
+                                            tickLine={false} 
+                                            tick={{ fontSize: 12, fill: '#94a3b8' }} 
+                                            dy={10} 
+                                        />
+                                        <YAxis 
+                                            axisLine={false} 
+                                            tickLine={false} 
+                                            tick={{ fontSize: 12, fill: '#94a3b8' }} 
+                                            tickFormatter={formatCompactNumber} 
+                                        />
+                                        <Tooltip 
+                                            contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 40px -10px rgba(0,0,0,0.1)' }}
+                                            formatter={(value: number) => [formatCurrency(value), 'Pendapatan']}
+                                        />
+                                        <Area 
+                                            type="monotone" 
+                                            dataKey="value" 
+                                            stroke="#10b981" 
+                                            strokeWidth={4} 
+                                            fillOpacity={1} 
+                                            fill="url(#colorRevenue)" 
+                                        />
+                                    </AreaChart>
+                                </ResponsiveContainer>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Production Mix - Secondary Chart (1/3 width) */}
+                    <Card className="xl:col-span-1 shadow-sm border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 rounded-3xl overflow-hidden">
+                        <CardHeader className="bg-gray-50/50 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-800 px-8 py-6">
+                            <div className="flex justify-between items-center">
+                                <div>
+                                    <CardTitle className="text-lg font-bold">Komposisi Produksi</CardTitle>
+                                    <p className="text-sm text-gray-500 mt-1">Temadu vs Sebayar</p>
+                                </div>
+                                <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-xl">
+                                    <Zap className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                                </div>
+                            </div>
+                        </CardHeader>
+                        <CardContent className="p-6">
+                            <div className="h-[350px] w-full flex items-center justify-center">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart data={monthlyData} layout="vertical" margin={{ top: 0, right: 20, left: 0, bottom: 0 }}>
+                                        <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f3f4f6" />
+                                        <XAxis type="number" hide />
+                                        <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} width={40} tick={{ fontSize: 11, fill: '#64748b' }} />
+                                        <Tooltip 
+                                            cursor={{fill: 'transparent'}}
+                                            contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}
+                                        />
+                                        <Legend verticalAlign="bottom" wrapperStyle={{ paddingTop: '20px' }} iconType="circle"/>
+                                        <Bar dataKey="temadu" name="Temadu" stackId="a" fill="#3b82f6" radius={[0, 4, 4, 0]} barSize={20} />
+                                        <Bar dataKey="sebayar" name="Sebayar" stackId="a" fill="#6366f1" radius={[0, 4, 4, 0]} barSize={20} />
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </div>
+                        </CardContent>
+                    </Card>
                 </div>
 
-                {/* Stat Cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                    <StatCard icon={FaMoneyBill} title="Total Penjualan Karet" value={formatCurrency(totalRevenueAmount || 0)} subtitle="oleh PT GKA" gradient="from-green-400 to-green-600" />
-                    <StatCard icon={FaBoxOpen} title="Total Produksi Karet" value={hsl_tsa + ' kg'} subtitle="oleh TSA" gradient="from-blue-400 to-blue-600" />
-                    <StatCard icon={FaClipboardList} title="Pengajuan Tertunda" value={totalPendingRequests + ''} subtitle="Menunggu Persetujuan" gradient="from-red-400 to-red-600" />
-                    <StatCard icon={FaBoxOpen} title="Total Kirim Karet" value={stok_gka + ''} subtitle="PT. GKA ke Buyer" gradient="from-yellow-400 to-yellow-600" />
-                    <StatCard icon={FaUsers} title="Total Penoreh" value={jml_penoreh + ''} subtitle="Terdaftar" gradient="from-purple-400 to-purple-600" />
-                    <StatCard icon={FaFileInvoice} title="Pengeluaran TSA" value={formatCurrency(hsl_beli || 0)} subtitle="Pembelian Karet" gradient="from-pink-400 to-pink-600" />
-                    <StatCard icon={FaMoneyBill} title="Kwitansi/Nota Pending" value={formatCurrency(totalPendingNota || 0)} subtitle="Menunggu Persetujuan" gradient="from-orange-400 to-orange-600" />
-                    <StatCard icon={FaUserTie} title="Total Peran Pengguna" value={jml_pegawai + ''} subtitle="Peran Terdaftar" gradient="from-indigo-400 to-indigo-600" />
-                </div>
-
-                {/* Charts Area */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                {/* 4. Additional Insights Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                     
-                    {/* --- PERBAIKAN 2: BAR CHART PRODUKSI --- */}
-                    <div className="bg-white p-6 rounded-2xl shadow-md hover:shadow-lg transition-all duration-300">
-                        <div className="flex items-center gap-2 mb-4">
-                            <div className="bg-blue-100 p-2 rounded-full"><FaChartBar className="text-blue-600 text-xl" /></div>
-                            <h4 className="text-lg font-semibold text-gray-800">Produksi Karet TSA (Temadu & Sebayar)</h4>
-                        </div>
-                        <ResponsiveContainer width="100%" height={300}>
-                            <BarChart data={monthlyData} margin={{ top: 20, right: 30, left: 20, bottom: 10 }}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                                {/* Perbesar Font XAxis */}
-                                <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                                {/* YAxis Kiri: Tambah formatter & label Kg */}
-                                <YAxis 
-                                    yAxisId="left" 
-                                    orientation="left" 
-                                    stroke="#3B82F6" 
-                                    tick={{ fontSize: 12 }} 
-                                    tickFormatter={formatYAxisTick}
-                                    label={{ value: 'Kg', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: '#3B82F6', fontSize: 12 } }}
-                                />
-                                {/* YAxis Kanan: Tambah formatter & label Rp */}
-                                <YAxis 
-                                    yAxisId="right" 
-                                    orientation="right" 
-                                    stroke="#22C55E" 
-                                    tick={{ fontSize: 12 }} 
-                                    tickFormatter={formatYAxisTick}
-                                    label={{ value: 'Rp', angle: 90, position: 'insideRight', style: { textAnchor: 'middle', fill: '#22C55E', fontSize: 12 } }}
-                                />
-                                <Tooltip
-                                    contentStyle={{ borderRadius: 8 }}
-                                    formatter={(value: number, name: string) => {
-                                        if (name === 'temadu') return [`${value} kg`, 'Temadu'];
-                                        if (name === 'sebayar') return [`${value} kg`, 'Sebayar'];
-                                        if (name === 'penjualan') return [formatCurrency(value), name];
-                                        return [value, name];
-                                    }}
-                                />
-                                <Legend />
-                                <Bar yAxisId="left" dataKey="sebayar" fill="#CC0000" name="Sebayar" radius={[8, 8, 0, 0]} />
-                                <Bar yAxisId="left" dataKey="temadu" fill="#0000FF" name="Temadu" radius={[8, 8, 0, 0]} />
-                                <Bar yAxisId="right" dataKey="penjualan" fill="#00CC00"  radius={[8, 8, 0, 0]} />
-                            </BarChart>
-                        </ResponsiveContainer>
-                    </div>
+                    {/* Top Penoreh */}
+                    <Card className="xl:col-span-2 shadow-sm border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 rounded-3xl overflow-hidden">
+                        <CardHeader className="bg-gray-50/50 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-800 px-8 py-6">
+                            <div className="flex flex-row items-center justify-between">
+                                <div>
+                                    <CardTitle className="text-lg font-bold">Top Penoreh Produktif</CardTitle>
+                                    <p className="text-sm text-gray-500 mt-1">Peringkat berdasarkan volume produksi (Kg).</p>
+                                </div>
+                                <div className="p-2 bg-violet-100 dark:bg-violet-900/30 rounded-xl">
+                                    <Activity className="w-5 h-5 text-violet-600 dark:text-violet-400" />
+                                </div>
+                            </div>
+                        </CardHeader>
+                        <CardContent className="p-6">
+                            <div className="h-[280px] w-full">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart data={topIncisorRevenue} layout="vertical" margin={{ top: 0, right: 30, left: 60, bottom: 0 }}>
+                                        <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#f3f4f6" />
+                                        <XAxis type="number" hide />
+                                        <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} width={100} tick={{ fontSize: 12, fill: '#475569', fontWeight: 600 }} />
+                                        <Tooltip 
+                                            cursor={{fill: '#f8fafc'}}
+                                            contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }}
+                                        />
+                                        <Bar dataKey="qty_karet" name="Produksi (Kg)" fill="#8b5cf6" radius={[0, 6, 6, 0]} barSize={16} background={{ fill: '#f8fafc', radius: [0, 6, 6, 0] }} />
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </div>
+                        </CardContent>
+                    </Card>
 
-                    {/* --- PERBAIKAN 3: LINE CHART PENDAPATAN --- */}
-                    <div className="bg-white p-6 rounded-2xl shadow-md hover:shadow-lg transition-all duration-300">
-                        <div className="flex items-center gap-2 mb-4">
-                            <div className="bg-green-100 p-2 rounded-full"><FaMoneyBill className="text-green-600 text-xl" /></div>
-                            <h4 className="text-lg font-semibold text-gray-800">Tren Pendapatan Penjualan Karet</h4>
-                        </div>
-                        <ResponsiveContainer width="100%" height={300}>
-                            <LineChart data={monthlyRevenueData} margin={{ top: 20, right: 30, left: 30, bottom: 10 }}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                                <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                                {/* Gunakan formatYAxisTick disini */}
-                                <YAxis tickFormatter={formatYAxisTick} tick={{ fontSize: 12 }} />
-                                <Tooltip contentStyle={{ borderRadius: 10, boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }} formatter={(value: number) => formatCurrency(value)} />
-                                <Legend />
-                                <Line type="monotone" dataKey="value" stroke="#10B981" strokeWidth={2} dot={{ r: 5, fill: '#10B981' }} activeDot={{ r: 8 }} />
-                            </LineChart>
-                        </ResponsiveContainer>
-                    </div>
+                    {/* Quality Distribution */}
+                    <Card className="xl:col-span-1 shadow-sm border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 rounded-3xl overflow-hidden">
+                        <CardHeader className="bg-gray-50/50 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-800 px-8 py-6">
+                            <div className="flex justify-between items-center">
+                                <div>
+                                    <CardTitle className="text-lg font-bold">Distribusi Kualitas</CardTitle>
+                                    <p className="text-sm text-gray-500 mt-1">Breakdown kualitas hasil.</p>
+                                </div>
+                                <div className="p-2 bg-rose-100 dark:bg-rose-900/30 rounded-xl">
+                                    <Box className="w-5 h-5 text-rose-600 dark:text-rose-400" />
+                                </div>
+                            </div>
+                        </CardHeader>
+                        <CardContent className="p-6">
+                            <div className="h-[280px] w-full flex items-center justify-center">
+                                {qualityDistribution.some(d => d.value > 0) ? (
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <PieChart>
+                                            <Pie
+                                                data={qualityDistribution}
+                                                cx="50%"
+                                                cy="50%"
+                                                innerRadius={60}
+                                                outerRadius={80}
+                                                paddingAngle={8}
+                                                dataKey="value"
+                                                cornerRadius={6}
+                                            >
+                                                {qualityDistribution.map((entry, index) => (
+                                                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                                ))}
+                                            </Pie>
+                                            <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }} />
+                                            <Legend verticalAlign="bottom" iconType="circle" />
+                                        </PieChart>
+                                    </ResponsiveContainer>
+                                ) : (
+                                    <div className="text-center text-gray-400 text-sm">
+                                        <Box className="w-12 h-12 mx-auto mb-3 opacity-20" />
+                                        Tidak ada data kualitas tersedia
+                                    </div>
+                                )}
+                            </div>
+                        </CardContent>
+                    </Card>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                    
-                    {/* --- PERBAIKAN 4: PIE CHART KUALITAS --- */}
-                    <div className="bg-white p-6 rounded-2xl shadow-md hover:shadow-lg transition-all duration-300">
-                        <div className="flex items-center gap-2 mb-4">
-                            <div className="bg-rose-100 p-2 rounded-full"><FaChartPie className="text-rose-600 text-xl" /></div>
-                            <h4 className="text-lg font-semibold text-gray-800">Distribusi Stok Karet Berdasarkan Kualitas</h4>
-                        </div>
-                        <ResponsiveContainer width="100%" height={300}>
-                            {hasQualityData ? (
-                                <PieChart>
-                                    <Pie
-                                        data={qualityDistribution}
-                                        dataKey="value"
-                                        nameKey="name"
-                                        cx="50%"
-                                        cy="50%"
-                                        outerRadius={100}
-                                        innerRadius={50}
-                                        paddingAngle={5}
-                                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                                        labelLine={true}
-                                        style={{ fontSize: '12px', fontWeight: '500' }}
-                                    >
-                                        {qualityDistribution.map((entry, index) => <Cell key={`cell-${index}`} fill={pieColors[index % pieColors.length]} />)}
-                                    </Pie>
-                                    <Legend verticalAlign="bottom" height={36} />
-                                    <Tooltip contentStyle={{ borderRadius: 10, boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }} formatter={(value: number, name: string) => [`${value} kg`, name]} />
-                                </PieChart>
-                            ) : (
-                                <div className="flex items-center justify-center h-full text-gray-500"><p>Tidak ada data kualitas karet yang tersedia.</p></div>
-                            )}
-                        </ResponsiveContainer>
-                    </div>
-
-                    {/* --- PERBAIKAN 5: BAR CHART PENOREH --- */}
-                    <div className="bg-white p-6 rounded-2xl shadow-md hover:shadow-lg transition-all duration-300">
-                        <div className="flex items-center gap-2 mb-4">
-                            <div className="bg-indigo-100 p-2 rounded-full"><FaUserFriends className="text-indigo-600 text-xl" /></div>
-                            <h4 className="text-lg font-semibold text-gray-800">Pendapatan & Kuantitas Karet Penoreh Teratas</h4>
-                        </div>
-                        <ResponsiveContainer width="100%" height={300}>
-                            <BarChart data={topIncisorRevenue} margin={{ top: 20, right: 40, left: 40, bottom: 10 }}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                                <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                                {/* YAxis Kiri (Rp) dengan formatter */}
-                                <YAxis 
-                                    yAxisId="left" 
-                                    orientation="left" 
-                                    stroke="#6366F1" 
-                                    tickFormatter={formatYAxisTick} 
-                                    tick={{ fontSize: 12 }}
-                                    label={{ value: 'Rp', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: '#6366F1', fontSize: 12 } }}
-                                />
-                                {/* YAxis Kanan (Kg) dengan formatter */}
-                                <YAxis 
-                                    yAxisId="right" 
-                                    orientation="right" 
-                                    stroke="#10B981" 
-                                    tickFormatter={formatYAxisTick} 
-                                    tick={{ fontSize: 12 }}
-                                    label={{ value: 'Kg', angle: 90, position: 'insideRight', style: { textAnchor: 'middle', fill: '#10B981', fontSize: 12 } }}
-                                />
-                                <Tooltip
-                                    contentStyle={{ borderRadius: 10, boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}
-                                    formatter={(value: number, name: string) => {
-                                        if (name === 'Pendapatan') return [formatCurrency(value), name];
-                                        if (name === 'Jumlah Karet') return [`${value} kg`, name];
-                                        return [value, name];
-                                    }}
-                                />
-                                <Legend />
-                                <Bar yAxisId="left" dataKey="value" fill="#6366F1" name="Pendapatan" radius={[10, 10, 0, 0]} />
-                                <Bar yAxisId="right" dataKey="qty_karet" fill="#10B981" name="Jumlah Karet" radius={[10, 10, 0, 0]} />
-                            </BarChart>
-                        </ResponsiveContainer>
-                    </div>
-                </div>
-
-                {/* Table Section */}
-                {/* <div className="bg-white text-accent p-6 rounded-2xl shadow-md hover:shadow-lg transition-all duration-300">
-                    <div className="flex items-center gap-3 mb-5">
-                        <div className="bg-blue-100 p-2 rounded-full"><FaBoxOpen className="text-blue-600 text-lg" /></div>
-                        <h4 className="text-lg font-semibold text-gray-800">Produksi Karet <span className="text-sm text-gray-400">(Proses Stok)</span></h4>
-                    </div>
-
-                    <div className="flex flex-col gap-4 py-4 sm:flex-row sm:items-center justify-between">
-                        <input
-                            type="text"
-                            placeholder="🔍 Cari nama produk..."
-                            value={searchValue}
-                            onChange={handleInputChange}
-                            onKeyPress={handleKeyPress}
-                            className="border border-gray-300 rounded-lg px-4 py-2 w-full text-sm text-black focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all sm:w-1/3"
-                        />
-                    </div>
-
-                    <div className="overflow-x-auto text-black">
-                        <div className="rounded-md border">
-                            <Table>
-                                <TableHeader className='bg-accent'>
-                                    <TableRow>
-                                        <TableHead>Produk</TableHead>
-                                        <TableHead>Tanggal</TableHead>
-                                        <TableHead>Supplier</TableHead>
-                                        <TableHead>Jenis Barang</TableHead>
-                                        <TableHead>Qty (IN)</TableHead>
-                                        <TableHead>Qty (OUT)</TableHead>
-                                        <TableHead>Total Harga (IN)</TableHead>
-                                        <TableHead>Total Harga (OUT)</TableHead>
-                                        <TableHead className="text-center">Status</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {products.data.length > 0 ? (
-                                        products.data.map((product) => (
-                                            <TableRow key={product.id}>
-                                                <TableCell>{product.product}</TableCell>
-                                                <TableCell>{product.date}</TableCell>
-                                                <TableCell>{product.nm_supplier}</TableCell>
-                                                <TableCell>{product.j_brg}</TableCell>
-                                                <TableCell>{product.qty_kg}</TableCell>
-                                                <TableCell>{product.qty_out}</TableCell>
-                                                <TableCell>{formatCurrency(product.amount)}</TableCell>
-                                                <TableCell>{formatCurrency(product.amount_out)}</TableCell>
-                                                <TableCell className="text-center"><Tag_Karet status={product.status} /></TableCell>
-                                            </TableRow>
-                                        ))
-                                    ) : (
-                                        <TableRow>
-                                            <TableCell colSpan={9} className="h-24 text-center">No results found.</TableCell>
-                                        </TableRow>
-                                    )}
-                                </TableBody>
-                            </Table>
-                        </div>
-                        {products.data.length > 0 && renderPagination(products)}
-                    </div>
-                </div> */}
             </div>
         </AppLayout>
     );

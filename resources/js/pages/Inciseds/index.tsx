@@ -188,35 +188,23 @@ export default function Admin({ inciseds, flash, filter, totalKebunA, totalKebun
     const yearOptions = Array.from({ length: 10 }, (_, i) => ({ value: (currentYear - i).toString(), label: (currentYear - i).toString() }));
 
 
-    const renderPagination = (pagination: PageProps['inciseds']) => {
-        if (perPage === 'all' || !pagination || !pagination.meta || pagination.meta.last_page <= 1) {
-            return null; // Jangan render apa-apa jika tidak perlu paginasi
-        }
-    
-        return (
-            <div className="flex items-center justify-between p-4 border-t border-gray-200 dark:border-gray-700">
-                <span className="text-sm text-gray-700 dark:text-gray-400">
-                    Menampilkan {pagination.meta.from} - {pagination.meta.to} dari {pagination.meta.total} data
-                </span>
-                <div className="flex items-center gap-2">
-                    {pagination.links.map((link, index) => (
-                        <Link
-                            key={index}
-                            href={link.url || '#'}
-                            preserveState 
-                            replace
-                            className={`px-3 py-2 text-sm font-medium rounded-md transition-colors
-                                ${link.active ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 dark:bg-gray-800 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}
-                                ${!link.url ? 'cursor-not-allowed opacity-50' : ''}
-                            `}
-                        >
-                           <span dangerouslySetInnerHTML={{ __html: link.label }} />
-                        </Link>
-                    ))}
-                </div>
-            </div>
-        );
-    };
+    // Render tombol-tombol pagination
+    const renderPagination = (links: PaginationLink[]) => (
+        <div className="flex justify-center items-center mt-6 space-x-2">
+            {links.map((link, index) => (
+                <Link
+                    key={index}
+                    href={link.url || '#'}
+                    className={`px-4 py-2 text-sm rounded-lg transition-colors duration-200 ${
+                        link.active
+                            ? 'bg-cyan-500 text-white shadow-md shadow-cyan-500/30'
+                            : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                    } ${!link.url ? 'text-slate-500 cursor-not-allowed opacity-50' : ''}`}
+                    dangerouslySetInnerHTML={{ __html: link.label }}
+                />
+            ))}
+        </div>
+    );
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -410,7 +398,9 @@ export default function Admin({ inciseds, flash, filter, totalKebunA, totalKebun
                                         </div>
                                     )}
                                 </div>
-                                {inciseds && inciseds.data.length > 0 && renderPagination(inciseds)}
+                                {/* {inciseds && inciseds.data.length > 0 && renderPagination(inciseds)} */}
+                                {/* Pagination */}
+                                {inciseds.data.length > 0 && renderPagination(inciseds.links)}
                             </CardContent>
                         </div>
                     </div>

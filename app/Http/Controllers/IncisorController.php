@@ -5,50 +5,54 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Incisor;
 use App\Models\Incised;
-use App\Models\Kasbon; // <-- TAMBAHKAN INI
-use App\Models\KasbonPayment; // <-- TAMBAHKAN INI
+use App\Models\Kasbon;
+use App\Models\KasbonPayment;
 use Inertia\Inertia;
-// TAMBAHKAN INI untuk validasi unique
 use Illuminate\Validation\Rule;
 
 class IncisorController extends Controller
 {
-    // ... (fungsi index, create, store, edit, update tidak berubah) ...
     public function index(Request $request)
     {
         $perPage = 20; 
-        $searchTerm = $request->input('search'); 
+        $searchTerm = $request->input('search');
+        $statusFilter = $request->input('status_filter'); // Filter Aktif/Non-Aktif
 
         $incisors = Incisor::query()
             ->when($searchTerm, function ($query, $search) {
-                $query->where('name', 'like', "%{$search}%")
-                      ->orWhere('nik', 'like', "%{$search}%") // <-- TAMBAHKAN INI
+                $query->where(function($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                      ->orWhere('nik', 'like', "%{$search}%")
                       ->orWhere('lok_toreh', 'like', "%{$search}%")
-                      ->orWhere('no_invoice', 'like', "%{$search}%")
-                      ->orWhere('ttl', 'like', "%{$search}%") 
-                      ->orWhere('gender', 'like', "%{$search}%") 
-                      ->orWhere('agama', 'like', "%{$search}%"); 
+                      ->orWhere('no_invoice', 'like', "%{$search}%");
+                });
             })
-            ->orderBy('created_at', 'ASC')
+            // Logika Filter Status Kerja
+            ->when($statusFilter, function ($query, $status) {
+                if ($status === 'active') $query->where('is_active', true);
+                if ($status === 'inactive') $query->where('is_active', false);
+            })
+            ->orderBy('is_active', 'DESC') // Yang aktif tampil paling atas
+            ->orderBy('name', 'ASC')
             ->paginate($perPage)
             ->withQueryString(); 
 
-        return Inertia::render("Incisors/index", [
+        return Inertia::render("Incisors/Index", [
             "incisors" => $incisors,
-            "filter" => $request->only('search'), 
+            "filter" => $request->only('search', 'status_filter'), 
         ]);
     }
 
     public function create()
     {
-        return Inertia::render("Incisors/create");
+        return Inertia::render("Incisors/Create");
     }
 
     public function store(Request $request)
     {
         $request->validate([
             'name' => 'required|string|max:250',
-            'nik' => 'required|string|max:20|unique:incisors,nik', // <-- TAMBAHKAN INI
+            'nik' => 'required|string|max:20|unique:incisors,nik',
             'ttl' => 'required|date',
             'gender' => 'required|string|max:250',
             'address' => 'required|string|max:250',
@@ -56,29 +60,23 @@ class IncisorController extends Controller
             'status' => 'required|string|max:250',
             'no_invoice' => 'required|string|max:250',
             'lok_toreh' => 'required|string|max:250',
+            'is_active' => 'boolean', // Validasi status kerja
         ]);
 
-        // Pastikan Model Incisor punya 'nik' di $fillable
         Incisor::create($request->all());
-        return redirect()->route('incisors.index')->with('message', 'Users Creadted Successfully');
+        return redirect()->route('incisors.index')->with('message', 'Penoreh Berhasil Ditambahkan');
     }
 
     public function edit(Incisor $incisor)
     {
-        return Inertia::render('Incisors/edit', compact('incisor'));
+        return Inertia::render('Incisors/Edit', compact('incisor'));
     }
 
     public function update(Request $request, Incisor $incisor)
     {
         $request->validate([
             'name' => 'required|string|max:250',
-            // TAMBAHKAN INI: Validasi unique tapi abaikan NIK milik user ini sendiri
-            'nik' => [
-                'required',
-                'string',
-                'max:20',
-                Rule::unique('incisors')->ignore($incisor->id),
-            ],
+            'nik' => ['required','string','max:20', Rule::unique('incisors')->ignore($incisor->id)],
             'ttl' => 'required|date',
             'gender' => 'required|string|max:250',
             'address' => 'required|string|max:250',
@@ -86,99 +84,62 @@ class IncisorController extends Controller
             'status' => 'required|string|max:250',
             'no_invoice' => 'required|string|max:250',
             'lok_toreh' => 'required|string|max:250',
+            'is_active' => 'boolean',
         ]);
         
-        $incisor->update([
-            'name' => $request->input('name'),
-            'nik' => $request->input('nik'), // <-- TAMBAHKAN INI
-            'ttl' => $request->input('ttl'),
-            'gender' => $request->input('gender'),
-            'address' => $request->input('address'),
-            'agama' => $request->input('agama'),
-            'status' => $request->input('status'),
-            'no_invoice' => $request->input('no_invoice'),
-            'lok_toreh' => $request->input('lok_toreh'),
-        ]);
-
-        return redirect()->route('incisors.index')->with('message', 'Product Updated Successfully');        
+        $incisor->update($request->all());
+        return redirect()->route('incisors.index')->with('message', 'Data Penoreh Berhasil Diupdate');        
     }
-
 
     public function show(Incisor $incisor)
     {
         $currentMonth = date('m'); 
         $currentYear = date('Y'); 
 
+        // Statistik Dashboard Kecil di Halaman Show
         $totalQtyKgThisMonth = Incised::where('no_invoice', $incisor->no_invoice)
-            ->whereYear('date', $currentYear)
-            ->whereMonth('date', $currentMonth)
-            ->sum('qty_kg');
-
-        $totalQtyKg = Incised::where('no_invoice', $incisor->no_invoice)
-                        ->sum('qty_kg');
-
-        $pendapatanBulanIni = Incised::where('no_invoice', $incisor->no_invoice)
-            ->whereYear('date', $currentYear)
-            ->whereMonth('date', $currentMonth)
-            ->sum('amount');
+            ->whereYear('date', $currentYear)->whereMonth('date', $currentMonth)->sum('qty_kg');
         
-        // --- AWAL PERUBAHAN LOGIKA KASBON ---
-        // Logika lama yang salah:
-        // $totalAmountBulanIni = Incised::where('no_invoice', $incisor->no_invoice)
-        //     ->whereYear('date', $currentYear)
-        //     ->whereMonth('date', $currentMonth)
-        //     ->sum('amount');
-        // $kasbonBulanIni = $totalAmountBulanIni;
-
-        // Logika BARU yang benar (menghitung sisa kasbon):
-        // 1. Dapatkan semua ID kasbon (pinjaman) yang 'Approved' untuk penoreh ini
-        // Kita menggunakan relasi polimorfik 'kasbons()' dari model Incisor
-        $kasbonIds = $incisor->kasbons()
-            ->where('status', 'Approved')
-            ->pluck('id');
-
-        // 2. Hitung total pinjaman yang disetujui
-        $totalPinjaman = $incisor->kasbons()
-            ->where('status', 'Approved')
-            ->sum('kasbon');
-
-        // 3. Hitung total pembayaran untuk semua kasbon tersebut
-        $totalBayar = KasbonPayment::whereIn('kasbon_id', $kasbonIds)
-            ->sum('amount');
-
-        // 4. Hitung sisa kasbon
-        $sisaKasbon = $totalPinjaman - $totalBayar;
-        $sisaKasbon = $sisaKasbon > 0 ? $sisaKasbon : 0; // Pastikan tidak negatif
-
-        // --- AKHIR PERUBAHAN LOGIKA KASBON ---
-
+        $totalQtyKg = Incised::where('no_invoice', $incisor->no_invoice)->sum('qty_kg');
+        
+        $pendapatanBulanIni = Incised::where('no_invoice', $incisor->no_invoice)
+            ->whereYear('date', $currentYear)->whereMonth('date', $currentMonth)->sum('amount');
+        
+        // Hitung Sisa Kasbon Real
+        $kasbonIds = $incisor->kasbons()->where('status', 'Approved')->pluck('id');
+        $totalPinjaman = $incisor->kasbons()->where('status', 'Approved')->sum('kasbon');
+        $totalBayar = KasbonPayment::whereIn('kasbon_id', $kasbonIds)->sum('amount');
+        $sisaKasbon = max(0, $totalPinjaman - $totalBayar);
 
         $dailyData = Incised::where('no_invoice', $incisor->no_invoice)
             ->select('product', 'date as tanggal', 'no_invoice as kode_penoreh', 'lok_kebun as kebun', 'j_brg as jenis_barang', 'qty_kg', 'amount as total_harga')
-            ->orderBy('created_at', 'DESC')
+            ->orderBy('date', 'DESC')
             ->get();
 
-        return Inertia::render('Incisors/show', [
-            'incisor' => $incisor->toArray(), 
+        return Inertia::render('Incisors/Show', [
+            'incisor' => $incisor, 
             'totalQtyKg' => $totalQtyKg,
             'dailyData' => $dailyData,
             'totalQtyKgThisMonth' => $totalQtyKgThisMonth,
             'pendapatanBulanIni' => $pendapatanBulanIni,
-            // 'kasbonBulanIni' => $kasbonBulanIni, // <-- HAPUS YANG LAMA
-            'sisaKasbon' => $sisaKasbon, // <-- KIRIM DATA SISA KASBON YANG BENAR
+            'sisaKasbon' => $sisaKasbon,
         ]);
     }
 
     public function destroy(Incisor $incisor)
     {
         $incisor->delete();
-        return redirect()->route('incisors.index')->with('message', 'Invoice deleted Successfully');
+        return redirect()->route('incisors.index')->with('message', 'Data Penoreh Dihapus');
     }
 
+    // PENTING: Hanya kirim penoreh AKTIF ke dropdown Input Harian
     public function getNoInvoices()
     {
-        $noInvoices = Incisor::pluck('no_invoice')->unique()->values();
+        $noInvoices = Incisor::where('is_active', true)
+            ->select('no_invoice', 'name')
+            ->orderBy('name')
+            ->get();
+            
         return response()->json($noInvoices);
     }
 }
-

@@ -13,10 +13,16 @@ class Incisor extends Model
         'gender', 
         'address', 
         'agama', 
-        'status', 
+        'status', // Ini Status Perkawinan
         'no_invoice', 
         'lok_toreh',
         'nik',
+        'is_active', // <-- FIELD BARU (Status Kerja)
+    ];
+
+    // Casting agar otomatis jadi boolean (true/false) di React
+    protected $casts = [
+        'is_active' => 'boolean',
     ];
 
     public function inciseds()

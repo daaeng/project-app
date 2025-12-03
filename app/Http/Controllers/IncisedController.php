@@ -13,16 +13,14 @@ class IncisedController extends Controller
 {
     public function index(Request $request)
     {
-        // --- PERUBAHAN: Ambil perPage dari request, default ke 10 ---
         $perPage = $request->input('per_page', 10);
         $searchTerm = $request->input('search');
         $timePeriod = $request->input('time_period', 'this-month');
         $specificMonth = $request->input('month');
         $specificYear = $request->input('year');
 
-        // Jika per_page adalah 'all', set nilai yang sangat besar untuk mengambil semua data
         if ($perPage === 'all') {
-            $perPage = 999999; // Angka besar untuk mensimulasikan "semua"
+            $perPage = 999999;
         } else {
             $perPage = intval($perPage);
         }
@@ -36,24 +34,16 @@ class IncisedController extends Controller
                     $query->whereBetween('date', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]);
                     break;
                 case 'this-month':
-                    $query->whereMonth('date', Carbon::now()->month)
-                          ->whereYear('date', Carbon::now()->year);
+                    $query->whereMonth('date', Carbon::now()->month)->whereYear('date', Carbon::now()->year);
                     break;
                 case 'last-month':
-                    $query->whereMonth('date', Carbon::now()->subMonth()->month)
-                          ->whereYear('date', Carbon::now()->subMonth()->year);
+                    $query->whereMonth('date', Carbon::now()->subMonth()->month)->whereYear('date', Carbon::now()->subMonth()->year);
                     break;
                 case 'this-year':
                     $query->whereYear('date', Carbon::now()->year);
                     break;
                 case 'specific-month':
-                    if ($month && $year) {
-                        $query->whereMonth('date', $month)
-                              ->whereYear('date', $year);
-                    }
-                    break;
-                case 'all-time':
-                default:
+                    if ($month && $year) $query->whereMonth('date', $month)->whereYear('date', $year);
                     break;
             }
         };
@@ -74,12 +64,15 @@ class IncisedController extends Controller
 
         $applyTimeFilter($incisedsQuery, $timePeriod, $specificMonth, $specificYear);
 
+        // Statistik Ringkas
         $baseStatQuery = Incised::query();
         $applyTimeFilter($baseStatQuery, $timePeriod, $specificMonth, $specificYear);
         
         $totalKebunA = (clone $baseStatQuery)->where('lok_kebun', 'Temadu')->sum('qty_kg');
         $totalKebunB = (clone $baseStatQuery)->where('lok_kebun', 'Sebayar')->sum('qty_kg');
+        $totalPendapatan = (clone $baseStatQuery)->sum('amount'); // Tambahan info pendapatan total
 
+        // Top Penoreh
         $mostProductiveIncisorQuery = Incised::query()
             ->select('incisors.name', DB::raw('SUM(inciseds.qty_kg) as total_qty_kg'))
             ->join('incisors', 'inciseds.no_invoice', '=', 'incisors.no_invoice')
@@ -89,16 +82,10 @@ class IncisedController extends Controller
         $applyTimeFilter($mostProductiveIncisorQuery, $timePeriod, $specificMonth, $specificYear);
         $mostProductiveIncisor = $mostProductiveIncisorQuery->first();
 
-        $mostProductiveIncisorData = [
-            'name' => $mostProductiveIncisor ? $mostProductiveIncisor->name : 'N/A',
-            'total_qty_kg' => $mostProductiveIncisor ? (float)$mostProductiveIncisor->total_qty_kg : 0,
-        ];
-
         $inciseds = $incisedsQuery
             ->orderBy('date', 'DESC')
-            ->paginate($perPage) // Gunakan variabel $perPage
+            ->paginate($perPage)
             ->through(function ($incised) {
-                $incisor = $incised->incisor;
                 return [
                     'id' => $incised->id,
                     'product' => $incised->product,
@@ -112,31 +99,31 @@ class IncisedController extends Controller
                     'amount' => $incised->amount,
                     'keping' => $incised->keping,
                     'kualitas' => $incised->kualitas,
-                    'incisor_name' => $incisor ? $incisor->name : null,
+                    'incisor_name' => $incised->incisor ? $incised->incisor->name : null,
                 ];
             })
             ->withQueryString();
 
         return Inertia::render("Inciseds/index", [
             "inciseds" => $inciseds,
-            // --- PERUBAHAN: Kirim filter per_page ke frontend ---
             "filter" => $request->only(['search', 'time_period', 'month', 'year', 'per_page']),
             'totalKebunA' => (float)$totalKebunA,
             'totalKebunB' => (float)$totalKebunB,
-            'mostProductiveIncisor' => $mostProductiveIncisorData,
+            'totalPendapatan' => (float)$totalPendapatan,
+            'mostProductiveIncisor' => [
+                'name' => $mostProductiveIncisor ? $mostProductiveIncisor->name : 'N/A',
+                'total_qty_kg' => $mostProductiveIncisor ? (float)$mostProductiveIncisor->total_qty_kg : 0,
+            ],
         ]);
     }
 
-    // ... (Fungsi lainnya tetap sama) ...
-
     public function create()
     {
-        $noInvoicesWithNames = Incisor::select('no_invoice', 'name')->get()->map(function ($item) {
-            return [
-                'no_invoice' => $item->no_invoice,
-                'name' => $item->name,
-            ];
-        })->unique('no_invoice')->values()->all();
+        $noInvoicesWithNames = Incisor::where('is_active', true)
+            ->select('no_invoice', 'name')
+            ->orderBy('name')
+            ->get();
+
         return Inertia::render("Inciseds/create", [
             'noInvoicesWithNames' => $noInvoicesWithNames,
         ]);
@@ -159,18 +146,17 @@ class IncisedController extends Controller
         ]);
 
         Incised::create($request->all());
-        return redirect()->route('inciseds.index')->with('message', 'Users Creadted Successfully');
+        return redirect()->route('inciseds.index')->with('message', 'Data Berhasil Ditambahkan');
     }
 
-    public function edit(string $id)
+    public function edit($id)
     {
-        $incised = Incised::with('incisor')->find($id);
-        $noInvoicesWithNames = Incisor::select('no_invoice', 'name')->get()->map(function ($item) {
-            return [
-                'no_invoice' => $item->no_invoice,
-                'name' => $item->name,
-            ];
-        })->unique('no_invoice')->values()->all();
+        $incised = Incised::with('incisor')->findOrFail($id);
+        $noInvoicesWithNames = Incisor::where('is_active', true)
+            ->select('no_invoice', 'name')
+            ->orderBy('name')
+            ->get();
+
         return Inertia::render('Inciseds/edit', [
             'incised' => $incised,
             'noInvoicesWithNames' => $noInvoicesWithNames,
@@ -194,8 +180,7 @@ class IncisedController extends Controller
         ]);
 
         $incised->update($request->all());
-
-        return redirect()->route('inciseds.index')->with('message', 'Data Updated Successfully');
+        return redirect()->route('inciseds.index')->with('message', 'Data Berhasil Diupdate');
     }
 
     public function show(Incised $incised)
@@ -203,6 +188,7 @@ class IncisedController extends Controller
         $incised->load('incisor');
         $data = $incised->toArray();
         $data['incisor_name'] = $incised->incisor ? $incised->incisor->name : null;
+        
         return Inertia::render('Inciseds/show', [
             'incised' => $data,
         ]);
@@ -211,7 +197,6 @@ class IncisedController extends Controller
     public function destroy(Incised $incised)
     {
         $incised->delete();
-        return redirect()->route('inciseds.index')->with('message', 'Invoice deleted Successfully');
+        return redirect()->route('inciseds.index')->with('message', 'Data Berhasil Dihapus');
     }
 }
-
