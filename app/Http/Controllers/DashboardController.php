@@ -81,7 +81,7 @@ class DashboardController extends Controller
 
         $totalPendingRequests = Requested::where('status', 'belum ACC')->count();
         $totalPendingNota = Nota::where('status', 'belum ACC')->sum('dana');
-        $jml_penoreh = Incisor::count();
+        $jml_penoreh = Incisor::where('is_active', '1')->sum('is_active');
         $jml_pegawai = User::count();
 
         $monthlyData = [];
