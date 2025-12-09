@@ -15,6 +15,7 @@ import {
     EditItemModal,
     DeleteItemModal
 } from './Partials/InventoryModals';
+import { can } from '@/lib/can';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -50,14 +51,16 @@ export default function Index({ inventories, users }: PageProps<{ inventories: I
             <div className="py-12">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
                     <Card>
-                        <CardHeader>
-                            <div className="flex justify-between items-center">
-                                <CardTitle>Inventory Items List</CardTitle>
-                                <Button onClick={() => openModal('newItem')}>
-                                    <PlusCircle className="mr-2 h-4 w-4" /> Add New Item
-                                </Button>
-                            </div>
-                        </CardHeader>
+                        {can('usermanagements.create') && (
+                            <CardHeader>
+                                <div className="flex justify-between items-center">
+                                    <CardTitle>Inventory Items List</CardTitle>
+                                    <Button onClick={() => openModal('newItem')}>
+                                        <PlusCircle className="mr-2 h-4 w-4" /> Add New Item
+                                    </Button>
+                                </div>
+                            </CardHeader>
+                        )}
                         <CardContent>
                             <Table>
                                 <TableHeader>
@@ -65,7 +68,11 @@ export default function Index({ inventories, users }: PageProps<{ inventories: I
                                         <TableHead>Item Name</TableHead>
                                         <TableHead>Current Stock</TableHead>
                                         <TableHead className="text-center">Unit</TableHead>
-                                        <TableHead className="text-right">Actions</TableHead>
+                                        
+                                        {can('usermanagements.view') && (
+                                            <TableHead className="text-right">Actions</TableHead>
+                                        )}
+
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -80,25 +87,27 @@ export default function Index({ inventories, users }: PageProps<{ inventories: I
                                                 )}
                                             </TableCell>
                                             <TableCell className="text-center">{item.unit}</TableCell>
-                                            <TableCell className="text-right space-x-2">
-                                                <Button variant="outline" size="sm" onClick={() => openModal('stockIn', item)}>
-                                                    <ArrowDownToDot className="h-4 w-4" />
-                                                </Button>
-                                                <Button variant="outline" size="sm" onClick={() => openModal('stockOut', item)} disabled={item.stock === 0}>
-                                                    <ArrowUpFromDot className="h-4 w-4" />
-                                                </Button>
-                                                 <Button variant="outline" size="sm" onClick={() => openModal('editItem', item)}>
-                                                    Edit
-                                                </Button>
-                                                <Button asChild variant="outline" size="sm">
-                                                    <Link href={route('inventories.show', item.id)}>
-                                                        <History className="h-4 w-4" />
-                                                    </Link>
-                                                </Button>
-                                                <Button variant="destructive" size="sm" onClick={() => openModal('deleteItem', item)}>
-                                                    Delete
-                                                </Button>
-                                            </TableCell>
+                                            {can('usermanagements.edit') && (
+                                                <TableCell className="text-right space-x-2">
+                                                    <Button variant="outline" size="sm" onClick={() => openModal('stockIn', item)}>
+                                                        <ArrowDownToDot className="h-4 w-4" />
+                                                    </Button>
+                                                    <Button variant="outline" size="sm" onClick={() => openModal('stockOut', item)} disabled={item.stock === 0}>
+                                                        <ArrowUpFromDot className="h-4 w-4" />
+                                                    </Button>
+                                                    <Button variant="outline" size="sm" onClick={() => openModal('editItem', item)}>
+                                                        Edit
+                                                    </Button>
+                                                    <Button asChild variant="outline" size="sm">
+                                                        <Link href={route('inventories.show', item.id)}>
+                                                            <History className="h-4 w-4" />
+                                                        </Link>
+                                                    </Button>
+                                                    <Button variant="destructive" size="sm" onClick={() => openModal('deleteItem', item)}>
+                                                        Delete
+                                                    </Button>
+                                                </TableCell>
+                                            )}
                                         </TableRow>
                                     ))}
                                 </TableBody>

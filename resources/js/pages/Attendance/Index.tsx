@@ -13,10 +13,10 @@ import { cn } from '@/lib/utils';
 import { 
     CheckCircle2, XCircle, FileText, Briefcase, Plane, UserCheck, UserX, 
     BookUser, CalendarDays, Pencil, Megaphone, Users, CalendarClock, 
-    Printer
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { can } from '@/lib/can';
 
 interface Employee {
     id: number;
@@ -111,54 +111,59 @@ export default function AttendanceReportPage({ reportType, reportData, selectedM
                     </div>
                 )}
                 
-                <Card className="bg-card/80 backdrop-blur-sm">
-                    <CardHeader className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-                        <div>
-                            <CardTitle className="text-2xl font-bold tracking-tight">Laporan Rekapitulasi Absensi</CardTitle>
-                            <CardDescription className="mt-1">Pilih bulan dan karyawan untuk melihat rekap kehadiran.</CardDescription>
-                        </div>
-                        <div className="flex gap-2 w-full sm:w-auto flex-shrink-0">
-                             {/* <Link href="#" className="w-full sm:w-auto">
-                                <Button variant="outline" className="w-full">
-                                    <Printer className="h-4 w-4 mr-2" />
-                                    Print
-                                </Button>
-                            </Link> */}
-                            <Link href={route('attendances.create')} className="w-full sm:w-auto">
-                                <Button className="bg-cyan-500 hover:bg-cyan-600 text-white font-bold shadow-lg shadow-cyan-500/20 transition-all duration-300 transform hover:scale-105 w-full sm:w-auto mt-2 sm:mt-0">
-                                    <CalendarClock className="h-4 w-4 mr-2" />
-                                    Input Manual
-                                </Button>
-                            </Link>
-                        </div>
-                    </CardHeader>
-                    <CardContent className="flex flex-col md:flex-row items-center gap-4 flex-wrap">
-                        <Input
-                            type="month"
-                            value={selectedMonth}
-                            onChange={(e) => handleFilter('month', e.target.value)}
-                            className="w-full sm:w-auto"
-                        />
-                        <Select onValueChange={(value) => handleFilter('employee_id', value)} value={selectedEmployeeId ?? 'all'}>
-                            <SelectTrigger className="w-full sm:w-[250px]">
-                                <SelectValue placeholder="Semua Karyawan" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">
-                                    <div className="flex items-center gap-2">
-                                        <Users className="h-4 w-4 text-muted-foreground" />
-                                        <span>Semua Karyawan</span>
-                                    </div>
-                                </SelectItem>
-                                {employees.map((employee) => (
-                                    <SelectItem key={employee.id} value={String(employee.id)}>
-                                        {employee.name}
+                {can('usermanagements.create') && (
+                    <Card className="bg-card/80 backdrop-blur-sm">
+                        <CardHeader className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+                            <div>
+                                <CardTitle className="text-2xl font-bold tracking-tight">Laporan Rekapitulasi Absensi</CardTitle>
+                                <CardDescription className="mt-1">Pilih bulan dan karyawan untuk melihat rekap kehadiran.</CardDescription>
+                            </div>
+                            <div className="flex gap-2 w-full sm:w-auto flex-shrink-0">
+                                {/* <Link href="#" className="w-full sm:w-auto">
+                                    <Button variant="outline" className="w-full">
+                                        <Printer className="h-4 w-4 mr-2" />
+                                        Print
+                                    </Button>
+                                </Link> */}
+
+                                {can('usermanagements.create') && (
+                                    <Link href={route('attendances.create')} className="w-full sm:w-auto">
+                                        <Button className="bg-cyan-500 hover:bg-cyan-600 text-white font-bold shadow-lg shadow-cyan-500/20 transition-all duration-300 transform hover:scale-105 w-full sm:w-auto mt-2 sm:mt-0">
+                                            <CalendarClock className="h-4 w-4 mr-2" />
+                                            Input Manual
+                                        </Button>
+                                    </Link>
+                                )}
+                            </div>
+                        </CardHeader>
+                        <CardContent className="flex flex-col md:flex-row items-center gap-4 flex-wrap">
+                            <Input
+                                type="month"
+                                value={selectedMonth}
+                                onChange={(e) => handleFilter('month', e.target.value)}
+                                className="w-full sm:w-auto"
+                            />
+                            <Select onValueChange={(value) => handleFilter('employee_id', value)} value={selectedEmployeeId ?? 'all'}>
+                                <SelectTrigger className="w-full sm:w-[250px]">
+                                    <SelectValue placeholder="Semua Karyawan" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">
+                                        <div className="flex items-center gap-2">
+                                            <Users className="h-4 w-4 text-muted-foreground" />
+                                            <span>Semua Karyawan</span>
+                                        </div>
                                     </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </CardContent>
-                </Card>
+                                    {employees.map((employee) => (
+                                        <SelectItem key={employee.id} value={String(employee.id)}>
+                                            {employee.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </CardContent>
+                    </Card>
+                )}
                 
                 {reportType === 'individual' && reportData && (
                     <IndividualReport report={reportData as IndividualReportData} employee={selectedEmployee!} />

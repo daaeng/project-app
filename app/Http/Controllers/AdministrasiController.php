@@ -5,30 +5,32 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Models\Nota;
-use App\Models\Requested;
+use App\Models\PpbHeader;
 use App\Models\HargaInformasi;
 use App\Models\Pengeluaran;
 use App\Models\Product;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class AdministrasiController extends Controller
 {
     public function index(Request $request)
     {
         $perPage = 10;
-        // Ambil filter waktu dari request, default ke bulan saat ini jika tidak ada
+        
+        // Ambil filter dari request
         $selectedMonth = $request->input('month', Carbon::now()->month);
         $selectedYear = $request->input('year', Carbon::now()->year);
-        $timePeriod = $request->input('time_period', 'this-month'); // Default ke 'this-month'
+        $timePeriod = $request->input('time_period', 'this-month'); 
 
-        // Inisialisasi query untuk Product dan Pengeluaran yang akan difilter waktu
-        $productQueryFilteredByTime = Product::query();
-        $pengeluaranQueryFilteredByTime = Pengeluaran::query();
+        // Inisialisasi Query Dasar
+        $productQuery = Product::query();
+        $pengeluaranQuery = Pengeluaran::query();
 
+        // --- Logic Filter Waktu ---
         $dateRangeStart = null;
         $dateRangeEnd = null;
 
-        // Logika filter waktu yang lebih fleksibel
         if ($timePeriod === 'specific-month') {
             $dateRangeStart = Carbon::create($selectedYear, $selectedMonth, 1)->startOfMonth();
             $dateRangeEnd = Carbon::create($selectedYear, $selectedMonth, 1)->endOfMonth();
@@ -48,89 +50,105 @@ class AdministrasiController extends Controller
             $dateRangeStart = Carbon::now()->startOfYear();
             $dateRangeEnd = Carbon::now()->endOfYear();
         }
-        // 'all-time' dan 'all-years' tidak memerlukan filter tanggal spesifik
 
+        // Terapkan filter tanggal jika ada
         if ($dateRangeStart && $dateRangeEnd) {
-            $productQueryFilteredByTime->whereBetween('date', [$dateRangeStart, $dateRangeEnd]);
-            $pengeluaranQueryFilteredByTime->whereBetween('tanggal_pengeluaran', [$dateRangeStart, $dateRangeEnd]);
+            $productQuery->whereBetween('date', [$dateRangeStart, $dateRangeEnd]);
+            $pengeluaranQuery->whereBetween('tanggal_pengeluaran', [$dateRangeStart, $dateRangeEnd]);
         }
 
-        // Ambil data paginasi untuk requests
-        $requests = Requested::orderBy('created_at', 'DESC')->paginate($perPage);
+        // --- [BARU] Logic Data Chart (Cash Flow) ---
+        // Mengelompokkan data berdasarkan tanggal atau bulan untuk grafik
+        $chartData = [];
+        
+        // Jika filter tahunan, group by Bulan. Jika filter bulanan/mingguan, group by Tanggal.
+        $groupBy = ($timePeriod === 'this-year' || $timePeriod === 'all-years') ? 'month' : 'date';
+        
+        // 1. Data Pemasukan (Dari Penjualan Karet - Status Buyer)
+        $incomeData = $productQuery->clone()
+            ->where('product', 'karet')
+            ->where('status', 'buyer')
+            ->selectRaw($groupBy === 'month' 
+                ? 'MONTH(date) as label, SUM(amount_out) as total' 
+                : 'DATE(date) as label, SUM(amount_out) as total')
+            ->groupBy('label')
+            ->pluck('total', 'label');
 
-        // Ambil data paginasi untuk notas
+        // 2. Data Pengeluaran
+        $expenseData = $pengeluaranQuery->clone()
+            ->selectRaw($groupBy === 'month' 
+                ? 'MONTH(tanggal_pengeluaran) as label, SUM(jumlah) as total' 
+                : 'DATE(tanggal_pengeluaran) as label, SUM(jumlah) as total')
+            ->groupBy('label')
+            ->pluck('total', 'label');
+
+        // Gabungkan keys (label waktu) dari kedua data agar sumbu X lengkap
+        $allLabels = $incomeData->keys()->merge($expenseData->keys())->unique()->sort();
+        
+        foreach ($allLabels as $label) {
+            // Format label untuk tampilan (misal: "Jan", "Feb" atau "12 Agt")
+            $displayLabel = $groupBy === 'month' 
+                ? Carbon::create()->month($label)->locale('id')->isoFormat('MMM') 
+                : Carbon::parse($label)->locale('id')->isoFormat('D MMM');
+
+            $chartData[] = [
+                'name' => $displayLabel,
+                'Pemasukan' => (float) ($incomeData[$label] ?? 0),
+                'Pengeluaran' => (float) ($expenseData[$label] ?? 0),
+            ];
+        }
+        // --- [Selesai Logic Chart] ---
+
+        // Data Paginasi untuk Tabel Arsip (Tetap ambil semua urut tanggal terbaru)
+        $requests = PpbHeader::orderBy('created_at', 'DESC')->paginate($perPage);
         $notas = Nota::orderBy('created_at', 'DESC')->paginate($perPage);
 
-        // --- Hitung Data Summary ---
-        $totalRequests = Requested::count();
-        $totalNotas = Nota::count();
-        $pendingRequests = Requested::where('status', 'belum ACC')->count();
-        $pendingNotas = Nota::where('status', 'belum ACC')->count();
-        $totalPendingRequests = $pendingRequests + $pendingNotas;
-        $totalApprovedDana = Nota::where('status', 'diterima')->sum('dana');
+        // --- Hitung Summary Keuangan (Sesuai Filter Waktu) ---
+        $totalPengeluaran = $pengeluaranQuery->clone()->sum('jumlah');
+        
+        // Total Penjualan Karet (Omset)
+        $totalPenjualanKaret = $productQuery->clone()
+             ->where('product', 'karet')
+             ->where('status', 'buyer')
+             ->sum('amount_out');
 
-        // Harga Saham Karet terbaru (tidak difilter waktu)
-        $hargaSahamKaret = HargaInformasi::where('jenis', 'harga_saham_karet')
-                                        ->orderBy('tanggal_berlaku', 'DESC')
-                                        ->first();
-        $hargaSahamKaretValue = $hargaSahamKaret ? (float)$hargaSahamKaret->nilai : 0;
-
-        // Harga Dollar terbaru (tidak difilter waktu)
-        $hargaDollar = HargaInformasi::where('jenis', 'harga_dollar')
-                                    ->orderBy('tanggal_berlaku', 'DESC')
-                                    ->first();
-        $hargaDollarValue = $hargaDollar ? (float)$hargaDollar->nilai : 0;
-
-        // Total Pengeluaran (DIFILTER WAKTU, untuk kartu summary)
-        $totalPengeluaran = $pengeluaranQueryFilteredByTime->sum('jumlah');
-
-        // Total Penjualan Karet (DIFILTER WAKTU, untuk perhitungan laba/rugi)
-        $totalPenjualanKaret = $productQueryFilteredByTime->clone()
-                                      ->where('product', 'karet')
-                                      ->where('status', 'buyer')
-                                      ->sum('amount_out');
-
-        // Perhitungan Laba/Rugi (DIFILTER WAKTU)
+        // Laba Rugi = Pemasukan - Pengeluaran
         $labaRugi = $totalPenjualanKaret - $totalPengeluaran;
 
-        // Stok karet pengiriman (DIFILTER WAKTU)
-        $s_karet = $productQueryFilteredByTime->clone()->where('status', 'buyer')->where('product', 'karet')->SUM('qty_out');
-        // Harga Jual Karet (DIFILTER WAKTU)
-        $h_karet = $productQueryFilteredByTime->clone()
-                                                  ->where('product', 'karet')
-                                                  ->where('status', 'buyer')
-                                                  ->whereNotNull('price_out')
-                                                  ->average('price_out');
-        // Pembelian karet (DIFILTER WAKTU) - diasumsikan 'gka' adalah status pembelian
-        $tb_karet = $productQueryFilteredByTime->clone()->where('status', 'gka')->where('product', 'karet')->SUM('amount_out');
-        // Penjualan karet (DIFILTER WAKTU) - diasumsikan 'buyer' adalah status penjualan
-        $tj_karet = $productQueryFilteredByTime->clone()->where('status', 'buyer')->where('product', 'karet')->SUM('amount_out');
+        // Data Statistik Lainnya
+        $hargaSahamKaret = HargaInformasi::where('jenis', 'harga_saham_karet')->orderBy('tanggal_berlaku', 'DESC')->first();
+        $hargaDollar = HargaInformasi::where('jenis', 'harga_dollar')->orderBy('tanggal_berlaku', 'DESC')->first();
+        
+        // Stok & Volume Karet (Sesuai Filter Waktu)
+        $s_karet = $productQuery->clone()->where('status', 'buyer')->where('product', 'karet')->sum('qty_out');
+        $tb_karet = $productQuery->clone()->where('status', 'gka')->where('product', 'karet')->sum('amount_out');
+        
+        // Total Request Pending (Untuk Badge Notification)
+        $pendingCount = PpbHeader::where('status', 'belum ACC')->count() + Nota::where('status', 'belum ACC')->count();
 
         return Inertia::render("Administrasis/index", [
             "requests" => $requests,
             "notas" => $notas,
             "summary" => [
-                "totalRequests" => $totalRequests,
-                "totalNotas" => $totalNotas,
-                "totalPendingRequests" => $totalPendingRequests,
-                "totalApprovedDana" => $totalApprovedDana,
-                "hargaSahamKaret" => $hargaSahamKaretValue,
-                "hargaDollar" => $hargaDollarValue,
+                "totalRequests" => PpbHeader::count(),
+                "totalNotas" => Nota::count(),
+                "pendingCount" => $pendingCount,
+                "hargaSahamKaret" => $hargaSahamKaret ? (float)$hargaSahamKaret->nilai : 0,
+                "hargaDollar" => $hargaDollar ? (float)$hargaDollar->nilai : 0,
                 "totalPengeluaran" => $totalPengeluaran,
                 "labaRugi" => $labaRugi,
-                "totalPenjualanKaret" => $totalPenjualanKaret,
+                "totalPenjualanKaret" => $totalPenjualanKaret, // Revenue
                 "s_karet" => $s_karet,
-                "h_karet" => $h_karet,
                 "tb_karet" => $tb_karet,
-                "tj_karet" => $tj_karet,
             ],
+            "chartData" => $chartData, // <--- Data Chart dikirim ke frontend
             "filter" => $request->only(['time_period', 'month', 'year']),
             "currentMonth" => (int)$selectedMonth,
             "currentYear" => (int)$selectedYear,
         ]);
     }
 
-    // Metode baru untuk mengambil data pengeluaran dengan filter (dipanggil via AJAX)
+    // Metode baru untuk mengambil data pengeluaran dengan filter (dipanggil via AJAX untuk Modal List)
     public function getPengeluarans(Request $request)
     {
         $perPage = 10;

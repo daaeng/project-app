@@ -5,7 +5,7 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, Sid
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
 // ADD Archive here
-import { LayoutDashboard, ChartArea, UserCog2, PackageIcon, BookText, ReceiptText, Notebook, HandCoins, UsersRound, PackageOpen, BookUser, Banknote, Archive, Clock } from 'lucide-react';
+import { LayoutDashboard, ChartArea, UserCog2, PackageIcon, ReceiptText, Notebook, HandCoins, UsersRound, PackageOpen, BookUser, Banknote, Archive, Clock, BookUp2 } from 'lucide-react';
 import AppLogo from './app-logo';
 
 const mainNavItems: NavItem[] = [
@@ -59,16 +59,16 @@ const mainNavItems: NavItem[] = [
     },
     // -----------------------------
     
-    {
-        title: 'Request Latter',
-        href: '/requests',
-        icon: BookText ,
-    },
+    // {
+    //     title: 'Request Latter',
+    //     href: '/requests',
+    //     icon: BookText ,
+    // },
     
     {
         title: 'PPB',
         href: '/ppb',
-        icon: BookText ,
+        icon: BookUp2 ,
     },
     
     {

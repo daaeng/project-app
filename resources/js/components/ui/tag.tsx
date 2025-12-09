@@ -24,7 +24,7 @@ const Tag: React.FC<TagProps> = ({ status }) => {
             break;
         case 'approved':
             text = 'Disetujui';
-            colorClasses = 'bg-green-900/50 text-green-300 border-green-700';
+            colorClasses = 'bg-green-300 text-green-900 border-green-300';
             Icon = CheckCircle2;
             break;
         case 'rejected':
@@ -41,7 +41,7 @@ const Tag: React.FC<TagProps> = ({ status }) => {
             break;
         case 'diterima':
             text = 'Accepted';
-            colorClasses = 'bg-green-900/50 text-green-300 border-green-700'; // Disesuaikan
+            colorClasses = 'bg-green-300 text-green-900 border-green-300'; // Disesuaikan
             Icon = CheckCircle2;
             break;
         case 'ditolak':

@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import Tag from '@/components/ui/tag';
 import AppLayout from '@/layouts/app-layout';
+import { can } from '@/lib/can';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import {
@@ -123,22 +124,26 @@ export default function Index({ notas, flash, filter, totalPendingNotas, totalAp
             <div className="p-4 md:p-6 min-h-screen">
                 <Heading title="Dashboard Upload Nota" description="Monitor dan kelola semua nota pembelian." />
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 my-6">
-                    <StatCard title="Total Nota" value={jml_nota} icon={<FileText />} colorClass="border-cyan-500" />
-                    <StatCard title="Disetujui" value={totalApprovedNotas} icon={<CheckCircle2 />} colorClass="border-green-500" />
-                    <StatCard title="Pending" value={totalPendingNotas} icon={<Clock />} colorClass="border-yellow-500" />
-                    <StatCard title="Total Dana Disetujui" value={formatCurrency(sumApprovedNotasAmount)} icon={<DollarSign />} colorClass="border-purple-500" />
-                </div>
+                {can('notas.create') && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 my-6">
+                        <StatCard title="Total Nota" value={jml_nota} icon={<FileText />} colorClass="border-cyan-500" />
+                        <StatCard title="Disetujui" value={totalApprovedNotas} icon={<CheckCircle2 />} colorClass="border-green-500" />
+                        <StatCard title="Pending" value={totalPendingNotas} icon={<Clock />} colorClass="border-yellow-500" />
+                        <StatCard title="Total Dana Disetujui" value={formatCurrency(sumApprovedNotasAmount)} icon={<DollarSign />} colorClass="border-purple-500" />
+                    </div>
+                )}
 
                 <div className="backdrop-blur-sm border border-slate-700 p-6 rounded-2xl shadow-lg">
                     <div className="flex flex-col sm:flex-row justify-between items-center mb-4">
                         <h2 className="text-xl font-bold ">Laporan Nota</h2>
-                        <Link href={route('notas.up_nota')}>
-                            <Button className="bg-cyan-500 hover:bg-cyan-600 text-white font-bold shadow-lg shadow-cyan-500/20 transition-all duration-300 transform hover:scale-105 w-full sm:w-auto mt-2 sm:mt-0">
-                                <CirclePlus className="w-5 h-5 mr-2" />
-                                Upload Nota Baru
-                            </Button>
-                        </Link>
+                        {can('notas.create') && (
+                            <Link href={route('notas.up_nota')}>
+                                <Button className="bg-cyan-500 hover:bg-cyan-600 text-white font-bold shadow-lg shadow-cyan-500/20 transition-all duration-300 transform hover:scale-105 w-full sm:w-auto mt-2 sm:mt-0">
+                                    <CirclePlus className="w-5 h-5 mr-2" />
+                                    Upload Nota Baru
+                                </Button>
+                            </Link>
+                        )}
                     </div>
 
                     {flash.message && (
@@ -171,7 +176,11 @@ export default function Index({ notas, flash, filter, totalPendingNotas, totalAp
                                     <TableHead className="">Divisi</TableHead>
                                     <TableHead className="">Dana</TableHead>
                                     <TableHead className="">Status</TableHead>
-                                    <TableHead className="text-center">Aksi</TableHead>
+                                    
+                                    {can('notas.edit') && (
+                                        <TableHead className="text-center">Aksi</TableHead>
+                                    )}
+
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -183,17 +192,20 @@ export default function Index({ notas, flash, filter, totalPendingNotas, totalAp
                                             <TableCell className="">{nota.devisi}</TableCell>
                                             <TableCell className="">{formatCurrency(nota.dana)}</TableCell>
                                             <TableCell><Tag status={nota.status} /></TableCell>
-                                            <TableCell className="text-center space-x-1">
-                                                <Link href={route('notas.show', nota.id)}>
-                                                    <Button variant="ghost" size="icon"><Eye className="h-4 w-4 text-cyan-400 hover:text-cyan-500" /></Button>
-                                                </Link>
-                                                <Link href={route('notas.edit', nota.id)}>
-                                                    <Button variant="ghost" size="icon"><Pencil className="h-4 w-4 text-yellow-400 hover:text-yellow-500" /></Button>
-                                                </Link>
-                                                <Button variant="ghost" size="icon" disabled={processing} onClick={() => handleDelete(nota.id, nota.name)}>
-                                                    <Trash className="h-4 w-4 text-red-400 hover:text-red-500" />
-                                                </Button>
-                                            </TableCell>
+
+                                            {can('notas.edit') && (
+                                                <TableCell className="text-center space-x-1">
+                                                    <Link href={route('notas.show', nota.id)}>
+                                                        <Button variant="ghost" size="icon"><Eye className="h-4 w-4 text-cyan-400 hover:text-cyan-500" /></Button>
+                                                    </Link>
+                                                    <Link href={route('notas.edit', nota.id)}>
+                                                        <Button variant="ghost" size="icon"><Pencil className="h-4 w-4 text-yellow-400 hover:text-yellow-500" /></Button>
+                                                    </Link>
+                                                    <Button variant="ghost" size="icon" disabled={processing} onClick={() => handleDelete(nota.id, nota.name)}>
+                                                        <Trash className="h-4 w-4 text-red-400 hover:text-red-500" />
+                                                    </Button>
+                                                </TableCell>
+                                            )}
                                         </TableRow>
                                     ))
                                 ) : (
