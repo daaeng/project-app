@@ -71,10 +71,7 @@ export default function Welcome() {
     const products = [
         { name: 'Rubber', image: '/storage/assets/karet.jpeg' },
         { name: 'Coconut Fiber', image: '/storage/assets/sabut.jpeg' },
-        { name: 'White Copra', image: '/storage/assets/kop_putih.jpeg' },
-        { name: 'Cocopeat', image: '/storage/assets/cocopeat.jpg' },
-        { name: 'Cocofiber', image: '/storage/assets/cocofiber.jpg' },
-        { name: 'Cocobristle', image: '/storage/assets/bristle.jpeg' },
+        { name: 'White Copra', image: '/storage/assets/kop_putih.jpeg' }
     ];
     
     return (
