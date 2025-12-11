@@ -91,9 +91,9 @@ export default function Index({ roles, flash }: PageProps) {
                             <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                                 <thead className="bg-gray-50 dark:bg-gray-700/50">
                                     <tr>
-                                        <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 sm:pl-6 w-20">
+                                        {/* <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 sm:pl-6 w-20">
                                             ID
-                                        </th>
+                                        </th> */}
                                         <th scope="col" className="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                             Role Name
                                         </th>
@@ -108,9 +108,9 @@ export default function Index({ roles, flash }: PageProps) {
                                 <tbody className="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-800">
                                     {roles.map((role) => (
                                         <tr key={role.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors duration-150">
-                                            <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-400 sm:pl-6">
+                                            {/* <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-400 sm:pl-6">
                                                 #{role.id}
-                                            </td>
+                                            </td> */}
                                             <td className="whitespace-nowrap px-3 py-4 text-sm font-medium text-gray-900 dark:text-white">
                                                 <div className="flex items-center gap-3">
                                                     <div className="h-8 w-8 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400">

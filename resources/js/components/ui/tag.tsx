@@ -19,7 +19,7 @@ const Tag: React.FC<TagProps> = ({ status }) => {
         // Status BARU (dari fitur PPB)
         case 'pending':
             text = 'Pending';
-            colorClasses = 'bg-yellow-400 text-yellow-900 border-yellow-400';
+            colorClasses = 'bg-yellow-300 text-yellow-900 border-yellow-300';
             Icon = Clock;
             break;
         case 'approved':
@@ -36,7 +36,7 @@ const Tag: React.FC<TagProps> = ({ status }) => {
         // Status LAMA (dari file tag.tsx Mas Daeng)
         case 'belum ACC':
             text = 'Process';
-            colorClasses = 'bg-yellow-900/50 text-yellow-300 border-yellow-700'; // Disesuaikan
+            colorClasses = 'bg-yellow-300 text-yellow-900 border-yellow-300'; // Disesuaikan
             Icon = Clock;
             break;
         case 'diterima':
@@ -46,7 +46,7 @@ const Tag: React.FC<TagProps> = ({ status }) => {
             break;
         case 'ditolak':
             text = 'Rejected';
-            colorClasses = 'bg-red-900/50 text-red-300 border-red-700'; // Disesuaikan
+            colorClasses = 'bg-red-300 text-red-300 border-red-300'; // Disesuaikan
             Icon = XCircle;
             break;
 

@@ -81,8 +81,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware("permission:pegawai.create|pegawai.edit|pegawai.delete|pegawai.view");
 
     // ~~~~~~~~~~~~~ PAYROLL (PENGGAJIAN) ~~~~~~~~~~~~~
-    Route::get('/payroll/generate', [PayrollController::class, 'generate'])->name('payroll.generate');
-    Route::resource('/payroll', PayrollController::class)->except(['destroy']);
+    Route::get('/payroll/generate', [PayrollController::class, 'generate'])->name('payroll.generate')
+        ->middleware("permission:payroll.create|payroll.edit|payroll.delete|payroll.view");
+    Route::resource('/payroll', PayrollController::class)->except(['destroy'])
+        ->middleware("permission:payroll.create|payroll.edit|payroll.delete|payroll.view");
     
     // ~~~~~~~~~~~~~ REQUEST ~~~~~~~~~~~~~
     Route::get('/requests', [RequestController::class, 'index'])->name('requests.index')

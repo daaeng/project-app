@@ -7,7 +7,7 @@ import { Head, Link } from '@inertiajs/react';
 import { ArrowLeft, Calendar, DollarSign, Info, Layers, User, Users, Hash } from 'lucide-react';
 
 const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Notas', href: route('notas.index') },
+    { title: 'Administrasi & Keuangan', href: '/administrasis' },
     { title: 'Detail Nota' },
 ];
 
