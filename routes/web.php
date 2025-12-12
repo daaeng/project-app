@@ -109,9 +109,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/requests/{requested}/showAct', [RequestController::class, 'showAct'])->name('requests.showAct')
         ->middleware("permission:requests.create|requests.edit|requests.delete|requests.view");
 
-    // ~~~~~~~~~~~~~ PPB (PENGAJUAN PERMINTAAN BARANG - FITUR BARU) ~~~~~~~~~~~~~
+    // ~~~~~~~~~~~~~ PPB (PENGAJUAN PERMINTAAN BARANG) ~~~~~~~~~~~~~
     Route::resource('ppb', PpbController::class)
-        ->only(['index', 'create', 'store', 'show', 'destroy']) // <-- PERUBAHAN DI SINI
+        ->only(['index', 'create', 'store', 'show', 'destroy'])
         ->middleware("permission:requests.create|requests.edit|requests.delete|requests.view"); 
     
     Route::patch('/ppb/{ppb}/status', [PpbController::class, 'updateStatus'])
@@ -140,18 +140,27 @@ Route::middleware(['auth', 'verified'])->group(function () {
     route::get('/notas/{nota}/showAct', [NotaController::class, 'showAct'])->name('notas.showAct')
         ->middleware("permission:notas.create|notas.edit|notas.delete|notas.view");
 
-    // ~~~~~~~~~~~~~ ADMINISTRASI ~~~~~~~~~~~~~
+    // ~~~~~~~~~~~~~ ADMINISTRASI & KEUANGAN (UPDATED) ~~~~~~~~~~~~~
     route::get('/administrasis', [AdministrasiController::class, 'index'])->name('administrasis.index')
         ->middleware("permission:administrasis.create|administrasis.edit|administrasis.delete|administrasis.view");
-    Route::get('/administrasis/pengeluarans', [AdministrasiController::class, 'getPengeluarans'])->name('administrasis.getPengeluarans')
-        ->middleware("permission:administrasis.create|administrasis.edit|administrasis.delete|administrasis.view");
+    Route::get('/administrasis/print', [AdministrasiController::class, 'print'])
+        ->name('administrasis.print')
+        ->middleware("permission:administrasis.view");
+    
+    // [BARU] Route untuk Transaksi Keuangan (Wajib ada agar tidak error Ziggy)
+    Route::get('/administrasis/transactions', [AdministrasiController::class, 'getTransactions'])
+        ->name('administrasis.getTransactions')
+        ->middleware("permission:administrasis.view");
+        
+    Route::post('/administrasis/transactions', [AdministrasiController::class, 'storeTransaction'])
+        ->name('administrasis.storeTransaction')
+        ->middleware("permission:administrasis.create");
+        
+    Route::delete('/administrasis/transactions/{id}', [AdministrasiController::class, 'destroyTransaction'])
+        ->name('administrasis.destroyTransaction')
+        ->middleware("permission:administrasis.delete");
+
     Route::post('/administrasis/update-harga', [AdministrasiController::class, 'updateHarga'])->name('administrasis.updateHarga')
-        ->middleware("permission:administrasis.create|administrasis.edit|administrasis.delete|administrasis.view");
-    Route::post('/administrasis/store-pengeluaran', [AdministrasiController::class, 'storePengeluaran'])->name('administrasis.storePengeluaran')
-        ->middleware("permission:administrasis.create|administrasis.edit|administrasis.delete|administrasis.view");
-    Route::put('/administrasis/update-pengeluaran/{id}', [AdministrasiController::class, 'updatePengeluaran'])->name('administrasis.updatePengeluaran')
-        ->middleware("permission:administrasis.create|administrasis.edit|administrasis.delete|administrasis.view");
-    Route::delete('/administrasis/destroy-pengeluaran/{id}', [AdministrasiController::class, 'destroyPengeluaran'])->name('administrasis.destroyPengeluaran')
         ->middleware("permission:administrasis.create|administrasis.edit|administrasis.delete|administrasis.view");
 
     // ~~~~~~~~~~~~~ Role ~~~~~~~~~~~~~
