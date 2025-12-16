@@ -19,10 +19,11 @@ class PegawaiController extends Controller
         $pegawai = Employee::oldest('id')->get()->map(function ($employee) {
             return [
                 'id' => $employee->id,
-                'employee_id' => $employee->employee_id, // <-- Kirim employee_id
+                'employee_id' => $employee->employee_id,
                 'name' => $employee->name,
                 'position' => $employee->position,
                 'salary' => (float) $employee->salary,
+                'status' => $employee->status ?? 'active', // Default ke active jika null
                 'avatar' => 'https://ui-avatars.com/api/?name=' . urlencode($employee->name) . '&background=random&color=fff',
             ];
         });
@@ -38,10 +39,11 @@ class PegawaiController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'employee_id' => 'required|string|max:255|unique:employees,employee_id', // <-- Validasi unique
+            'employee_id' => 'required|string|max:255|unique:employees,employee_id',
             'name' => 'required|string|max:255',
             'position' => 'required|string|max:255',
             'salary' => 'required|numeric|min:0',
+            'status' => 'required|in:active,inactive', // Validasi status
         ]);
 
         Employee::create($validated);
@@ -55,11 +57,11 @@ class PegawaiController extends Controller
     public function update(Request $request, Employee $pegawai): RedirectResponse
     {
         $validated = $request->validate([
-            // Validasi unique dengan pengecualian untuk data yang sedang diedit
             'employee_id' => ['required', 'string', 'max:255', Rule::unique('employees')->ignore($pegawai->id)],
             'name' => 'required|string|max:255',
             'position' => 'required|string|max:255',
             'salary' => 'required|numeric|min:0',
+            'status' => 'required|in:active,inactive', // Validasi status
         ]);
 
         $pegawai->update($validated);

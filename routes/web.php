@@ -27,6 +27,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     
     // ~~~~~~~~~~~~~ PRODUCT ~~~~~~~~~~~~~
+    // [BARU] Route Cetak Invoice Satuan (Letakkan DI ATAS resource agar aman)
+    Route::get('/products/report', [ProductController::class, 'print_report'])->name('products.report')
+        ->middleware("permission:products.view");
+    Route::get('/products/{product}/print', [ProductController::class, 'print'])->name('products.print')
+        ->middleware("permission:products.view");
+        
     route::get('/products', [ProductController::class, 'index'])->name('products.index')
         ->middleware("permission:products.create|products.edit|products.delete|products.view");
     route::post('/products', [ProductController::class, 'store'])->name('products.store')
@@ -60,6 +66,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/products/export/excel', [ProductController::class, 'exportExcel'])->name('products.export.excel')
         ->middleware("permission:products.create|products.edit|products.delete|products.view");
     
+    // ... sisa route lainnya biarkan tetap ada ...
     // ~~~~~~~~~~~~~ UserManagement ~~~~~~~~~~~~~
     route::get('/usermanagements', [UserManagementController::class, 'index'])->name('usermanagements.index')
         ->middleware("permission:usermanagements.create|usermanagements.edit|usermanagements.delete|usermanagements.view");
@@ -185,6 +192,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware("permission:incisor.create|incisor.edit|incisor.delete|incisor.view");
     
     // ~~~~~~~~~~~~~ Inciseds ~~~~~~~~~~~~~
+    route::get('/inciseds/print-report', [IncisedController::class, 'printReport'])->name('inciseds.printReport');
+    route::get('/inciseds/{incised}/print', [IncisedController::class, 'print'])->name('inciseds.print');
+    
     route::get('/inciseds', [IncisedController::class, 'index'])->name('inciseds.index')
         ->middleware("permission:incised.create|incised.edit|incised.delete|incised.view");
     route::post('/inciseds', [IncisedController::class, 'store'])->name('inciseds.store')
@@ -199,7 +209,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware("permission:incised.create|incised.edit|incised.delete|incised.view");
     route::delete('/inciseds/{incised}', [IncisedController::class, 'destroy'])->name('inciseds.destroy')
         ->middleware("permission:incised.create|incised.edit|incised.delete|incised.view");
-    
+
+
     // ~~~~~~~~~~~~~ KASBON / UTANG ~~~~~~~~~~~~~
     Route::post('/kasbons/get-incisor-data', [KasbonController::class, 'getIncisorData'])
         ->name('kasbons.getIncisorData')

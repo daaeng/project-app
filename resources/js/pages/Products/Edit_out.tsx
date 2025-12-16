@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { CircleAlert, Undo2, Save } from 'lucide-react';
-import React from 'react';
+import React, { useEffect } from 'react';
 
 interface Product{
     id: number,
@@ -33,6 +33,13 @@ interface Product{
     tgl_sampai: string,
     qty_sampai: string,
     // --- [SELESAI DITAMBAHKAN] ---
+    customer_name: string;
+    pph_value: number;
+    ob_cost: number;
+    extra_cost: number;
+    shipping_method: string;
+    person_in_charge: string;
+    due_date: string;
 }
 
 interface props{
@@ -99,7 +106,35 @@ export default function EditOut({product} : props) {
         tgl_sampai: product.tgl_sampai || '',
         qty_sampai: product.qty_sampai || '',
         // --- [SELESAI DITAMBAHKAN] ---
+        customer_name: product.customer_name,
+        pph_value: product.pph_value,
+        ob_cost: product.ob_cost,
+        extra_cost: product.extra_cost,
+        shipping_method: product.shipping_method,
+        person_in_charge: product.person_in_charge,
+        due_date: product.due_date,
     })
+
+    useEffect(() => {
+            const qty = parseFloat(data.qty_out) || 0;
+            const price = parseFloat(data.price_out) || 0;
+            const grossAmount = qty * price;
+            
+            const pph = grossAmount * 0.0025;
+            
+            const ob = parseFloat(data.ob_cost) || 0;
+            const extra = parseFloat(data.extra_cost) || 0;
+            const netAmount = grossAmount - pph - ob - extra;
+    
+            if (data.pph_value !== pph.toFixed(2) && grossAmount > 0) {
+                 setData(prev => ({...prev, pph_value: pph.toFixed(2)}));
+            }
+    
+            if (data.amount_out !== netAmount.toFixed(2)) {
+                 setData(prev => ({...prev, amount_out: netAmount.toFixed(2)}));
+            }
+            
+        }, [data.qty_out, data.price_out, data.ob_cost, data.extra_cost]);
 
     const handleUpdate = (e: React.FormEvent) =>{
         e.preventDefault();
@@ -110,7 +145,7 @@ export default function EditOut({product} : props) {
         <AppLayout breadcrumbs={[{title: 'Edit Data Product', href:`/product/${product.id}/edit`}]}>
             <Head title="Edit Pengeluaran" />
 
-            <div className="bg-gray-50 dark:bg-gray-900 py-6 sm:py-8 lg:py-12 min-h-full">
+            <div className="bg-gray-50 dark:bg-black py-6 sm:py-8 lg:py-12 min-h-full">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                      <div className="flex justify-between items-center mb-6">
                         <div>
@@ -144,10 +179,13 @@ export default function EditOut({product} : props) {
                             <div className="p-6">
                                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white border-b dark:border-gray-700 pb-4 mb-6">Detail Utama</h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    <FormField label="Nama Customer / Pembeli">
+                                        <StyledInput placeholder='Nama PT / Orang' value={data.customer_name} onChange={(e) => setData('customer_name', e.target.value)} />
+                                    </FormField>
                                     <FormField label="Product">
                                         <StyledInput value={data.product} readOnly className="cursor-not-allowed bg-gray-200 dark:bg-gray-600" />
                                     </FormField>
-                                    <FormField label="Tanggal Nota">
+                                    <FormField label="Tanggal Kirim">
                                         <StyledInput type='date' value={data.date} onChange={(e) => setData('date', e.target.value)} />
                                     </FormField>
                                     <FormField label="No. Invoice">
@@ -179,36 +217,67 @@ export default function EditOut({product} : props) {
                             </div>
                         </div>
 
-                         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden">
+                        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden">
                             <div className="p-6">
                                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white border-b dark:border-gray-700 pb-4 mb-6">Data Pengeluaran (Outbound)</h3>
                                  <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
-                                     <FormField label="Quantity (Kg)">
+                                    <FormField label="Quantity (Kg)">
                                         <StyledInput placeholder='Quantity' value={data.qty_out} onChange={(e) => setData('qty_out', e.target.value)} />
-                                     </FormField>
-                                     <FormField label="Price / Qty">
+                                    </FormField>
+                                    <FormField label="Price / Qty">
                                         <StyledInput placeholder='Price' value={data.price_out} onChange={(e) => setData('price_out', e.target.value)} />
-                                     </FormField>
-                                     <FormField label="Amount">
+                                    </FormField>
+
+                                    <FormField label="PPH 0.25% (Otomatis)">
+                                        <StyledInput type='number' value={data.pph_value} readOnly className="bg-gray-100" />
+                                    </FormField>
+                                    <FormField label="Biaya OB">
+                                        <StyledInput type='number' value={data.ob_cost} onChange={(e) => setData('ob_cost', e.target.value)} />
+                                    </FormField>
+                                    <FormField label="Biaya Tambahan">
+                                        <StyledInput type='number' value={data.extra_cost} onChange={(e) => setData('extra_cost', e.target.value)} />
+                                    </FormField>
+                                    
+                                    <FormField label="Amount">
                                         <StyledInput placeholder='Amount' value={data.amount_out} onChange={(e) => setData('amount_out', e.target.value)} />
-                                     </FormField>
-                                     <FormField label="Keping / Buah">
+                                    </FormField>
+                                    <FormField label="Keping / Buah">
                                         <StyledInput placeholder='Keping' value={data.keping_out} onChange={(e) => setData('keping_out', e.target.value)} />
-                                     </FormField>
-                                     <FormField label="Kualitas">
+                                    </FormField>
+                                    <FormField label="Kualitas">
                                         <StyledInput placeholder='Kualitas' value={data.kualitas_out} onChange={(e) => setData('kualitas_out', e.target.value)} />
-                                     </FormField>
-                                      {/* --- [DITAMBAHKAN] Field-field baru untuk edit --- */}
-                                     <FormField label="Tanggal Kirim">
+                                    </FormField>
+                                    
+                                    {/* --- [DITAMBAHKAN] Field-field baru untuk edit --- */}
+                                    <FormField label="Tanggal Kirim">
                                         <StyledInput type='date' value={data.tgl_kirim} onChange={(e) => setData('tgl_kirim', e.target.value)} />
-                                     </FormField>
-                                     <FormField label="Tanggal Sampai">
+                                    </FormField>
+                                    <FormField label="Tanggal Sampai">
                                         <StyledInput type='date' value={data.tgl_sampai} onChange={(e) => setData('tgl_sampai', e.target.value)} />
-                                     </FormField>
-                                     <FormField label="Qty Sampai (Kg)">
+                                    </FormField>
+                                    <FormField label="Qty Sampai (Kg)">
                                         <StyledInput type='number' placeholder='Qty Sampai' value={data.qty_sampai} onChange={(e) => setData('qty_sampai', e.target.value)} />
-                                     </FormField>
-                                     {/* --- [SELESAI DITAMBAHKAN] --- */}
+                                    </FormField>
+                                    {/* --- [SELESAI DITAMBAHKAN] --- */}
+                                 </div>
+                            </div>
+                        </div>
+                        
+                        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden">
+                            <div className="p-6">
+                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white border-b dark:border-gray-700 pb-4 mb-6">Data Pengeluaran (Outbound)</h3>
+                                 <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
+                                    <FormField label="Via Armada">
+                                        <StyledInput placeholder='Truck / Kapal Barang / Pesawat' value={data.shipping_method} onChange={(e) => setData('shipping_method', e.target.value)} />
+                                    </FormField>
+                                    <FormField label="Penanggung Jawab">
+                                        <StyledInput placeholder='Nama PIC' value={data.person_in_charge} onChange={(e) => setData('person_in_charge', e.target.value)} />
+                                    </FormField>
+                                    {/* [BARU] Jatuh Tempo */}
+                                    <FormField label="Tgl Jatuh Tempo">
+                                        <StyledInput type='date' value={data.due_date} onChange={(e) => setData('due_date', e.target.value)} />
+                                    </FormField>
+                        
                                  </div>
                             </div>
                         </div>

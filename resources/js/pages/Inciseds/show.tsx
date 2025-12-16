@@ -19,6 +19,7 @@ import {
     FileText, // Untuk Deskripsi
     TrendingUp, // Untuk Kualitas
     Package, // Untuk Keping
+    Printer // [BARU] Icon Printer
 } from 'lucide-react';
 import React from 'react'; // Impor React
 
@@ -122,11 +123,17 @@ const FinancialItem = ({
 
 export default function ShowIncised({ incised }: { incised: Incised }) {
 
+    // [BARU] Fungsi untuk membuka halaman cetak di tab baru
+    const handlePrint = () => {
+        const printUrl = route('inciseds.print', incised.id);
+        window.open(printUrl, '_blank');
+    };
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Detail Data Harian" />
 
-            <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 sm:p-6 lg:p-8">
+            <div className="min-h-screen bg-gray-50 dark:bg-black p-4 sm:p-6 lg:p-8">
                 {/* Header Halaman */}
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                     <Heading
@@ -134,12 +141,24 @@ export default function ShowIncised({ incised }: { incised: Incised }) {
                         description={`Dicatat pada ${formatDate(incised.date)}`}
                         className="text-2xl font-semibold text-gray-800 dark:text-gray-100"
                     />
-                    <Link href={route('inciseds.index')}>
-                        <Button className="bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 transition-all duration-200 rounded-lg shadow-sm flex items-center w-full sm:w-auto">
-                            <Undo2 className="h-4 w-4 mr-2" />
-                            Kembali ke Daftar
+                    
+                    {/* [UPDATED] Grup Tombol Aksi */}
+                    <div className="flex items-center gap-2 w-full sm:w-auto">
+                        <Button 
+                            onClick={handlePrint}
+                            className="bg-indigo-600 text-white hover:bg-indigo-700 dark:bg-indigo-700 dark:hover:bg-indigo-600 transition-all duration-200 rounded-lg shadow-sm flex items-center justify-center flex-1 sm:flex-none"
+                        >
+                            <Printer className="h-4 w-4 mr-2" />
+                            Cetak
                         </Button>
-                    </Link>
+
+                        <Link href={route('inciseds.index')} className="flex-1 sm:flex-none">
+                            <Button className="w-full bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 transition-all duration-200 rounded-lg shadow-sm flex items-center justify-center">
+                                <Undo2 className="h-4 w-4 mr-2" />
+                                Kembali
+                            </Button>
+                        </Link>
+                    </div>
                 </div>
 
                 {/* Peringatan jika penoreh tidak ada */}
@@ -267,4 +286,3 @@ export default function ShowIncised({ incised }: { incised: Incised }) {
         </AppLayout>
     );
 }
-

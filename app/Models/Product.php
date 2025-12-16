@@ -26,5 +26,14 @@ class Product extends Model
         'tgl_kirim',    
         'tgl_sampai', 
         'qty_sampai',
+        
+        // [BARU] Field Tambahan
+        'customer_name',    // Nama/Customer
+        'shipping_method',  // Via Pengiriman
+        'pph_value',        // PPH 0.25% (Nominal)
+        'ob_cost',          // OB (Nominal)
+        'extra_cost',       // Biaya Tambahan
+        'due_date',         // Tgl Jatuh Tempo
+        'person_in_charge', // Penanggung Jawab
     ];
 }

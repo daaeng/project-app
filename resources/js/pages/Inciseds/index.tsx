@@ -6,7 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, useForm, router } from '@inertiajs/react';
-import { CirclePlus, Eye, Megaphone, Pencil, Search, Trash, XCircle } from 'lucide-react';
+import { CirclePlus, Eye, Megaphone, Pencil, Search, Trash, XCircle, Printer } from 'lucide-react';
 import { can } from '@/lib/can';
 import { Input } from '@/components/ui/input';
 import { useState, useEffect } from 'react';
@@ -57,10 +57,11 @@ interface PageProps {
             total: number;
         };
     };
+    // Tambahkan per_page ke filter interface
     filter?: { search?: string; time_period?: string; month?: string; year?: string; per_page?: string; };
     totalKebunA: number;
     totalKebunB: number;
-    mostProductiveIncisor?: { // Jadikan opsional
+    mostProductiveIncisor?: {
         name: string;
         total_qty_kg: number;
     };
@@ -132,6 +133,7 @@ export default function Admin({ inciseds, flash, filter, totalKebunA, totalKebun
         }
     }, [flash]);
 
+    // Fungsi Reusable untuk Apply Filter
     const applyFilters = (params: { search: string; time_period: string; month?: string; year?: string; per_page: string }) => {
         const queryParams: any = {
             search: params.search,
@@ -139,7 +141,7 @@ export default function Admin({ inciseds, flash, filter, totalKebunA, totalKebun
             per_page: params.per_page,
         };
 
-        if (params.time_period === 'specific-month' && params.month && params.year) {
+        if (params.time_period === 'specific-month') {
             queryParams.month = params.month;
             queryParams.year = params.year;
         }
@@ -158,6 +160,30 @@ export default function Admin({ inciseds, flash, filter, totalKebunA, totalKebun
         }
     };
 
+    // [BARU] Auto-Apply saat Bulan berubah
+    const handleMonthChange = (val: string) => {
+        setSpecificMonth(val);
+        applyFilters({ 
+            search: searchValue, 
+            time_period: timePeriod, 
+            month: val, 
+            year: specificYear, 
+            per_page: perPage 
+        });
+    }
+
+    // [BARU] Auto-Apply saat Tahun berubah
+    const handleYearChange = (val: string) => {
+        setSpecificYear(val);
+        applyFilters({ 
+            search: searchValue, 
+            time_period: timePeriod, 
+            month: specificMonth, 
+            year: val, 
+            per_page: perPage 
+        });
+    }
+
     const handlePerPageChange = (value: string) => {
         setPerPage(value);
         applyFilters({ search: searchValue, time_period: timePeriod, month: specificMonth, year: specificYear, per_page: value });
@@ -165,6 +191,22 @@ export default function Admin({ inciseds, flash, filter, totalKebunA, totalKebun
     
     const performSearch = () => {
         applyFilters({ search: searchValue, time_period: timePeriod, month: specificMonth, year: specificYear, per_page: perPage });
+    };
+
+    // [FIX] Print menggunakan filter dari PROPS (Server) agar sinkron dengan tabel
+    const handlePrintReport = () => {
+        const queryParams: any = {
+            search: filter?.search || '',          // Gunakan props.filter
+            time_period: filter?.time_period || 'this-month', // Gunakan props.filter
+        };
+
+        if (filter?.time_period === 'specific-month') {
+            queryParams.month = filter?.month;
+            queryParams.year = filter?.year;
+        }
+
+        const url = route('inciseds.printReport', queryParams);
+        window.open(url, '_blank');
     };
 
     const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -188,7 +230,6 @@ export default function Admin({ inciseds, flash, filter, totalKebunA, totalKebun
     const yearOptions = Array.from({ length: 10 }, (_, i) => ({ value: (currentYear - i).toString(), label: (currentYear - i).toString() }));
 
 
-    // Render tombol-tombol pagination
     const renderPagination = (links: PaginationLink[]) => (
         <div className="flex justify-center items-center mt-6 space-x-2">
             {links.map((link, index) => (
@@ -220,14 +261,14 @@ export default function Admin({ inciseds, flash, filter, totalKebunA, totalKebun
                                 icon={FaSeedling}
                                 title="Total Karet Temadu"
                                 value={`${totalKebunA} kg`}
-                                subtitle="Total Kuantitas Karet"
+                                subtitle={filter?.search ? "Hasil Pencarian" : "Total Kuantitas Karet"}
                                 gradient="from-green-400 to-green-600"
                             />
                             <StatCard
                                 icon={FaSeedling}
                                 title="Total Karet Sebayar"
                                 value={`${totalKebunB} kg`}
-                                subtitle="Total Kuantitas Karet"
+                                subtitle={filter?.search ? "Hasil Pencarian" : "Total Kuantitas Karet"}
                                 gradient="from-blue-400 to-blue-600"
                             />
                             <StatCard
@@ -240,7 +281,17 @@ export default function Admin({ inciseds, flash, filter, totalKebunA, totalKebun
                         </div>
 
                         <div className="border h-auto p-3 rounded-lg">
-                            <div className="w-full mb-2 justify-end h-auto flex gap-2">
+                            <div className="w-full mb-2 justify-between h-auto flex flex-wrap gap-2 items-center">
+                                {/* Tombol Cetak Laporan */}
+                                <Button 
+                                    onClick={handlePrintReport} 
+                                    variant="outline"
+                                    className="bg-white hover:bg-gray-100 text-gray-700 border-gray-300 shadow-sm"
+                                >
+                                    <Printer className="w-4 h-4 mr-2" />
+                                    Cetak Laporan
+                                </Button>
+
                                 {can('incised.create') && (
                                     <Link href={route('inciseds.create')}>
                                         <Button className="bg-blue-600 w-auto hover:bg-blue-500 text-white">
@@ -297,7 +348,8 @@ export default function Admin({ inciseds, flash, filter, totalKebunA, totalKebun
 
                                 {timePeriod === 'specific-month' && (
                                     <div className="flex gap-2 w-full sm:w-auto">
-                                        <Select value={specificMonth} onValueChange={setSpecificMonth}>
+                                        {/* [UPDATED] Menggunakan handleMonthChange untuk Auto-Apply */}
+                                        <Select value={specificMonth} onValueChange={handleMonthChange}>
                                             <SelectTrigger className="w-full sm:w-[150px]">
                                                 <SelectValue placeholder="Pilih Bulan" />
                                             </SelectTrigger>
@@ -305,7 +357,9 @@ export default function Admin({ inciseds, flash, filter, totalKebunA, totalKebun
                                                 {monthOptions.map(opt => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}
                                             </SelectContent>
                                         </Select>
-                                        <Select value={specificYear} onValueChange={setSpecificYear}>
+                                        
+                                        {/* [UPDATED] Menggunakan handleYearChange untuk Auto-Apply */}
+                                        <Select value={specificYear} onValueChange={handleYearChange}>
                                             <SelectTrigger className="w-full sm:w-[120px]">
                                                 <SelectValue placeholder="Pilih Tahun" />
                                             </SelectTrigger>
@@ -409,4 +463,3 @@ export default function Admin({ inciseds, flash, filter, totalKebunA, totalKebun
         </AppLayout>
     );
 }
-

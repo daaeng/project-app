@@ -25,63 +25,67 @@ class IncisedController extends Controller
             $perPage = intval($perPage);
         }
 
+        // --- Logic Filter Waktu (Re-usable) ---
         $applyTimeFilter = function ($query, $period, $month, $year) {
             switch ($period) {
                 case 'today':
-                    $query->whereDate('date', Carbon::today());
-                    break;
+                    $query->whereDate('date', Carbon::today()); break;
                 case 'this-week':
-                    $query->whereBetween('date', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]);
-                    break;
+                    $query->whereBetween('date', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]); break;
                 case 'this-month':
-                    $query->whereMonth('date', Carbon::now()->month)->whereYear('date', Carbon::now()->year);
-                    break;
+                    $query->whereMonth('date', Carbon::now()->month)->whereYear('date', Carbon::now()->year); break;
                 case 'last-month':
-                    $query->whereMonth('date', Carbon::now()->subMonth()->month)->whereYear('date', Carbon::now()->subMonth()->year);
-                    break;
+                    $query->whereMonth('date', Carbon::now()->subMonth()->month)->whereYear('date', Carbon::now()->subMonth()->year); break;
                 case 'this-year':
-                    $query->whereYear('date', Carbon::now()->year);
-                    break;
+                    $query->whereYear('date', Carbon::now()->year); break;
                 case 'specific-month':
-                    if ($month && $year) $query->whereMonth('date', $month)->whereYear('date', $year);
-                    break;
+                    if ($month && $year) $query->whereMonth('date', $month)->whereYear('date', $year); break;
+            }
+        };
+
+        // --- Logic Pencarian (Re-usable) ---
+        $applySearch = function ($query, $search) {
+            if ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('product', 'like', "%{$search}%")
+                      ->orWhere('no_invoice', 'like', "%{$search}%")
+                      ->orWhere('lok_kebun', 'like', "%{$search}%")
+                      ->orWhere('j_brg', 'like', "%{$search}%")
+                      ->orWhereHas('incisor', function ($subq) use ($search) {
+                          $subq->where('name', 'like', "%{$search}%");
+                      });
+                });
             }
         };
         
+        // 1. Query Utama (Tabel)
         $incisedsQuery = Incised::query()->with('incisor');
-
-        $incisedsQuery->when($searchTerm, function ($query, $search) {
-            $query->where(function ($q) use ($search) {
-                $q->where('product', 'like', "%{$search}%")
-                  ->orWhere('no_invoice', 'like', "%{$search}%")
-                  ->orWhere('lok_kebun', 'like', "%{$search}%")
-                  ->orWhere('j_brg', 'like', "%{$search}%")
-                  ->orWhereHas('incisor', function ($subq) use ($search) {
-                      $subq->where('name', 'like', "%{$search}%");
-                  });
-            });
-        });
-
+        $applySearch($incisedsQuery, $searchTerm);
         $applyTimeFilter($incisedsQuery, $timePeriod, $specificMonth, $specificYear);
 
-        // Statistik Ringkas
+        // 2. Query Statistik (Agar Sinkron dengan Pencarian)
         $baseStatQuery = Incised::query();
+        $applySearch($baseStatQuery, $searchTerm); // Terapkan pencarian juga di statistik
         $applyTimeFilter($baseStatQuery, $timePeriod, $specificMonth, $specificYear);
         
         $totalKebunA = (clone $baseStatQuery)->where('lok_kebun', 'Temadu')->sum('qty_kg');
         $totalKebunB = (clone $baseStatQuery)->where('lok_kebun', 'Sebayar')->sum('qty_kg');
-        $totalPendapatan = (clone $baseStatQuery)->sum('amount'); // Tambahan info pendapatan total
+        $totalPendapatan = (clone $baseStatQuery)->sum('amount');
 
-        // Top Penoreh
+        // 3. Query Top Penoreh (Agar Sinkron dengan Pencarian)
         $mostProductiveIncisorQuery = Incised::query()
             ->select('incisors.name', DB::raw('SUM(inciseds.qty_kg) as total_qty_kg'))
-            ->join('incisors', 'inciseds.no_invoice', '=', 'incisors.no_invoice')
-            ->groupBy('incisors.name')
-            ->orderByDesc('total_qty_kg');
+            ->join('incisors', 'inciseds.no_invoice', '=', 'incisors.no_invoice');
             
+        $applySearch($mostProductiveIncisorQuery, $searchTerm); // Terapkan pencarian
         $applyTimeFilter($mostProductiveIncisorQuery, $timePeriod, $specificMonth, $specificYear);
-        $mostProductiveIncisor = $mostProductiveIncisorQuery->first();
+        
+        $mostProductiveIncisor = $mostProductiveIncisorQuery
+            ->groupBy('incisors.name')
+            ->orderByDesc('total_qty_kg')
+            ->first();
 
+        // Eksekusi Query Tabel
         $inciseds = $incisedsQuery
             ->orderBy('date', 'DESC')
             ->paginate($perPage)
@@ -114,6 +118,81 @@ class IncisedController extends Controller
                 'name' => $mostProductiveIncisor ? $mostProductiveIncisor->name : 'N/A',
                 'total_qty_kg' => $mostProductiveIncisor ? (float)$mostProductiveIncisor->total_qty_kg : 0,
             ],
+        ]);
+    }
+
+    // Fungsi Cetak Laporan Rekapitulasi
+    public function printReport(Request $request)
+    {
+        $searchTerm = $request->input('search');
+        $timePeriod = $request->input('time_period', 'this-month');
+        $specificMonth = $request->input('month');
+        $specificYear = $request->input('year');
+
+        // Copy Logic Filter agar konsisten
+        $applyTimeFilter = function ($query, $period, $month, $year) {
+            switch ($period) {
+                case 'today':
+                    $query->whereDate('date', Carbon::today()); break;
+                case 'this-week':
+                    $query->whereBetween('date', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]); break;
+                case 'this-month':
+                    $query->whereMonth('date', Carbon::now()->month)->whereYear('date', Carbon::now()->year); break;
+                case 'last-month':
+                    $query->whereMonth('date', Carbon::now()->subMonth()->month)->whereYear('date', Carbon::now()->subMonth()->year); break;
+                case 'this-year':
+                    $query->whereYear('date', Carbon::now()->year); break;
+                case 'specific-month':
+                    if ($month && $year) $query->whereMonth('date', $month)->whereYear('date', $year); break;
+            }
+        };
+
+        $query = Incised::query()->with('incisor');
+
+        // Apply Search (Sama persis dengan index)
+        if ($searchTerm) {
+            $query->where(function ($q) use ($searchTerm) {
+                $q->where('product', 'like', "%{$searchTerm}%")
+                  ->orWhere('no_invoice', 'like', "%{$searchTerm}%")
+                  ->orWhere('lok_kebun', 'like', "%{$searchTerm}%")
+                  ->orWhere('j_brg', 'like', "%{$searchTerm}%")
+                  ->orWhereHas('incisor', function ($subq) use ($searchTerm) {
+                      $subq->where('name', 'like', "%{$searchTerm}%");
+                  });
+            });
+        }
+
+        $applyTimeFilter($query, $timePeriod, $specificMonth, $specificYear);
+
+        $inciseds = $query->orderBy('date', 'ASC')->get()->map(function ($item) {
+            return [
+                'date' => $item->date,
+                'no_invoice' => $item->no_invoice,
+                'incisor_name' => $item->incisor ? $item->incisor->name : 'N/A',
+                'lok_kebun' => $item->lok_kebun,
+                'product' => $item->product,
+                'j_brg' => $item->j_brg,
+                'qty_kg' => $item->qty_kg,
+                'price_qty' => $item->price_qty,
+                'amount' => $item->amount,
+                'keping' => $item->keping
+            ];
+        });
+
+        $totalQty = $inciseds->sum('qty_kg');
+        $totalAmount = $inciseds->sum('amount');
+
+        return Inertia::render('Inciseds/PrintReport', [
+            'inciseds' => $inciseds,
+            'totals' => [
+                'qty' => $totalQty,
+                'amount' => $totalAmount
+            ],
+            'filter' => [
+                'time_period' => $timePeriod,
+                'month' => $specificMonth,
+                'year' => $specificYear
+            ]
         ]);
     }
 
@@ -191,6 +270,14 @@ class IncisedController extends Controller
         
         return Inertia::render('Inciseds/show', [
             'incised' => $data,
+        ]);
+    }
+
+    public function print($id)
+    {
+        $incised = Incised::with('incisor')->findOrFail($id);
+        return Inertia::render('Inciseds/Print', [
+            'incised' => $incised,
         ]);
     }
 

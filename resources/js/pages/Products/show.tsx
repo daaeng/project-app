@@ -31,6 +31,13 @@ interface Product {
     tgl_sampai: string;
     qty_sampai: number;
     // --- [SELESAI DITAMBAHKAN] ---
+    customer_name: string;
+    pph_value: number;
+    ob_cost: number;
+    extra_cost: number;
+    shipping_method: string;
+    person_in_charge: string;
+    due_date: string;
 }
 
 // Interface untuk props halaman
@@ -62,60 +69,15 @@ const DetailRow = ({ label, value, isCurrency = false, className = '' }: { label
 export default function ShowReport({ product, susut_value }: PageProps) {
     
     const handlePrint = () => {
-        window.print();
+        const printUrl = route('products.print', product.id);
+        window.open(printUrl, '_blank');
     };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={`Laporan Penjualan ${product.no_invoice}`} />
 
-            {/* --- CSS KHUSUS PRINT (DIPERBARUI) --- */}
-            <style>
-                {`
-                    @media print {
-                        body {
-                            visibility: hidden;
-                            background-color: white !important;
-                            -webkit-print-color-adjust: exact; /* Untuk Chrome/Safari */
-                            color-adjust: exact; /* Standar */
-                        }
-                        .no-print {
-                            display: none !important;
-                        }
-                        .print-container {
-                            padding: 0 !important;
-                            margin: 0 !important;
-                            max-width: 100% !important;
-                            background: white !important;
-                        }
-                        #printable-area {
-                            visibility: visible;
-                            position: static !important;
-                            box-shadow: none !important;
-                            border: none !important;
-                            border-radius: 0 !important;
-                            padding: 1rem !important;
-                            margin: 0 !important;
-                            color: black !important;
-                            background: white !important;
-                            width: 100% !important;
-                        }
-                        #printable-area * {
-                            visibility: visible;
-                            color: black !important;
-                            background-color: transparent !important;
-                        }
-                        .print-tag {
-                           border: 1px solid #777 !important;
-                           background-color: #f0f0f0 !important;
-                           color: black !important;
-                        }
-                         .text-green-600 {
-                            color: black !important; /* Ubah warna hijau jadi hitam saat print */
-                        }
-                    }
-                `}
-            </style>
+            
 
             <div className="bg-gray-50 dark:bg-black py-6 sm:py-8 lg:py-12 min-h-full">
                 <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -146,6 +108,11 @@ export default function ShowReport({ product, susut_value }: PageProps) {
                     {/* Area yang akan di-print */}
                     <div id="printable-area" className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-md">
                         <header className="pb-6 border-b border-gray-200 dark:border-gray-700">
+                            <img 
+                                src="/assets/GKA_no_Tag.png" 
+                                className="h-10 w-auto mx-auto mb-3 object-contain" 
+                                alt="Logo GKA" 
+                            />
                             <h2 className="text-2xl font-bold text-center text-gray-900 dark:text-white">Laporan Penjualan</h2>
                             <p className="text-sm text-center text-gray-500 dark:text-gray-400">PT. Garuda Karya Amanat</p>
                         </header>
@@ -154,7 +121,8 @@ export default function ShowReport({ product, susut_value }: PageProps) {
                             {/* Kolom Kiri */}
                             <div className="space-y-2">
                                 <DetailRow label="No. Invoice" value={product.no_invoice} />
-                                <DetailRow label="Tanggal Nota" value={formatDate(product.date)} />
+                                <DetailRow label="Customer" value={product.customer_name} />
+                                {/* <DetailRow label="Tanggal Nota" value={formatDate(product.date)} /> */}
                                 <DetailRow label="Jenis Produk" value={product.product} />
                                 <DetailRow label="Jenis Barang" value={product.j_brg} />
                                 
@@ -193,7 +161,16 @@ export default function ShowReport({ product, susut_value }: PageProps) {
                             <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">Rincian Keuangan</h3>
                             <div className="space-y-2">
                                 <DetailRow label="Harga / Kg" value={product.price_out} isCurrency />
+                                <DetailRow label="PPH 0.25%" value={product.pph_value} isCurrency />
+                                <DetailRow label="Biaya OB" value={product.ob_cost} isCurrency />
+                                <DetailRow label="Biaya Tambahan" value={product.extra_cost} isCurrency />
                                 <DetailRow label="Total Penjualan (Setelah PPh)" value={product.amount_out} isCurrency className="text-green-600 text-lg" />
+                            </div>
+                            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mt-3 mb-2">Data Pengantaran</h3>
+                            <div className="space-y-2">
+                                <DetailRow label="Via Armada" value={product.shipping_method} className="text-lg" />
+                                <DetailRow label="Penanggung Jawab" value={product.person_in_charge} className="text-lg" />
+                                <DetailRow label="Jatuh Tempo" value={product.due_date} className="text-lg" />
                             </div>
                         </footer>
                     </div>

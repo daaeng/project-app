@@ -20,6 +20,7 @@ import {
     Warehouse,
     CalendarDays,
     Filter,
+    Printer, // [Added] Import Printer icon
 } from 'lucide-react';
 import {
     Table,
@@ -329,6 +330,20 @@ export default function GkaPage({
         );
     };
 
+    // --- [BARU] Function untuk handle Print Report ---
+    const handlePrintReport = () => {
+        const params: any = {
+            search: searchValue,
+            time_period: timePeriod,
+            product_type: productType,
+            month: selectedMonth,
+            year: selectedYear,
+        };
+        // Buka tab baru untuk laporan agar user tetap di dashboard
+        const url = route('products.report', params);
+        window.open(url, '_blank');
+    };
+
     const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'Enter') {
             performSearch();
@@ -441,8 +456,12 @@ export default function GkaPage({
                         <Heading title="PT. Garuda Karya Amanat" />
                         <p className="text-muted-foreground text-sm">Dashboard ringkasan produk dan stok.</p>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                         <Link href={route('products.index')}><Button variant="outline"><Undo2 className="w-4 h-4 mr-2" /> Kembali</Button></Link>
+                        {/* [BARU] Tombol Cetak Laporan */}
+                         <Button onClick={handlePrintReport} className="bg-slate-700 hover:bg-slate-800 text-white shadow-lg">
+                            <Printer size={18} className="mr-2" /> Cetak Laporan
+                        </Button>
                         {can('products.create') && <Link href={route('products.c_send')}><Button className="bg-purple-600 hover:bg-purple-700 text-white shadow-lg"><Building2 size={18} className="mr-2" /> Kirim Barang</Button></Link>}
                         <Link href={route('products.create')}><Button className="bg-green-600 hover:bg-green-700 text-white shadow-lg"><CirclePlus size={18} className="mr-2" /> Tambah Produk</Button></Link>
                     </div>

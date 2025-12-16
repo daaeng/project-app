@@ -7,21 +7,21 @@ import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, useForm } from '@inertiajs/react';
-import { CircleAlert, Undo2, Save } from 'lucide-react'; // Impor Save icon
+import { CircleAlert, Undo2, Save, Calculator } from 'lucide-react'; // Tambah icon Calculator
 import {
     Card,
     CardContent,
     CardHeader,
     CardTitle,
-} from '@/components/ui/card'; // Impor Card
+} from '@/components/ui/card';
 import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from '@/components/ui/select'; // Impor Select modern
-import { useEffect, useState } from 'react'; // Impor useEffect dan useState
+} from '@/components/ui/select';
+import { useEffect, useState } from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -86,37 +86,33 @@ export default function EditIncised({
         desk: incised.desk || '',
         qty_kg: incised.qty_kg,
         price_qty: incised.price_qty,
-        // Pastikan amount di-set sebagai number, bukan string
         amount: incised.amount,
         keping: incised.keping,
         kualitas: incised.kualitas || '',
     });
 
-    // State untuk menyimpan nama penoreh yang dipilih
     const [selectedIncisorName, setSelectedIncisorName] = useState(
         incised.incisor?.name || 'N/A',
     );
 
-    // --- UX MODERN 1: Kalkulasi Otomatis Amount ---
-    useEffect(() => {
-        // Konversi ke number, jika tidak valid anggap 0
+    // --- FITUR AUTO-CALCULATE (Opsional) ---
+    // Fungsi ini akan dijalankan saat tombol "Hitung Otomatis" ditekan
+    // atau bisa juga dibiarkan otomatis via useEffect (tapi hati-hati menimpa input manual)
+    const calculateAmount = () => {
         const qty = Number(data.qty_kg) || 0;
         const price = Number(data.price_qty) || 0;
+        // Rumus: Qty * Price * 0.4 (40%)
         const totalAmount = qty * price * 0.4;
-        
-        // Update state 'amount' hanya jika berbeda
-        if (totalAmount !== data.amount) {
-            setData('amount', totalAmount);
-        }
-    }, [data.qty_kg, data.price_qty]); // Dijalankan saat qty atau price berubah
+        setData('amount', totalAmount);
+    };
 
-    // --- UX MODERN 2: Update Nama Penoreh Otomatis ---
+    // --- UX MODERN: Update Nama Penoreh Otomatis ---
     useEffect(() => {
         const selected = noInvoicesWithNames.find(
             (item) => item.no_invoice === data.no_invoice,
         );
         setSelectedIncisorName(selected ? selected.name : 'N/A');
-    }, [data.no_invoice, noInvoicesWithNames]); // Dijalankan saat no_invoice berubah
+    }, [data.no_invoice, noInvoicesWithNames]);
 
     const handleUpdate = (e: React.FormEvent) => {
         e.preventDefault();
@@ -131,7 +127,7 @@ export default function EditIncised({
                 <div className="flex justify-between items-center mb-4">
                     <Heading title="Edit Data Harian Penoreh" />
                     <Link href={route('inciseds.index')}>
-                        <Button variant="outline"> {/* Style lebih modern */}
+                        <Button variant="outline">
                             <Undo2 className="w-4 h-4 mr-2" />
                             Back
                         </Button>
@@ -156,7 +152,6 @@ export default function EditIncised({
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         {/* === KOLOM KIRI (Info Utama & Detail) === */}
                         <div className="lg:col-span-2 space-y-6">
-                            {/* --- Card 1: Informasi Utama --- */}
                             <Card>
                                 <CardHeader>
                                     <CardTitle>Informasi Utama</CardTitle>
@@ -219,14 +214,13 @@ export default function EditIncised({
                                             <Input
                                                 value={selectedIncisorName}
                                                 readOnly
-                                                className="bg-gray-100 dark:bg-gray-800"
+                                                className="bg-gray-100 dark:bg-gray-800 cursor-not-allowed"
                                             />
                                         </FormItem>
                                     </div>
                                 </CardContent>
                             </Card>
 
-                            {/* --- Card 2: Detail Tambahan --- */}
                             <Card>
                                 <CardHeader>
                                     <CardTitle>Detail Barang & Lokasi</CardTitle>
@@ -269,65 +263,108 @@ export default function EditIncised({
 
                         {/* === KOLOM KANAN (Rincian Pemasukan) === */}
                         <div className="lg:col-span-1">
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>Rincian Pemasukan (MASUK)</CardTitle>
+                            <Card className="h-full">
+                                <CardHeader className="bg-gray-50/50 dark:bg-gray-800/50 border-b pb-4">
+                                    <CardTitle className="flex items-center gap-2">
+                                        <Calculator className="w-5 h-5 text-emerald-600" />
+                                        Rincian Pemasukan
+                                    </CardTitle>
                                 </CardHeader>
-                                <CardContent className="space-y-4">
+                                <CardContent className="space-y-5 pt-6">
                                     <FormItem label="Quantity (Kg)" error={errors.qty_kg}>
-                                        <Input
-                                            type="number"
-                                            placeholder="0"
-                                            value={data.qty_kg}
-                                            onChange={(e) => setData('qty_kg', Number(e.target.value))}
-                                        />
+                                        <div className="relative">
+                                            <Input
+                                                type="number"
+                                                placeholder="0"
+                                                value={data.qty_kg}
+                                                onChange={(e) => setData('qty_kg', Number(e.target.value))}
+                                                className="pr-12 text-right font-mono"
+                                            />
+                                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-400 font-medium">Kg</span>
+                                        </div>
                                     </FormItem>
                                     
-                                    <FormItem label="Price /Qty" error={errors.price_qty}>
-                                        <Input
-                                            type="number"
-                                            placeholder="0"
-                                            value={data.price_qty}
-                                            onChange={(e) => setData('price_qty', Number(e.target.value))}
-                                        />
+                                    <FormItem label="Price /Qty (Rp)" error={errors.price_qty}>
+                                        <div className="relative">
+                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400 font-medium">Rp</span>
+                                            <Input
+                                                type="number"
+                                                placeholder="0"
+                                                value={data.price_qty}
+                                                onChange={(e) => setData('price_qty', Number(e.target.value))}
+                                                className="pl-10 text-right font-mono"
+                                            />
+                                        </div>
                                     </FormItem>
                                     
-                                    <FormItem label="Amount" error={errors.amount}>
-                                        <Input
-                                            type="number"
-                                            placeholder="0"
-                                            value={data.amount}
-                                            
-                                            className="bg-gray-100 dark:bg-gray-800"
-                                        />
+                                    <div className="relative pt-2">
+                                        <div className="absolute inset-0 flex items-center">
+                                            <span className="w-full border-t border-dashed" />
+                                        </div>
+                                        <div className="relative flex justify-center text-xs uppercase">
+                                            <span className="bg-white dark:bg-black px-2 text-muted-foreground">
+                                                Total Pendapatan (Editable)
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    {/* PERBAIKAN: Input Amount sekarang bisa diedit */}
+                                    <FormItem label="Amount (Rp)" error={errors.amount}>
+                                        <div className="flex gap-2">
+                                            <div className="relative w-full">
+                                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-emerald-600 font-bold">Rp</span>
+                                                <Input
+                                                    type="number"
+                                                    placeholder="0"
+                                                    value={data.amount}
+                                                    onChange={(e) => setData('amount', Number(e.target.value))}
+                                                    className="pl-10 text-right font-mono font-bold text-emerald-700 bg-emerald-50/50 border-emerald-200 focus:ring-emerald-500"
+                                                />
+                                            </div>
+                                            <Button 
+                                                type="button" 
+                                                size="icon" 
+                                                variant="outline" 
+                                                onClick={calculateAmount}
+                                                title="Hitung Ulang Otomatis (Qty * Price * 0.4)"
+                                                className="flex-shrink-0"
+                                            >
+                                                <Calculator className="w-4 h-4" />
+                                            </Button>
+                                        </div>
+                                        <p className="text-[10px] text-gray-500 mt-1 text-right">
+                                            *Klik ikon kalkulator untuk hitung otomatis (40%)
+                                        </p>
                                     </FormItem>
                                     
-                                    <FormItem label="Keping" error={errors.keping}>
-                                        <Input
-                                            type="number"
-                                            placeholder="0"
-                                            value={data.keping}
-                                            onChange={(e) => setData('keping', Number(e.target.value))}
-                                        />
-                                    </FormItem>
-                                    
-                                    <FormItem label="Kualitas" error={errors.kualitas}>
-                                        <Input
-                                            placeholder="cth: A, B, C, Kering, Basah"
-                                            value={data.kualitas}
-                                            onChange={(e) => setData('kualitas', e.target.value)}
-                                        />
-                                    </FormItem>
+                                    <div className="grid grid-cols-2 gap-4 pt-2">
+                                        <FormItem label="Keping" error={errors.keping}>
+                                            <Input
+                                                type="number"
+                                                placeholder="0"
+                                                value={data.keping}
+                                                onChange={(e) => setData('keping', Number(e.target.value))}
+                                            />
+                                        </FormItem>
+                                        
+                                        <FormItem label="Kualitas" error={errors.kualitas}>
+                                            <Input
+                                                placeholder="A/B/C"
+                                                value={data.kualitas}
+                                                onChange={(e) => setData('kualitas', e.target.value)}
+                                            />
+                                        </FormItem>
+                                    </div>
                                 </CardContent>
                             </Card>
                         </div>
                     </div>
 
                     {/* --- Tombol Aksi --- */}
-                    <div className="flex justify-end pt-4">
-                        <Button disabled={processing} type="submit" size="lg">
+                    <div className="flex justify-end pt-4 border-t mt-4">
+                        <Button disabled={processing} type="submit" size="lg" className="bg-indigo-600 hover:bg-indigo-700 w-full sm:w-auto">
                             <Save className="mr-2 h-4 w-4" />
-                            Update Data
+                            Simpan Perubahan
                         </Button>
                     </div>
                 </form>
