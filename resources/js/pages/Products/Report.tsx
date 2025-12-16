@@ -95,6 +95,11 @@ export default function Report({ data = [], filters = { period: 'all-time', mont
                 
                 {/* KOP LAPORAN */}
                 <div className="text-center border-b-2 border-black pb-4 mb-6">
+                    <img 
+                        src="/assets/GKA_no_Tag.png" 
+                        className="h-16 w-auto mx-auto mb-2 object-contain" 
+                        alt="Logo GKA" 
+                    />
                     <h1 className="text-3xl font-bold uppercase tracking-wide">PT. Garuda Karya Amanat</h1>
                     <p className="text-sm mt-1">Jalan Poros Utama No. 123, Kabupaten/Kota, Provinsi</p>
                     <p className="text-sm">Telp: (021) 1234-5678 | Email: admin@gka.com</p>
@@ -110,7 +115,7 @@ export default function Report({ data = [], filters = { period: 'all-time', mont
                         </div>
                         <div className="text-right">
                             <p><span className="font-semibold">Tanggal Cetak</span>: {formatDate(new Date().toISOString())}</p>
-                            <p><span className="font-semibold">Oleh</span>: Admin</p>
+                            {/* <p><span className="font-semibold">Oleh</span>: Admin</p> */}
                         </div>
                     </div>
                 </div>
@@ -165,7 +170,7 @@ export default function Report({ data = [], filters = { period: 'all-time', mont
                 <div className="mt-16 flex justify-end">
                     <div className="text-center w-48">
                         <p className="mb-20">Mengetahui,</p>
-                        <p className="font-bold border-b border-black pb-1">Manager Operasional</p>
+                        {/* <p className="font-bold border-b border-black pb-1">Manager Operasional</p> */}
                         <p className="text-xs mt-1">PT. Garuda Karya Amanat</p>
                     </div>
                 </div>
