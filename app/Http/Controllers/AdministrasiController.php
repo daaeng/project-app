@@ -4,13 +4,13 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Inertia\Inertia;
-use App\Models\Nota;
-use App\Models\PpbHeader;
-use App\Models\HargaInformasi;
-use App\Models\FinancialTransaction; // Pastikan Model ini di-import
+use App\Models\FinancialTransaction; 
 use App\Models\Product;
 use App\Models\Kasbon;
 use App\Models\Payroll;
+use App\Models\Nota;
+use App\Models\PpbHeader;
+use App\Models\HargaInformasi;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -25,7 +25,6 @@ class AdministrasiController extends Controller
     public function print(Request $request)
     {
         $data = $this->getFinancialData($request);
-        // Tambahkan jenis laporan yang ingin dicetak ke props
         $data['printType'] = $request->input('type', 'all'); 
         return Inertia::render("Administrasis/print", $data);
     }
@@ -107,7 +106,6 @@ class AdministrasiController extends Controller
         // Keluar: Kasbon (DIPISAH SECARA STRICT)
         $kasOut_Pegawai = $kasbonQuery->clone()->where('kasbonable_type', 'like', '%Employee%')->sum('kasbon') ?? 0;
         $kasOut_Penoreh = $kasbonQuery->clone()->where('kasbonable_type', 'like', '%Incisor%')->sum('kasbon') ?? 0;
-        
         $kasOut_Total_Valid = $kasOut_Pegawai + $kasOut_Penoreh;
 
         $kasOut_Manual = $trxQuery->clone()->where('source', 'cash')->where('type', 'expense')->sum('amount') ?? 0;
@@ -313,10 +311,42 @@ class AdministrasiController extends Controller
             'description' => $request->deskripsi,
             // [BARU] Simpan Data Baru
             'transaction_code' => $request->transaction_code,
-            'transaction_number' => $request->transaction_number
+            'transaction_number' => $request->transaction_number,
+            'db_cr' => $request->db_cr,
+            'counterparty' => $request->counterparty,
         ]);
 
         return redirect()->back()->with('success', 'Transaksi berhasil dicatat!');
+    }
+
+    // [BARU] Fungsi Update Transaksi
+    public function updateTransaction(Request $request, $id)
+    {
+        $request->validate([
+            'type' => 'required|in:income,expense',
+            'source' => 'required|in:cash,bank',
+            'kategori' => 'required|string', 
+            'jumlah' => 'required|numeric',
+            'tanggal' => 'required|date',
+            'transaction_code' => 'required|string',
+            'transaction_number' => 'required|string',
+        ]);
+
+        $transaction = FinancialTransaction::findOrFail($id);
+        $transaction->update([
+            'type' => $request->type,
+            'source' => $request->source,
+            'category' => $request->kategori,
+            'amount' => $request->jumlah,
+            'transaction_date' => $request->tanggal,
+            'description' => $request->deskripsi,
+            'transaction_code' => $request->transaction_code,
+            'transaction_number' => $request->transaction_number,
+            'db_cr' => $request->db_cr,
+            'counterparty' => $request->counterparty,
+        ]);
+
+        return redirect()->back()->with('success', 'Transaksi berhasil diperbarui!');
     }
 
     public function destroyTransaction($id)

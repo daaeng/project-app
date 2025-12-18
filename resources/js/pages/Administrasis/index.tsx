@@ -11,7 +11,7 @@ import {
     Eye, Pencil, PlusCircle, Trash2, 
     Wallet, Filter, 
     Building2, Scale, TrendingUp, Banknote, Loader2, Landmark, Printer,
-    Hash // Icon Baru
+    Hash, ArrowRightLeft, UserCircle 
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -65,9 +65,10 @@ interface TransactionData {
     description: string | null; 
     amount: number; 
     transaction_date: string;
-    // [BARU] Field Tambahan di Interface
     transaction_code: string; 
     transaction_number: string;
+    db_cr: 'debit' | 'credit';
+    counterparty: string;
 }
 
 interface PaginatedData<T> { data: T[]; links: any[]; meta: { current_page: number; last_page: number; per_page: number; total: number; }; }
@@ -89,10 +90,21 @@ const ReportRow = ({ label, value, isMinus = false, isBold = false }: { label: s
     </div>
 );
 
+type UiSourceType = 'bank_out' | 'kas_out' | 'bank_in' | 'kas_in';
+
+// --- Configuration Constants ---
+const CATEGORY_OPTIONS: Record<UiSourceType, string[]> = {
+    'kas_out': ["Operasional Lapangan", "Operasional Kantor", "BPJS Ketenagakerjaan", "Pembelian Karet"],
+    'bank_out': ["Penarikan Bank", "Pembayaran Kapal", "Pembayaran Truck", "Bayar Hutang"],
+    'bank_in': ["Setor Modal", "Dana Investasi", "Pendapatan Lain (Bank)"],
+    'kas_in': ["Dana Bank"]
+};
+
 export default function AdminPage({ requests, notas, summary, chartData, filter, currentMonth, currentYear }: PageProps) {
     const [activeTab, setActiveTab] = useState("reports");
     const [isHargaModalOpen, setIsHargaModalOpen] = useState(false);
     const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
+    const [editingTransactionId, setEditingTransactionId] = useState<number | null>(null); // State Edit ID
     
     // Filter State
     const [timePeriod, setTimePeriod] = useState(filter?.time_period || 'this-month');
@@ -104,14 +116,12 @@ export default function AdminPage({ requests, notas, summary, chartData, filter,
     const [isTrxLoading, setIsTrxLoading] = useState(false);
     const [trxPage, setTrxPage] = useState(1);
 
-    // Form Transaksi (Update tipe uiSource)
-    const [uiSource, setUiSource] = useState<'bank_out' | 'kas_out' | 'bank_in' | 'kas_in'>('kas_out');
+    // Form Transaksi
+    const [uiSource, setUiSource] = useState<UiSourceType>('kas_out');
     
     const trxForm = useForm({ 
         type: '', source: '', kategori: '', deskripsi: '', jumlah: '', tanggal: new Date().toISOString().split('T')[0],
-        // [BARU] Inisialisasi state untuk input baru
-        transaction_code: '', 
-        transaction_number: ''
+        transaction_code: '', transaction_number: '', db_cr: 'debit', counterparty: ''
     });
 
     const hargaForm = useForm({ nilai: '', tanggal_berlaku: new Date().toISOString().split('T')[0], jenis: '' });
@@ -148,7 +158,42 @@ export default function AdminPage({ requests, notas, summary, chartData, filter,
         window.open(url, '_blank');
     };
 
-    const openTransactionModal = () => { trxForm.reset(); setUiSource('kas_out'); setIsTransactionModalOpen(true); };
+    const openTransactionModal = () => { 
+        trxForm.reset(); 
+        setEditingTransactionId(null); // Reset Edit ID
+        setUiSource('kas_out'); 
+        setIsTransactionModalOpen(true); 
+    };
+
+    // [BARU] Handler Edit Transaksi - Mengisi form dengan data yang ada
+    const handleEditTransaction = (item: TransactionData) => {
+        setEditingTransactionId(item.id);
+        
+        // Tentukan UI Source berdasarkan data
+        let source: any = 'kas_out';
+        if (item.source === 'cash' && item.type === 'expense') source = 'kas_out';
+        else if (item.source === 'bank' && item.type === 'expense') source = 'bank_out';
+        else if (item.source === 'bank' && item.type === 'income') source = 'bank_in';
+        else if (item.source === 'cash' && item.type === 'income') source = 'kas_in';
+        setUiSource(source);
+
+        // Isi Form
+        trxForm.setData({
+            type: item.type,
+            source: item.source,
+            kategori: item.category,
+            deskripsi: item.description || '',
+            jumlah: String(item.amount),
+            tanggal: item.transaction_date,
+            transaction_code: item.transaction_code || '',
+            transaction_number: item.transaction_number || '',
+            db_cr: item.db_cr || 'debit',
+            counterparty: item.counterparty || ''
+        });
+
+        setIsTransactionModalOpen(true);
+    };
+
     const openHargaModal = (type: string, val: number) => { hargaForm.setData({ ...hargaForm.data, jenis: type, nilai: val.toString() }); setIsHargaModalOpen(true); };
 
     // Submit Transaksi
@@ -161,27 +206,47 @@ export default function AdminPage({ requests, notas, summary, chartData, filter,
         if (uiSource === 'kas_out') { type = 'expense'; source = 'cash'; }
         else if (uiSource === 'bank_out') { type = 'expense'; source = 'bank'; }
         else if (uiSource === 'bank_in') { type = 'income'; source = 'bank'; }
-        else if (uiSource === 'kas_in') { type = 'income'; source = 'cash'; } // [BARU] Logic Kas Masuk
+        else if (uiSource === 'kas_in') { type = 'income'; source = 'cash'; }
 
-        trxForm.transform((data) => ({
-            ...data,
+        // Payload data
+        const payload: any = {
+            ...trxForm.data,
             type: type,
             source: source,
-            kategori: data.kategori, 
-            jumlah: data.jumlah,
-            tanggal: data.tanggal,
-            deskripsi: data.deskripsi,
-            transaction_code: data.transaction_code,
-            transaction_number: data.transaction_number
-        }));
+            kategori: trxForm.data.kategori, // Gunakan data dari form jika ada
+            jumlah: trxForm.data.jumlah,
+            tanggal: trxForm.data.tanggal,
+            deskripsi: trxForm.data.deskripsi,
+            transaction_code: trxForm.data.transaction_code,
+            transaction_number: trxForm.data.transaction_number,
+            db_cr: trxForm.data.db_cr,
+            counterparty: trxForm.data.counterparty
+        };
 
-        trxForm.post(route('administrasis.storeTransaction'), {
-            onSuccess: () => {
-                setIsTransactionModalOpen(false);
-                if (activeTab === 'expenses') fetchTransactions();
-                router.reload({ only: ['summary', 'chartData'] });
-            }
-        });
+        // Jika Edit -> PUT, Jika Baru -> POST
+        if (editingTransactionId) {
+             // Pastikan route 'administrasis.updateTransaction' sudah didefinisikan di web.php
+            // Route::put('/administrasis/transactions/{id}', [AdministrasiController::class, 'updateTransaction']);
+            
+            // Menggunakan Inertia router manual untuk PUT
+            router.put(route('administrasis.updateTransaction', editingTransactionId), payload, {
+                 onSuccess: () => {
+                    setIsTransactionModalOpen(false);
+                    if (activeTab === 'expenses') fetchTransactions();
+                    router.reload({ only: ['summary', 'chartData'] });
+                }
+            });
+
+        } else {
+            trxForm.transform(() => payload);
+            trxForm.post(route('administrasis.storeTransaction'), {
+                onSuccess: () => {
+                    setIsTransactionModalOpen(false);
+                    if (activeTab === 'expenses') fetchTransactions();
+                    router.reload({ only: ['summary', 'chartData'] });
+                }
+            });
+        }
     };
 
     const deleteTransaction = (id: number) => { if(confirm('Hapus transaksi ini?')) router.delete(route('administrasis.destroyTransaction', id), { onSuccess: () => { if (activeTab === 'expenses') fetchTransactions(); router.reload({ only: ['summary', 'chartData'] }); } }); };
@@ -189,6 +254,20 @@ export default function AdminPage({ requests, notas, summary, chartData, filter,
 
     const months = Array.from({ length: 12 }, (_, i) => ({ value: String(i + 1), label: new Date(0, i).toLocaleString('id-ID', { month: 'long' }) }));
     const years = Array.from({ length: 7 }, (_, i) => ({ value: String(new Date().getFullYear() - 5 + i), label: String(new Date().getFullYear() - 5 + i) }));
+
+    // Helper Component for Source Selection Button
+    const SourceButton = ({ value, label, icon: Icon, colorClass }: { value: UiSourceType, label: string, icon: any, colorClass: string }) => (
+        <div 
+            onClick={() => { setUiSource(value); trxForm.setData('kategori', ''); }}
+            className={`p-3 border rounded-xl cursor-pointer text-center text-xs flex flex-col items-center justify-center gap-2 h-24 transition-all duration-200 
+                ${uiSource === value 
+                    ? `bg-${colorClass}-50 border-${colorClass}-500 ring-2 ring-${colorClass}-200 text-${colorClass}-700 font-bold shadow-sm` 
+                    : 'hover:bg-gray-50 border-gray-200 text-gray-600'}`}
+        >
+            <Icon className={`w-6 h-6 ${uiSource === value ? '' : 'text-gray-400'}`} />
+            <span>{label}</span>
+        </div>
+    );
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -272,10 +351,8 @@ export default function AdminPage({ requests, notas, summary, chartData, filter,
                         </div>
                     </TabsContent>
 
-                    <TabsContent value="overview" className="space-y-4">
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                            <Card className="lg:col-span-2 shadow-sm"><CardHeader><CardTitle className="text-base">Grafik Arus Kas</CardTitle><CardDescription>Perbandingan Pemasukan vs Pengeluaran.</CardDescription></CardHeader><CardContent className="h-[300px]"><ResponsiveContainer width="100%" height="100%"><BarChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}><defs><linearGradient id="gradInc" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8}/><stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/></linearGradient><linearGradient id="gradExp" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#f43f5e" stopOpacity={0.8}/><stop offset="95%" stopColor="#f43f5e" stopOpacity={0}/></linearGradient></defs><CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" /><XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fontSize: 12, fill: '#6b7280'}} dy={10} /><YAxis axisLine={false} tickLine={false} tickFormatter={(val) => `${val/1000}k`} tick={{fontSize: 12, fill: '#6b7280'}} /><Tooltip formatter={(val: number) => formatCurrency(val)} contentStyle={{borderRadius: '8px', border:'none', boxShadow:'0 4px 12px rgba(0,0,0,0.1)'}} /><Legend /><Bar dataKey="Pemasukan" fill="url(#gradInc)" radius={[4,4,0,0]} name="Pemasukan" barSize={30} /><Bar dataKey="Pengeluaran" fill="url(#gradExp)" radius={[4,4,0,0]} name="Pengeluaran" barSize={30} /></BarChart></ResponsiveContainer></CardContent></Card>
-                        </div>
+                    <TabsContent value="overview">
+                        <Card className="shadow-sm"><CardHeader><CardTitle className="text-base">Grafik Arus Kas</CardTitle><CardDescription>Perbandingan Pemasukan vs Pengeluaran.</CardDescription></CardHeader><CardContent className="h-[400px]"><ResponsiveContainer width="100%" height="100%"><BarChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}><defs><linearGradient id="gradInc" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8}/><stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/></linearGradient><linearGradient id="gradExp" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#f43f5e" stopOpacity={0.8}/><stop offset="95%" stopColor="#f43f5e" stopOpacity={0}/></linearGradient></defs><CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" /><XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fontSize: 12, fill: '#6b7280'}} dy={10} /><YAxis axisLine={false} tickLine={false} tickFormatter={(val) => `${val/1000}k`} tick={{fontSize: 12, fill: '#6b7280'}} /><Tooltip formatter={(val: number) => formatCurrency(val)} contentStyle={{borderRadius: '8px', border:'none', boxShadow:'0 4px 12px rgba(0,0,0,0.1)'}} /><Legend /><Bar dataKey="Pemasukan" fill="url(#gradInc)" radius={[4,4,0,0]} name="Pemasukan" barSize={30} /><Bar dataKey="Pengeluaran" fill="url(#gradExp)" radius={[4,4,0,0]} name="Pengeluaran" barSize={30} /></BarChart></ResponsiveContainer></CardContent></Card>
                     </TabsContent>
 
                     <TabsContent value="expenses">
@@ -287,9 +364,15 @@ export default function AdminPage({ requests, notas, summary, chartData, filter,
                                         <TableRow>
                                             <TableHead>Tanggal</TableHead>
                                             <TableHead>Sumber</TableHead>
+                                            {/* [BARU] Header Kode & No */}
                                             <TableHead>Kode & No.</TableHead>
                                             <TableHead>Kategori</TableHead>
                                             <TableHead>Deskripsi</TableHead>
+                                            
+                                            {/* [BARU] Header Debit/Kredit & Pihak */}
+                                            <TableHead className="w-24">Posisi</TableHead>
+                                            <TableHead>Pihak Terkait</TableHead>
+                                            
                                             <TableHead className="text-right">Jumlah</TableHead>
                                             <TableHead className="text-center">Aksi</TableHead>
                                         </TableRow>
@@ -301,7 +384,7 @@ export default function AdminPage({ requests, notas, summary, chartData, filter,
                                                     <TableCell>{formatDate(item.transaction_date)}</TableCell>
                                                     <TableCell>{item.source === 'bank' ? <Badge variant="default" className="bg-blue-600">Bank</Badge> : <Badge variant="outline" className="border-amber-500 text-amber-600">Kas</Badge>}</TableCell>
                                                     
-                                                    {/* Kolom Kode Transaksi */}
+                                                    {/* [BARU] Tampilkan Kode & Nomor */}
                                                     <TableCell>
                                                         <div className="flex flex-col">
                                                             <span className="font-mono text-xs font-bold text-gray-700 dark:text-gray-300">{item.transaction_code || '-'}</span>
@@ -309,13 +392,36 @@ export default function AdminPage({ requests, notas, summary, chartData, filter,
                                                         </div>
                                                     </TableCell>
                                                     
-                                                    <TableCell><span className={item.type === 'income' ? 'text-emerald-600 font-medium' : 'text-rose-600 font-medium'}>{item.type === 'income' ? '(+) ' : '(-) '} {item.category}</span></TableCell>
-                                                    <TableCell className="max-w-[200px] truncate" title={item.description || ''}>{item.description || '-'}</TableCell>
-                                                    <TableCell className={`text-right font-medium ${item.type === 'income' ? 'text-emerald-600' : 'text-rose-600'}`}>{formatCurrency(item.amount)}</TableCell>
-                                                    <TableCell className="text-center"><Button variant="ghost" size="icon" onClick={() => deleteTransaction(item.id)}><Trash2 className="w-4 h-4 text-red-500" /></Button></TableCell>
+                                                    <TableCell><span className={`text-xs font-semibold ${item.type === 'income' ? 'text-emerald-600' : 'text-rose-600'}`}>{item.type === 'income' ? '(+) ' : '(-) '} {item.category}</span></TableCell>
+                                                    <TableCell className="max-w-[150px] truncate text-xs text-muted-foreground" title={item.description || ''}>{item.description || '-'}</TableCell>
+                                                    
+                                                    {/* [BARU] Tampilkan Debit/Kredit */}
+                                                    <TableCell>
+                                                        <Badge variant="outline" className={`capitalize text-[10px] ${item.db_cr === 'debit' ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-rose-200 bg-rose-50 text-rose-700'}`}>
+                                                            {item.db_cr}
+                                                        </Badge>
+                                                    </TableCell>
+
+                                                    {/* [BARU] Tampilkan Pihak Terkait */}
+                                                    <TableCell>
+                                                        <span className="text-sm text-gray-600 dark:text-gray-300 flex items-center gap-1">
+                                                            <UserCircle className="w-3 h-3" /> {item.counterparty || '-'}
+                                                        </span>
+                                                    </TableCell>
+                                                    
+                                                    <TableCell className={`text-right font-medium text-sm ${item.type === 'income' ? 'text-emerald-600' : 'text-rose-600'}`}>{formatCurrency(item.amount)}</TableCell>
+                                                    <TableCell className="text-center gap-2 flex justify-center">
+                                                        {/* [BARU] Tombol Edit */}
+                                                        <Button variant="ghost" size="icon" onClick={() => handleEditTransaction(item)}>
+                                                            <Pencil className="w-4 h-4 text-blue-500" />
+                                                        </Button>
+                                                        <Button variant="ghost" size="icon" onClick={() => deleteTransaction(item.id)}>
+                                                            <Trash2 className="w-4 h-4 text-red-500" />
+                                                        </Button>
+                                                    </TableCell>
                                                 </TableRow>
                                             ))
-                                        ) : (<TableRow><TableCell colSpan={7} className="h-24 text-center text-muted-foreground">Tidak ada data transaksi.</TableCell></TableRow>)}
+                                        ) : (<TableRow><TableCell colSpan={9} className="h-24 text-center text-muted-foreground">Tidak ada data transaksi.</TableCell></TableRow>)}
                                     </TableBody>
                                 </Table>
                                 <div className="flex justify-center mt-4 gap-2">
@@ -334,23 +440,22 @@ export default function AdminPage({ requests, notas, summary, chartData, filter,
                 {/* MODAL TRANSAKSI */}
                 <Dialog open={isTransactionModalOpen} onOpenChange={setIsTransactionModalOpen}>
                     <DialogContent>
-                        <DialogHeader><DialogTitle>Catat Transaksi Baru</DialogTitle><CardDescription>Catat pemasukan atau pengeluaran manual.</CardDescription></DialogHeader>
+                        <DialogHeader><DialogTitle>{editingTransactionId ? 'Edit Transaksi' : 'Catat Transaksi Baru'}</DialogTitle><CardDescription>Kelola data keuangan harian.</CardDescription></DialogHeader>
                         <form onSubmit={submitTransaction} className="space-y-4 pt-2">
                             {/* [UPDATED] Grid untuk 4 Tombol Sumber */}
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                                <div className={`p-2 border rounded-lg cursor-pointer text-center text-xs flex flex-col items-center justify-center gap-1 h-20 hover:bg-gray-50 transition-colors ${uiSource === 'kas_out' ? 'bg-rose-50 border-rose-500 text-rose-700 font-bold shadow-sm' : ''}`} onClick={() => { setUiSource('kas_out'); trxForm.setData('kategori', ''); }}><Banknote className="w-5 h-5" />Kas Tunai (Keluar)</div>
-                                <div className={`p-2 border rounded-lg cursor-pointer text-center text-xs flex flex-col items-center justify-center gap-1 h-20 hover:bg-gray-50 transition-colors ${uiSource === 'bank_out' ? 'bg-blue-50 border-blue-500 text-blue-700 font-bold shadow-sm' : ''}`} onClick={() => { setUiSource('bank_out'); trxForm.setData('kategori', ''); }}><Building2 className="w-5 h-5" />Bank (Keluar)</div>
-                                {/* [BARU] Tombol Kas Masuk */}
-                                <div className={`p-2 border rounded-lg cursor-pointer text-center text-xs flex flex-col items-center justify-center gap-1 h-20 hover:bg-gray-50 transition-colors ${uiSource === 'kas_in' ? 'bg-emerald-50 border-emerald-500 text-emerald-700 font-bold shadow-sm' : ''}`} onClick={() => { setUiSource('kas_in'); trxForm.setData('kategori', ''); }}><Banknote className="w-5 h-5" />Kas Tunai (Masuk)</div>
-                                <div className={`p-2 border rounded-lg cursor-pointer text-center text-xs flex flex-col items-center justify-center gap-1 h-20 hover:bg-gray-50 transition-colors ${uiSource === 'bank_in' ? 'bg-emerald-50 border-emerald-500 text-emerald-700 font-bold shadow-sm' : ''}`} onClick={() => { setUiSource('bank_in'); trxForm.setData('kategori', ''); }}><Landmark className="w-5 h-5" />Bank (Masuk)</div>
+                                <SourceButton value="kas_out" label="Kas (Keluar)" icon={Banknote} colorClass="rose" />
+                                <SourceButton value="bank_out" label="Bank (Keluar)" icon={Building2} colorClass="blue" />
+                                <SourceButton value="bank_in" label="Bank (Masuk)" icon={Landmark} colorClass="emerald" />
+                                <SourceButton value="kas_in" label="Kas (Masuk)" icon={Banknote} colorClass="emerald" />
                             </div>
 
+                            {/* [BARU] Input Kode & No Transaksi */}
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
                                     <Label>Kode Transaksi</Label>
                                     <Select value={trxForm.data.transaction_code} onValueChange={(val) => trxForm.setData('transaction_code', val)}>
                                         <SelectTrigger><SelectValue placeholder="Pilih Kode" /></SelectTrigger>
-                                        
                                         <SelectContent>
                                             {uiSource === 'kas_out' && (<><SelectItem value="KK-">KK- (Kas Keluar)</SelectItem></>)}
                                             {uiSource === 'bank_out' && (<><SelectItem value="BM-K">BM-K (Bank Mandiri Keluar)</SelectItem><SelectItem value="BRI-K">BRI-K (BRI Keluar)</SelectItem></>)}
@@ -367,14 +472,36 @@ export default function AdminPage({ requests, notas, summary, chartData, filter,
                                 </div>
                             </div>
 
+                            {/* [BARU] Input Debit/Kredit & Pihak Terkait */}
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label>Posisi Akun</Label>
+                                    <Select value={trxForm.data.db_cr} onValueChange={(val) => trxForm.setData('db_cr', val as 'debit' | 'credit')}>
+                                        <SelectTrigger>
+                                            <div className="flex items-center gap-2">
+                                                <ArrowRightLeft className="w-4 h-4" />
+                                                <SelectValue placeholder="Pilih Posisi" />
+                                            </div>
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="debit">Debit (Masuk)</SelectItem>
+                                            <SelectItem value="credit">Kredit (Keluar)</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Terima Dari / Bayar Kepada</Label>
+                                    <Input placeholder="Nama Pihak Terkait" value={trxForm.data.counterparty} onChange={e => trxForm.setData('counterparty', e.target.value)} />
+                                </div>
+                            </div>
+
                             <div className="space-y-2"><Label>Kategori Transaksi</Label>
                                 <Select value={trxForm.data.kategori} onValueChange={(val) => trxForm.setData('kategori', val)} required>
-                                    <SelectTrigger><SelectValue placeholder="Pilih Kategori..." /></SelectTrigger>
+                                    <SelectTrigger><SelectValue placeholder={`Pilih Kategori ${uiSource.replace('_', ' ')}...`} /></SelectTrigger>
                                     <SelectContent>
-                                        {uiSource === 'kas_out' && (<><SelectItem value="Operasional Lapangan">Operasional Lapangan (Harian)</SelectItem><SelectItem value="Operasional Kantor">Operasional Kantor (ATK/Listrik/Dll)</SelectItem><SelectItem value="BPJS Ketenagakerjaan">Bayar BPJS (Cash)</SelectItem><SelectItem value="Pembelian Karet">Pembelian Karet (Cash)</SelectItem></>)}
-                                        {uiSource === 'bank_out' && (<><SelectItem value="Penarikan Bank">Penarikan Tunai (Pindah ke Kas)</SelectItem><SelectItem value="Pembayaran Kapal">Pembayaran Kapal</SelectItem><SelectItem value="Pembayaran Truck">Pembayaran Truck</SelectItem><SelectItem value="Bayar Hutang">Bayar Hutang Perusahaan</SelectItem></>)}
-                                        {uiSource === 'kas_in' && (<><SelectItem value="Dana Bank">Dana Bank</SelectItem></>)}
-                                        {uiSource === 'bank_in' && (<><SelectItem value="Setor Modal">Setor Modal / Suntik Dana</SelectItem><SelectItem value="Dana Investasi">Pencairan Dana Investasi</SelectItem><SelectItem value="Pendapatan Lain (Bank)">Bunga Bank / Pendapatan Lain</SelectItem></>)}
+                                        {CATEGORY_OPTIONS[uiSource]?.map((cat) => (
+                                            <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                                        ))}
                                     </SelectContent>
                                 </Select>
                                 {trxForm.errors.kategori && <p className="text-red-500 text-xs mt-1">{trxForm.errors.kategori}</p>}
@@ -384,7 +511,7 @@ export default function AdminPage({ requests, notas, summary, chartData, filter,
                                 <div className="space-y-2"><Label>Jumlah (Rp)</Label><Input type="number" value={trxForm.data.jumlah} onChange={e => trxForm.setData('jumlah', e.target.value)} placeholder="0" required />{trxForm.errors.jumlah && <p className="text-red-500 text-xs mt-1">{trxForm.errors.jumlah}</p>}</div>
                                 <div className="space-y-2"><Label>Tanggal</Label><Input type="date" value={trxForm.data.tanggal} onChange={e => trxForm.setData('tanggal', e.target.value)} required />{trxForm.errors.tanggal && <p className="text-red-500 text-xs mt-1">{trxForm.errors.tanggal}</p>}</div>
                             </div>
-                            <DialogFooter><Button type="submit" disabled={trxForm.processing}>{trxForm.processing ? 'Menyimpan...' : 'Simpan Transaksi'}</Button></DialogFooter>
+                            <DialogFooter><Button type="submit" disabled={trxForm.processing}>{trxForm.processing ? 'Menyimpan...' : (editingTransactionId ? 'Update Transaksi' : 'Simpan Transaksi')}</Button></DialogFooter>
                         </form>
                     </DialogContent>
                 </Dialog>

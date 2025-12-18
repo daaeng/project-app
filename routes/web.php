@@ -153,6 +153,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/administrasis/print', [AdministrasiController::class, 'print'])
         ->name('administrasis.print')
         ->middleware("permission:administrasis.view");
+    Route::put('/administrasis/transactions/{id}', [AdministrasiController::class, 'updateTransaction'])
+        ->name('administrasis.updateTransaction')
+        ->middleware("permission:administrasis.edit");
     
     // [BARU] Route untuk Transaksi Keuangan (Wajib ada agar tidak error Ziggy)
     Route::get('/administrasis/transactions', [AdministrasiController::class, 'getTransactions'])

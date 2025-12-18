@@ -21,6 +21,9 @@ class FinancialTransaction extends Model
 
         'transaction_code',   // Kode (KK-, KM-, dll)
         'transaction_number', // Nomor Urut/Manual
+
+        'db_cr',       // debit / credit
+        'counterparty' // Terima Dari / Bayar Kepada
     ];
 
     protected $casts = [
