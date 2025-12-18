@@ -104,6 +104,7 @@ class ProductController extends Controller
 
     public function update(Request $request, Product $product)
     {
+        // Validasi ulang saat update
         $request->validate([
             'product' => 'required|string|max:250',
             'date' => 'required|date',
@@ -125,44 +126,19 @@ class ProductController extends Controller
             'tgl_kirim' => 'nullable|date',
             'tgl_sampai' => 'nullable|date',
             'qty_sampai' => 'nullable|numeric',
+            
+            // Field Tambahan
             'customer_name' => 'nullable|string|max:250',
+            'shipping_method' => 'nullable|string|max:250',
             'pph_value' => 'nullable|numeric',
             'ob_cost' => 'nullable|numeric',
             'extra_cost' => 'nullable|numeric',
-            'shipping_method' => 'nullable|string|max:250',
-            'person_in_charge' => 'nullable|string|max:250',
             'due_date' => 'nullable|date',
+            'person_in_charge' => 'nullable|string|max:250',
         ]);
         
-        $product->update([
-            'product' => $request->input('product'),
-            'date' => $request->input('date'),
-            'no_invoice' => $request->input('no_invoice'),
-            'nm_supplier' => $request->input('nm_supplier'),
-            'j_brg' => $request->input('j_brg'),
-            'desk' => $request->input('desk'),
-            'qty_kg' => $request->input('qty_kg'),
-            'price_qty' => $request->input('price_qty'),
-            'amount' => $request->input('amount'),
-            'keping' => $request->input('keping'),
-            'kualitas' => $request->input('kualitas'),
-            'qty_out' => $request->input('qty_out'),
-            'price_out' => $request->input('price_out'),
-            'amount_out' => $request->input('amount_out'),
-            'keping_out' => $request->input('keping_out'),
-            'kualitas_out' => $request->input('kualitas_out'),
-            'status' => $request->input('status'),
-            'tgl_kirim' => $request->input('tgl_kirim'),
-            'tgl_sampai' => $request->input('tgl_sampai'),
-            
-            'customer_name' => $request->input('customer_name'),
-            'pph_value' => $request->input('pph_value'),
-            'ob_cost' => $request->input('ob_cost'),
-            'extra_cost' => $request->input('extra_cost'),
-            'shipping_method' => $request->input('shipping_method'),
-            'person_in_charge' => $request->input('person_in_charge'),
-            'due_date' => $request->input('due_date'),
-        ]);
+        // [PERBAIKAN UTAMA] Gunakan ini agar semua field otomatis tersimpan/terupdate
+        $product->update($request->all());
 
         return redirect()->route('products.index')->with('message', 'Product Updated Successfully');        
     }
@@ -277,7 +253,10 @@ class ProductController extends Controller
             'totals' => [
                 'qty' => $totalQty,
                 'amount' => $totalAmount,
-                'qty_sampai' => $totalQtySampai
+                'qty_sampai' => $totalQtySampai,
+                'pph_value' => $products->sum('pph_value'),
+                'ob_cost' => $products->sum('ob_cost'),
+                'extra_cost' => $products->sum('extra_cost')
             ]
         ]);
     }

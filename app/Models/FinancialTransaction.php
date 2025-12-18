@@ -18,6 +18,9 @@ class FinancialTransaction extends Model
         'description',
         'amount',
         'transaction_date',
+
+        'transaction_code',   // Kode (KK-, KM-, dll)
+        'transaction_number', // Nomor Urut/Manual
     ];
 
     protected $casts = [

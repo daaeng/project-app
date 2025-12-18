@@ -10,7 +10,8 @@ import { Head, Link, router } from '@inertiajs/react';
 import { 
     Eye, Pencil, PlusCircle, Trash2, 
     Wallet, Filter, 
-    Building2, Scale, TrendingUp, Banknote, Loader2, Landmark, Printer
+    Building2, Scale, TrendingUp, Banknote, Loader2, Landmark, Printer,
+    Hash // Icon Baru
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -31,16 +32,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 // --- Interfaces Data ---
 interface FinancialReport {
     bank: {
-        in_penjualan: number; 
-        in_lainnya: number; 
-        out_gaji: number; 
-        out_kapal: number; 
-        out_truck: number; 
-        out_hutang: number; 
-        out_penarikan: number; 
-        total_in: number; 
-        total_out: number; 
-        balance: number;
+        in_penjualan: number; in_lainnya: number; out_gaji: number; out_kapal: number; out_truck: number; out_hutang: number; out_penarikan: number; total_in: number; total_out: number; balance: number;
     };
     kas: {
         in_penarikan: number; 
@@ -48,7 +40,6 @@ interface FinancialReport {
         out_kantor: number; 
         out_bpjs: number; 
         out_belikaret: number; 
-        // [UPDATED] Dipisah menjadi dua kategori
         out_kasbon_pegawai: number; 
         out_kasbon_penoreh: number; 
         total_in: number; 
@@ -60,26 +51,23 @@ interface FinancialReport {
 }
 
 interface SummaryData {
-    totalRequests: number; 
-    totalNotas: number; 
-    pendingRequests: number; 
-    pendingNotas: number; 
-    pendingCount: number; 
-    hargaSahamKaret: number; 
-    hargaDollar: number; 
-    totalPengeluaran: number; 
-    lapaRugi: number; // Typo dari backend, tetap dijaga agar tidak error
-    totalPenjualanKaret: number; 
-    s_karet: number; 
-    tb_karet: number; 
-    reports: FinancialReport;
+    totalRequests: number; totalNotas: number; pendingRequests: number; pendingNotas: number; pendingCount: number; hargaSahamKaret: number; hargaDollar: number; totalPengeluaran: number; lapaRugi: number; totalPenjualanKaret: number; s_karet: number; tb_karet: number; reports: FinancialReport;
     labaRugi: number; 
 }
 
 interface ChartDataPoint { name: string; Pemasukan: number; Pengeluaran: number; }
 
 interface TransactionData {
-    id: number; type: 'income' | 'expense'; source: 'cash' | 'bank'; category: string; description: string | null; amount: number; transaction_date: string;
+    id: number; 
+    type: 'income' | 'expense'; 
+    source: 'cash' | 'bank'; 
+    category: string; 
+    description: string | null; 
+    amount: number; 
+    transaction_date: string;
+    // [BARU] Field Tambahan di Interface
+    transaction_code: string; 
+    transaction_number: string;
 }
 
 interface PaginatedData<T> { data: T[]; links: any[]; meta: { current_page: number; last_page: number; per_page: number; total: number; }; }
@@ -116,11 +104,14 @@ export default function AdminPage({ requests, notas, summary, chartData, filter,
     const [isTrxLoading, setIsTrxLoading] = useState(false);
     const [trxPage, setTrxPage] = useState(1);
 
-    // Form Transaksi
-    const [uiSource, setUiSource] = useState<'bank_out' | 'kas_out' | 'bank_in'>('kas_out');
+    // Form Transaksi (Update tipe uiSource)
+    const [uiSource, setUiSource] = useState<'bank_out' | 'kas_out' | 'bank_in' | 'kas_in'>('kas_out');
     
     const trxForm = useForm({ 
-        type: '', source: '', kategori: '', deskripsi: '', jumlah: '', tanggal: new Date().toISOString().split('T')[0] 
+        type: '', source: '', kategori: '', deskripsi: '', jumlah: '', tanggal: new Date().toISOString().split('T')[0],
+        // [BARU] Inisialisasi state untuk input baru
+        transaction_code: '', 
+        transaction_number: ''
     });
 
     const hargaForm = useForm({ nilai: '', tanggal_berlaku: new Date().toISOString().split('T')[0], jenis: '' });
@@ -146,7 +137,7 @@ export default function AdminPage({ requests, notas, summary, chartData, filter,
     const handleTimePeriodChange = (value: string) => { setTimePeriod(value); const params: any = { time_period: value }; if (value === 'specific-month') { params.month = String(new Date().getMonth() + 1); params.year = String(new Date().getFullYear()); setSelectedMonth(params.month); setSelectedYear(params.year); } router.get(route('administrasis.index'), params, { preserveState: true, replace: true, only: ['summary', 'requests', 'notas', 'chartData', 'filter'] }); };
     const handleMonthChange = (v: string) => { setSelectedMonth(v); router.get(route('administrasis.index'), { time_period: timePeriod, month: v, year: selectedYear }, { preserveState: true, replace: true, only: ['summary', 'requests', 'notas', 'chartData'] }); };
     const handleYearChange = (v: string) => { setSelectedYear(v); router.get(route('administrasis.index'), { time_period: timePeriod, month: selectedMonth, year: v }, { preserveState: true, replace: true, only: ['summary', 'requests', 'notas', 'chartData'] }); };
-
+    
     const handlePrint = (type: string) => {
         const url = route('administrasis.print', {
             type: type,
@@ -170,16 +161,18 @@ export default function AdminPage({ requests, notas, summary, chartData, filter,
         if (uiSource === 'kas_out') { type = 'expense'; source = 'cash'; }
         else if (uiSource === 'bank_out') { type = 'expense'; source = 'bank'; }
         else if (uiSource === 'bank_in') { type = 'income'; source = 'bank'; }
+        else if (uiSource === 'kas_in') { type = 'income'; source = 'cash'; } // [BARU] Logic Kas Masuk
 
-        // [UPDATED] Pisahkan transform dan post agar tidak error 'undefined'
         trxForm.transform((data) => ({
             ...data,
             type: type,
             source: source,
-            kategori: data.kategori,
+            kategori: data.kategori, 
             jumlah: data.jumlah,
             tanggal: data.tanggal,
-            deskripsi: data.deskripsi
+            deskripsi: data.deskripsi,
+            transaction_code: data.transaction_code,
+            transaction_number: data.transaction_number
         }));
 
         trxForm.post(route('administrasis.storeTransaction'), {
@@ -253,6 +246,7 @@ export default function AdminPage({ requests, notas, summary, chartData, filter,
                         <Button size="sm" className="bg-rose-600 hover:bg-rose-700 text-white shadow-md" onClick={openTransactionModal}><PlusCircle className="w-4 h-4 mr-2" /> Catat Transaksi</Button>
                     </div>
 
+                    {/* ... (Tab Reports & Overview tetap sama) ... */}
                     <TabsContent value="reports" className="space-y-4">
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                             {/* LAPORAN BANK */}
@@ -266,12 +260,11 @@ export default function AdminPage({ requests, notas, summary, chartData, filter,
                                     <ReportRow label="Operasional Kantor" value={summary.reports.kas.out_kantor} isMinus />
                                     <ReportRow label="BPJS Ketenagakerjaan" value={summary.reports.kas.out_bpjs} isMinus />
                                     <ReportRow label="Pembelian Karet (Tunai)" value={summary.reports.kas.out_belikaret} isMinus />
-                                    {/* [UPDATED] Kasbon dipisah */}
+                                    {/* Kasbon dipisah */}
                                     <ReportRow label="Kasbon Pegawai Kantor" value={summary.reports.kas.out_kasbon_pegawai} isMinus />
                                     <ReportRow label="Kasbon Penoreh" value={summary.reports.kas.out_kasbon_penoreh} isMinus />
                                 </div>
-                                <div className="pt-4 border-t border-gray-200 dark:border-zinc-700"><ReportRow label="Sisa Kas Periode Ini" value={summary.reports.kas.balance} isBold /></div>
-                            </CardContent></Card>
+                                <div className="pt-4 border-t border-gray-200 dark:border-zinc-700"><ReportRow label="Sisa Kas Periode Ini" value={summary.reports.kas.balance} isBold /></div></CardContent></Card>
                             {/* NERACA */}
                             <Card className="shadow-sm border-t-4 border-t-slate-500"><CardHeader className="bg-slate-50/50 dark:bg-slate-900/10 pb-4"><CardTitle className="flex items-center gap-2 text-slate-700 dark:text-slate-400"><Scale className="w-5 h-5" /> Neraca (Posisi Keuangan)</CardTitle><CardDescription>Estimasi posisi aset saat ini</CardDescription></CardHeader><CardContent className="pt-4 space-y-4"><div><p className="text-xs font-semibold uppercase text-muted-foreground mb-2">Aset (Harta)</p><ReportRow label="Mutasi Kas Periode Ini" value={summary.reports.neraca.assets.kas_period} /><ReportRow label="Mutasi Bank Periode Ini" value={summary.reports.neraca.assets.bank_period} /><ReportRow label="Total Piutang Pegawai (Belum Lunas)" value={summary.reports.neraca.assets.piutang} /></div></CardContent></Card>
                             {/* RUGI LABA */}
@@ -290,20 +283,39 @@ export default function AdminPage({ requests, notas, summary, chartData, filter,
                             <CardHeader><div className="flex justify-between items-center"><div><CardTitle>Buku Transaksi Manual</CardTitle><CardDescription>Daftar semua transaksi manual yang diinput.</CardDescription></div>{isTrxLoading && <Loader2 className="animate-spin h-5 w-5 text-gray-500" />}</div></CardHeader>
                             <CardContent>
                                 <Table>
-                                    <TableHeader className="bg-gray-100 dark:bg-zinc-800"><TableRow><TableHead>Tanggal</TableHead><TableHead>Sumber</TableHead><TableHead>Kategori</TableHead><TableHead>Deskripsi</TableHead><TableHead className="text-right">Jumlah</TableHead><TableHead className="text-center">Aksi</TableHead></TableRow></TableHeader>
+                                    <TableHeader className="bg-gray-100 dark:bg-zinc-800">
+                                        <TableRow>
+                                            <TableHead>Tanggal</TableHead>
+                                            <TableHead>Sumber</TableHead>
+                                            <TableHead>Kode & No.</TableHead>
+                                            <TableHead>Kategori</TableHead>
+                                            <TableHead>Deskripsi</TableHead>
+                                            <TableHead className="text-right">Jumlah</TableHead>
+                                            <TableHead className="text-center">Aksi</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
                                     <TableBody>
                                         {trxData.data.length > 0 ? (
                                             trxData.data.map((item) => (
                                                 <TableRow key={item.id}>
                                                     <TableCell>{formatDate(item.transaction_date)}</TableCell>
                                                     <TableCell>{item.source === 'bank' ? <Badge variant="default" className="bg-blue-600">Bank</Badge> : <Badge variant="outline" className="border-amber-500 text-amber-600">Kas</Badge>}</TableCell>
+                                                    
+                                                    {/* Kolom Kode Transaksi */}
+                                                    <TableCell>
+                                                        <div className="flex flex-col">
+                                                            <span className="font-mono text-xs font-bold text-gray-700 dark:text-gray-300">{item.transaction_code || '-'}</span>
+                                                            <span className="text-[10px] text-gray-500">{item.transaction_number || '-'}</span>
+                                                        </div>
+                                                    </TableCell>
+                                                    
                                                     <TableCell><span className={item.type === 'income' ? 'text-emerald-600 font-medium' : 'text-rose-600 font-medium'}>{item.type === 'income' ? '(+) ' : '(-) '} {item.category}</span></TableCell>
                                                     <TableCell className="max-w-[200px] truncate" title={item.description || ''}>{item.description || '-'}</TableCell>
                                                     <TableCell className={`text-right font-medium ${item.type === 'income' ? 'text-emerald-600' : 'text-rose-600'}`}>{formatCurrency(item.amount)}</TableCell>
                                                     <TableCell className="text-center"><Button variant="ghost" size="icon" onClick={() => deleteTransaction(item.id)}><Trash2 className="w-4 h-4 text-red-500" /></Button></TableCell>
                                                 </TableRow>
                                             ))
-                                        ) : (<TableRow><TableCell colSpan={6} className="h-24 text-center text-muted-foreground">Tidak ada data transaksi.</TableCell></TableRow>)}
+                                        ) : (<TableRow><TableCell colSpan={7} className="h-24 text-center text-muted-foreground">Tidak ada data transaksi.</TableCell></TableRow>)}
                                     </TableBody>
                                 </Table>
                                 <div className="flex justify-center mt-4 gap-2">
@@ -324,17 +336,44 @@ export default function AdminPage({ requests, notas, summary, chartData, filter,
                     <DialogContent>
                         <DialogHeader><DialogTitle>Catat Transaksi Baru</DialogTitle><CardDescription>Catat pemasukan atau pengeluaran manual.</CardDescription></DialogHeader>
                         <form onSubmit={submitTransaction} className="space-y-4 pt-2">
-                            <div className="grid grid-cols-3 gap-2">
+                            {/* [UPDATED] Grid untuk 4 Tombol Sumber */}
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                                 <div className={`p-2 border rounded-lg cursor-pointer text-center text-xs flex flex-col items-center justify-center gap-1 h-20 hover:bg-gray-50 transition-colors ${uiSource === 'kas_out' ? 'bg-rose-50 border-rose-500 text-rose-700 font-bold shadow-sm' : ''}`} onClick={() => { setUiSource('kas_out'); trxForm.setData('kategori', ''); }}><Banknote className="w-5 h-5" />Kas Tunai (Keluar)</div>
                                 <div className={`p-2 border rounded-lg cursor-pointer text-center text-xs flex flex-col items-center justify-center gap-1 h-20 hover:bg-gray-50 transition-colors ${uiSource === 'bank_out' ? 'bg-blue-50 border-blue-500 text-blue-700 font-bold shadow-sm' : ''}`} onClick={() => { setUiSource('bank_out'); trxForm.setData('kategori', ''); }}><Building2 className="w-5 h-5" />Bank (Keluar)</div>
+                                {/* [BARU] Tombol Kas Masuk */}
+                                <div className={`p-2 border rounded-lg cursor-pointer text-center text-xs flex flex-col items-center justify-center gap-1 h-20 hover:bg-gray-50 transition-colors ${uiSource === 'kas_in' ? 'bg-emerald-50 border-emerald-500 text-emerald-700 font-bold shadow-sm' : ''}`} onClick={() => { setUiSource('kas_in'); trxForm.setData('kategori', ''); }}><Banknote className="w-5 h-5" />Kas Tunai (Masuk)</div>
                                 <div className={`p-2 border rounded-lg cursor-pointer text-center text-xs flex flex-col items-center justify-center gap-1 h-20 hover:bg-gray-50 transition-colors ${uiSource === 'bank_in' ? 'bg-emerald-50 border-emerald-500 text-emerald-700 font-bold shadow-sm' : ''}`} onClick={() => { setUiSource('bank_in'); trxForm.setData('kategori', ''); }}><Landmark className="w-5 h-5" />Bank (Masuk)</div>
                             </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label>Kode Transaksi</Label>
+                                    <Select value={trxForm.data.transaction_code} onValueChange={(val) => trxForm.setData('transaction_code', val)}>
+                                        <SelectTrigger><SelectValue placeholder="Pilih Kode" /></SelectTrigger>
+                                        
+                                        <SelectContent>
+                                            {uiSource === 'kas_out' && (<><SelectItem value="KK-">KK- (Kas Keluar)</SelectItem></>)}
+                                            {uiSource === 'bank_out' && (<><SelectItem value="BM-K">BM-K (Bank Mandiri Keluar)</SelectItem><SelectItem value="BRI-K">BRI-K (BRI Keluar)</SelectItem></>)}
+                                            {uiSource === 'kas_in' && (<><SelectItem value="KM-">KM- (Kas Masuk)</SelectItem></>)}
+                                            {uiSource === 'bank_in' && (<><SelectItem value="BM-M">BM-M (Bank Mandiri Masuk)</SelectItem><SelectItem value="BRI-M">BRI-M (BRI Masuk)</SelectItem></>)}
+                                        </SelectContent>
+                                    </Select>
+                                    {trxForm.errors.transaction_code && <p className="text-red-500 text-xs mt-1">{trxForm.errors.transaction_code}</p>}
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>No. Transaksi</Label>
+                                    <Input placeholder="Contoh: 001" value={trxForm.data.transaction_number} onChange={e => trxForm.setData('transaction_number', e.target.value)} />
+                                    {trxForm.errors.transaction_number && <p className="text-red-500 text-xs mt-1">{trxForm.errors.transaction_number}</p>}
+                                </div>
+                            </div>
+
                             <div className="space-y-2"><Label>Kategori Transaksi</Label>
                                 <Select value={trxForm.data.kategori} onValueChange={(val) => trxForm.setData('kategori', val)} required>
                                     <SelectTrigger><SelectValue placeholder="Pilih Kategori..." /></SelectTrigger>
                                     <SelectContent>
                                         {uiSource === 'kas_out' && (<><SelectItem value="Operasional Lapangan">Operasional Lapangan (Harian)</SelectItem><SelectItem value="Operasional Kantor">Operasional Kantor (ATK/Listrik/Dll)</SelectItem><SelectItem value="BPJS Ketenagakerjaan">Bayar BPJS (Cash)</SelectItem><SelectItem value="Pembelian Karet">Pembelian Karet (Cash)</SelectItem></>)}
                                         {uiSource === 'bank_out' && (<><SelectItem value="Penarikan Bank">Penarikan Tunai (Pindah ke Kas)</SelectItem><SelectItem value="Pembayaran Kapal">Pembayaran Kapal</SelectItem><SelectItem value="Pembayaran Truck">Pembayaran Truck</SelectItem><SelectItem value="Bayar Hutang">Bayar Hutang Perusahaan</SelectItem></>)}
+                                        {uiSource === 'kas_in' && (<><SelectItem value="Dana Bank">Dana Bank</SelectItem></>)}
                                         {uiSource === 'bank_in' && (<><SelectItem value="Setor Modal">Setor Modal / Suntik Dana</SelectItem><SelectItem value="Dana Investasi">Pencairan Dana Investasi</SelectItem><SelectItem value="Pendapatan Lain (Bank)">Bunga Bank / Pendapatan Lain</SelectItem></>)}
                                     </SelectContent>
                                 </Select>

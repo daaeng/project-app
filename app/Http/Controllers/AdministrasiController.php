@@ -72,24 +72,24 @@ class AdministrasiController extends Controller
         // Terapkan Filter
         if ($dateRangeStart && $dateRangeEnd) {
             $productQuery->whereBetween('date', [$dateRangeStart, $dateRangeEnd]);
-            
-            // Filter Transaksi Manual (transaction_date)
             $trxQuery->whereBetween('transaction_date', [$dateRangeStart, $dateRangeEnd]);
             
-            // [FIXED] Filter Kasbon STRICT menggunakan transaction_date
-            $kasbonQuery->whereBetween('transaction_date', [$dateRangeStart, $dateRangeEnd]);
-            
-            // Payroll
+            // Filter Kasbon & Payroll
+            $kasbonQuery->where(function($q) use ($dateRangeStart, $dateRangeEnd) {
+                $q->whereBetween('transaction_date', [$dateRangeStart, $dateRangeEnd]);
+            });
             $payrollQuery->whereBetween('created_at', [$dateRangeStart, $dateRangeEnd]);
         }
 
         // ==========================================
         // 1. LAPORAN BANK (PERIODE INI)
         // ==========================================
+        // Masuk: Penjualan Karet + Income Bank Manual
         $bankIn_Auto = $productQuery->clone()->where('product', 'karet')->where('status', 'buyer')->sum('amount_out') ?? 0;
         $bankIn_Manual = $trxQuery->clone()->where('source', 'bank')->where('type', 'income')->sum('amount') ?? 0;
         $totalBankIn = $bankIn_Auto + $bankIn_Manual;
 
+        // Keluar: Gaji + Expense Bank Manual
         $bankOut_Auto = $payrollQuery->clone()->sum('gaji_bersih') ?? 0;
         $bankOut_Manual = $trxQuery->clone()->where('source', 'bank')->where('type', 'expense')->sum('amount') ?? 0;
         $totalBankOut = $bankOut_Auto + $bankOut_Manual;
@@ -99,6 +99,7 @@ class AdministrasiController extends Controller
         // ==========================================
         // 2. LAPORAN KAS (PERIODE INI)
         // ==========================================
+        // Masuk: Penarikan Bank + Income Kas Manual
         $kasIn_Transfer = $trxQuery->clone()->where('source', 'bank')->where('category', 'Penarikan Bank')->sum('amount') ?? 0;
         $kasIn_Manual = $trxQuery->clone()->where('source', 'cash')->where('type', 'income')->sum('amount') ?? 0;
         $totalKasIn = $kasIn_Transfer + $kasIn_Manual;
@@ -240,7 +241,17 @@ class AdministrasiController extends Controller
                         "opex" => (float) $operatingExpenses,
                         "net_profit" => (float) $netProfit
                     ],
-                    "neraca" => $neraca
+                    "neraca" => [
+                        'assets' => [
+                            'kas_period' => (float) $saldoKasAccumulated, 
+                            'bank_period' => (float) $saldoBankAccumulated, 
+                            'piutang' => (float) $totalPiutangPegawai,
+                            'inventory_value' => 0 
+                        ],
+                        'liabilities' => [
+                            'hutang_dagang' => 0 
+                        ]
+                    ]
                 ],
                 "totalPengeluaran" => $totalBankOut + $totalKasOut, 
                 "labaRugi" => $netProfit,
@@ -288,6 +299,9 @@ class AdministrasiController extends Controller
             'kategori' => 'required|string', 
             'jumlah' => 'required|numeric',
             'tanggal' => 'required|date',
+            // [BARU] Validasi untuk kode dan no transaksi
+            'transaction_code' => 'required|string',
+            'transaction_number' => 'required|string',
         ]);
 
         FinancialTransaction::create([
@@ -296,7 +310,10 @@ class AdministrasiController extends Controller
             'category' => $request->kategori,
             'amount' => $request->jumlah,
             'transaction_date' => $request->tanggal,
-            'description' => $request->deskripsi
+            'description' => $request->deskripsi,
+            // [BARU] Simpan Data Baru
+            'transaction_code' => $request->transaction_code,
+            'transaction_number' => $request->transaction_number
         ]);
 
         return redirect()->back()->with('success', 'Transaksi berhasil dicatat!');

@@ -178,7 +178,7 @@ const formatKg = (value: number) => {
 const formatShortDate = (dateString: string | null) => {
     if (!dateString) return '-';
     const date = new Date(dateString);
-    date.setDate(date.getDate() + 1);
+    date.setDate(date.getDate() );
     const year = date.getFullYear();
     const month = (date.getMonth() + 1).toString().padStart(2, '0');
     const day = date.getDate().toString().padStart(2, '0');
@@ -193,24 +193,24 @@ export default function GkaPage({
     products4,
     products5,
     products6,
-    tm_slin,
+    // tm_slin,
     tm_slou,
     tm_sin,
-    tm_sou,
+    // tm_sou,
     filter,
     s_ready,
-    keping_in,
-    keping_out,
-    ppk_slin,
-    ppk_slou,
-    ppk_sin,
-    ppk_sou,
+    // keping_in,
+    // keping_out,
+    // ppk_slin,
+    // ppk_slou,
+    // ppk_sin,
+    // ppk_sou,
     p_ready,
     dataSusut,
-    klp_slin,
-    klp_slou,
-    klp_sin,
-    klp_sou,
+    // klp_slin,
+    // klp_slou,
+    // klp_sin,
+    // klp_sou,
     klp_ready,
     currentMonth,
     currentYear,
@@ -699,7 +699,7 @@ export default function GkaPage({
                                     <Table className="min-w-full">
                                         <TableHeader>
                                             <TableRow>
-                                                <TableHead>Tgl. Nota</TableHead>
+                                                {/* <TableHead>Tgl. Nota</TableHead> */}
                                                 {productType === 'all' && <TableHead>Jenis</TableHead>}
                                                 <TableHead>Supplier</TableHead>
                                                 <TableHead>Qty Jual</TableHead>
@@ -715,7 +715,7 @@ export default function GkaPage({
                                             {filteredProductsOut.length > 0 ? (
                                                 filteredProductsOut.map((product) => (
                                                     <TableRow key={product.id}>
-                                                        <TableCell>{formatShortDate(product.date)}</TableCell>
+                                                        {/* <TableCell>{formatShortDate(product.date)}</TableCell> */}
                                                         {productType === 'all' && <TableCell>{getProductBadge(product.product_type_display)}</TableCell>}
                                                         <TableCell>{product.nm_supplier}</TableCell>
                                                         <TableCell>{formatKg(product.qty_out)}</TableCell>
@@ -793,7 +793,7 @@ export default function GkaPage({
                                     <Table className="min-w-full">
                                         <TableHeader>
                                             <TableRow>
-                                                <TableHead>Tgl. Nota</TableHead>
+                                                {/* <TableHead>Tgl. Nota</TableHead> */}
                                                 <TableHead>Supplier</TableHead>
                                                 <TableHead>Barang</TableHead>
                                                 <TableHead>Qty Jual</TableHead>
@@ -808,7 +808,7 @@ export default function GkaPage({
                                             {products4.data.length > 0 ? (
                                                 products4.data.map((product) => (
                                                     <TableRow key={product.id}>
-                                                        <TableCell>{formatShortDate(product.date)}</TableCell>
+                                                        {/* <TableCell>{formatShortDate(product.date)}</TableCell> */}
                                                         <TableCell>{product.nm_supplier}</TableCell>
                                                         <TableCell>{product.j_brg}</TableCell>
                                                         <TableCell>{formatKg(product.qty_out)}</TableCell>
@@ -885,7 +885,7 @@ export default function GkaPage({
                                     <Table className="min-w-full">
                                         <TableHeader>
                                             <TableRow>
-                                                <TableHead>Tgl. Nota</TableHead>
+                                                {/* <TableHead>Tgl. Nota</TableHead> */}
                                                 <TableHead>Supplier</TableHead>
                                                 <TableHead>Barang</TableHead>
                                                 <TableHead>Qty Jual</TableHead>
@@ -899,7 +899,7 @@ export default function GkaPage({
                                             {products6.data.length > 0 ? (
                                                 products6.data.map((product) => (
                                                     <TableRow key={product.id}>
-                                                        <TableCell>{formatShortDate(product.date)}</TableCell>
+                                                        {/* <TableCell>{formatShortDate(product.date)}</TableCell> */}
                                                         <TableCell>{product.nm_supplier}</TableCell>
                                                         <TableCell>{product.j_brg}</TableCell>
                                                         <TableCell>{formatKg(product.qty_out)}</TableCell>
