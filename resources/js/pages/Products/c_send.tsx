@@ -49,21 +49,20 @@ const FormSection = ({ title, children }: { title: string, children: React.React
 
 export default function SendProduct() {
     const { data, setData, post, processing, errors } = useForm({
-        product: '', 
-        date: '', 
-        no_invoice: '', 
-        nm_supplier: 'GKA', // Default
-        j_brg: '', 
+        product: '',
+        date: '',
+        no_invoice: '',
+        no_po: '', // [BARU] Inisialisasi state No PO
+        nm_supplier: 'GKA',
+        j_brg: '',
         desk: '',
-        qty_out: '', 
-        price_out: '', 
-        amount_out: '', 
-        keping_out: '', 
-        kualitas_out: '', 
-        status: 'Buyer', // Default status penjualan
+        qty_out: '',
+        price_out: '',
+        amount_out: '',
+        keping_out: '',
+        kualitas_out: '',
+        status: 'Buyer',
         tgl_kirim: '',
-        
-        // --- Field Tambahan ---
         customer_name: '',
         shipping_method: '',
         pph_value: '',
@@ -73,23 +72,15 @@ export default function SendProduct() {
         person_in_charge: '',
     });
 
-    // Kalkulasi Otomatis (Saat Create, PPH berbasis Qty Out karena Qty Sampai belum ada)
     useEffect(() => {
         const qty = parseFloat(data.qty_out) || 0;
         const price = parseFloat(data.price_out) || 0;
         const grossAmount = qty * price;
-        
-        // PPH 0.25%
         const pph = grossAmount * 0.0025;
-        
-        // Biaya Lain
         const ob = parseFloat(data.ob_cost) || 0;
         const extra = parseFloat(data.extra_cost) || 0;
-        
-        // Total Bersih = Bruto - PPH - Biaya Lain
         const netAmount = grossAmount - pph - ob - extra;
 
-        // Update state jika nilai berubah (cegah infinite loop)
         if (data.pph_value !== pph.toFixed(2) && grossAmount > 0) {
              setData(prev => ({...prev, pph_value: pph.toFixed(2)}));
         }
@@ -97,8 +88,8 @@ export default function SendProduct() {
         if (data.amount_out !== netAmount.toFixed(2) && grossAmount > 0) {
              setData(prev => ({...prev, amount_out: netAmount.toFixed(2)}));
         }
-        
-    }, [data.qty_out, data.price_out, data.ob_cost, data.extra_cost]); 
+
+    }, [data.qty_out, data.price_out, data.ob_cost, data.extra_cost]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -110,7 +101,7 @@ export default function SendProduct() {
             <Head title="Send Product" />
              <div className="bg-gray-50 dark:bg-black py-6 sm:py-8 lg:py-12 min-h-full">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                     
+
                      <div className="flex justify-between items-center mb-8">
                         <div>
                              <h1 className="text-2xl font-bold text-gray-800 dark:text-white sm:text-3xl">Input Penjualan (Kirim Barang)</h1>
@@ -136,7 +127,7 @@ export default function SendProduct() {
                     )}
 
                     <form onSubmit={handleSubmit} className='space-y-10 bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700'>
-                        
+
                         <FormSection title="Informasi Dasar">
                             <FormField label="Jenis Produk">
                                 <StyledSelect value={data.product} onChange={(e) => setData('product', e.target.value)} required>
@@ -149,9 +140,17 @@ export default function SendProduct() {
                             <FormField label="Tanggal Nota">
                                 <StyledInput type='date' value={data.date} onChange={(e) => setData('date', e.target.value)} />
                             </FormField>
-                            <FormField label="No. Invoice">
-                                <StyledInput placeholder='INV-XXXX' value={data.no_invoice} onChange={(e) => setData('no_invoice', e.target.value)} />
-                            </FormField>
+
+                            {/* [BARU] No Invoice dan No PO Bersebelahan */}
+                            <div className="grid grid-cols-2 gap-4">
+                                <FormField label="No. Invoice">
+                                    <StyledInput placeholder='INV-XXXX' value={data.no_invoice} onChange={(e) => setData('no_invoice', e.target.value)} />
+                                </FormField>
+                                <FormField label="No. PO (Customer Purchase Order)">
+                                    <StyledInput placeholder='PO-XXXX' value={data.no_po} onChange={(e) => setData('no_po', e.target.value)} />
+                                </FormField>
+                            </div>
+
                             <FormField label="Nama Customer / Pembeli">
                                 <StyledInput placeholder='PT. Contoh Customer' value={data.customer_name} onChange={(e) => setData('customer_name', e.target.value)} />
                             </FormField>
@@ -161,8 +160,8 @@ export default function SendProduct() {
                         </FormSection>
 
                         <FormSection title="Logistik & Pengiriman">
-                            <FormField label="Via Pengiriman">
-                                <StyledInput placeholder='Darat / Laut / Udara' value={data.shipping_method} onChange={(e) => setData('shipping_method', e.target.value)} />
+                            <FormField label="Via Armada">
+                                <StyledInput placeholder='Truck / Kapal Barang ' value={data.shipping_method} onChange={(e) => setData('shipping_method', e.target.value)} />
                             </FormField>
                             <FormField label="Tanggal Kirim">
                                 <StyledInput type='date' value={data.tgl_kirim} onChange={(e) => setData('tgl_kirim', e.target.value)} />

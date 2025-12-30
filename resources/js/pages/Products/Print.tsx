@@ -8,6 +8,7 @@ interface Product {
     product: string;
     date: string;
     no_invoice: string;
+    no_po?: string; // [BARU] Tambahkan field No PO
     nm_supplier: string;
     j_brg: string;
     desk: string;
@@ -40,11 +41,11 @@ const formatCurrency = (value: number) => new Intl.NumberFormat('id-ID', { style
 const formatDate = (dateString: string | null) => dateString ? new Date(dateString).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' }) : '-';
 
 export default function PrintProduct({ product, susut_value }: Props) {
-    
+
     useEffect(() => {
         // Set judul halaman manual untuk browser yang tidak support Head Inertia di preview
         document.title = `Cetak Invoice ${product.no_invoice}`;
-        
+
         // Otomatis print saat halaman selesai dimuat
         const timer = setTimeout(() => window.print(), 800);
         return () => clearTimeout(timer);
@@ -54,21 +55,21 @@ export default function PrintProduct({ product, susut_value }: Props) {
         <div className="bg-white min-h-screen p-8 font-sans text-xs text-black max-w-[210mm] mx-auto print:max-w-full print:p-0 leading-snug">
             {/* Komponen Head Inertia (Opsional jika error di preview) */}
             {/* <Head title={`Cetak Invoice ${product.no_invoice}`} /> */}
-            
+
             <style>{`
-                @media print { 
-                    @page { margin: 10mm; size: auto; } 
-                    body { margin: 0; box-shadow: none; } 
+                @media print {
+                    @page { margin: 10mm; size: auto; }
+                    body { margin: 0; box-shadow: none; }
                     .no-print { display: none; }
                 }
             `}</style>
 
             {/* --- KOP SURAT --- */}
             <div className="text-center border-b-2 border-black pb-3 mb-4">
-                <img 
-                    src="/assets/GKA_no_Tag.png" 
-                    className="h-16 w-auto mx-auto mb-2 object-contain" 
-                    alt="Logo GKA" 
+                <img
+                    src="/assets/GKA_no_Tag.png"
+                    className="h-16 w-auto mx-auto mb-2 object-contain"
+                    alt="Logo GKA"
                 />
                 <h1 className="text-xl font-bold uppercase tracking-widest text-gray-900">PT. Garuda Karya Amanat</h1>
                 <p className="text-xs uppercase tracking-wide mt-1 text-gray-600">Laporan Transaksi Penjualan</p>
@@ -82,6 +83,11 @@ export default function PrintProduct({ product, susut_value }: Props) {
                             <tr>
                                 <td className="font-bold text-gray-600 w-24">No. Invoice</td>
                                 <td className="font-bold">: {product.no_invoice}</td>
+                            </tr>
+                            {/* [BARU] Menampilkan No PO */}
+                            <tr>
+                                <td className="font-bold text-gray-600">No. PO</td>
+                                <td className="font-bold uppercase text-blue-900 print:text-black">: {product.no_po || '-'}</td>
                             </tr>
                             <tr>
                                 <td className="font-bold text-gray-600">Tanggal Nota</td>
@@ -112,7 +118,7 @@ export default function PrintProduct({ product, susut_value }: Props) {
 
             {/* --- KOLOM DETAIL ITEM & PENGIRIMAN (GRID) --- */}
             <div className="grid grid-cols-2 gap-6 mb-4">
-                
+
                 {/* Kiri: Detail Fisik Barang */}
                 <div className="border border-black rounded-sm">
                     <div className="bg-gray-200 border-b border-black p-2 font-bold text-center print:bg-gray-300">

@@ -17,6 +17,7 @@ interface Product {
     product: string;
     date: string;
     no_invoice: string;
+    no_po: string; // [BARU] Tambahkan tipe data
     nm_supplier: string;
     j_brg: string;
     desk: string;
@@ -26,11 +27,9 @@ interface Product {
     keping_out: number;
     kualitas_out: string;
     status: string;
-    // --- [DITAMBAHKAN] Interface untuk field baru ---
     tgl_kirim: string;
     tgl_sampai: string;
     qty_sampai: number;
-    // --- [SELESAI DITAMBAHKAN] ---
     customer_name: string;
     pph_value: number;
     ob_cost: number;
@@ -43,7 +42,7 @@ interface Product {
 // Interface untuk props halaman
 interface PageProps {
     product: Product;
-    susut_value: number; // Tambahkan susut_value
+    susut_value: number;
 }
 
 // Fungsi helper untuk format tanggal
@@ -67,7 +66,7 @@ const DetailRow = ({ label, value, isCurrency = false, className = '' }: { label
 );
 
 export default function ShowReport({ product, susut_value }: PageProps) {
-    
+
     const handlePrint = () => {
         const printUrl = route('products.print', product.id);
         window.open(printUrl, '_blank');
@@ -76,8 +75,6 @@ export default function ShowReport({ product, susut_value }: PageProps) {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={`Laporan Penjualan ${product.no_invoice}`} />
-
-            
 
             <div className="bg-gray-50 dark:bg-black py-6 sm:py-8 lg:py-12 min-h-full">
                 <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -105,27 +102,29 @@ export default function ShowReport({ product, susut_value }: PageProps) {
                         </div>
                     </div>
 
-                    {/* Area yang akan di-print */}
+                    {/* Area Detail */}
                     <div id="printable-area" className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-md">
                         <header className="pb-6 border-b border-gray-200 dark:border-gray-700">
-                            <img 
-                                src="/assets/GKA_no_Tag.png" 
-                                className="h-10 w-auto mx-auto mb-3 object-contain" 
-                                alt="Logo GKA" 
+                            <img
+                                src="/assets/GKA_no_Tag.png"
+                                className="h-10 w-auto mx-auto mb-3 object-contain"
+                                alt="Logo GKA"
                             />
                             <h2 className="text-2xl font-bold text-center text-gray-900 dark:text-white">Laporan Penjualan</h2>
                             <p className="text-sm text-center text-gray-500 dark:text-gray-400">PT. Garuda Karya Amanat</p>
                         </header>
-                        
+
                         <main className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
                             {/* Kolom Kiri */}
                             <div className="space-y-2">
                                 <DetailRow label="No. Invoice" value={product.no_invoice} />
+                                {/* [BARU] Menampilkan No PO */}
+                                <DetailRow label="No. PO" value={product.no_po || '-'} className="text-blue-600" />
+
                                 <DetailRow label="Customer" value={product.customer_name} />
-                                {/* <DetailRow label="Tanggal Nota" value={formatDate(product.date)} /> */}
                                 <DetailRow label="Jenis Produk" value={product.product} />
                                 <DetailRow label="Jenis Barang" value={product.j_brg} />
-                                
+
                                 <div className="mt-3">
                                     <h4 className="text-sm font-bold text-gray-500 tracking-wider mb-2">Informasi Pembeli</h4>
                                     <p className=" dark:text-gray-300 font-mono text-sm whitespace-pre-wrap">{product.desk || 'No description log available.'}</p>
@@ -142,8 +141,7 @@ export default function ShowReport({ product, susut_value }: PageProps) {
                                  {susut_value > 0 && (
                                     <DetailRow label="Susut" value={`${susut_value} Kg`} className="text-yellow-600 font-bold" />
                                  )}
-                                 
-                                 {/* --- [DITAMBAHKAN] Tampilkan data baru jika ada --- */}
+
                                  {product.tgl_kirim && (
                                     <DetailRow label="Tanggal Kirim" value={formatDate(product.tgl_kirim)} className="text-blue-600" />
                                  )}
@@ -153,10 +151,9 @@ export default function ShowReport({ product, susut_value }: PageProps) {
                                  {product.qty_sampai > 0 && (
                                     <DetailRow label="Qty Sampai" value={`${product.qty_sampai} Kg`} className="text-green-600 font-bold" />
                                  )}
-                                 {/* --- [SELESAI DITAMBAHKAN] --- */}
                             </div>
                         </main>
-                        
+
                         <footer className="mt-5 pt-5 border-t border-gray-200 dark:border-gray-700">
                             <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">Rincian Keuangan</h3>
                             <div className="space-y-2">

@@ -15,6 +15,7 @@ interface Product{
     product: string,
     date: string,
     no_invoice: string,
+    no_po?: string, // [BARU] Tambahkan field No PO (optional)
     nm_supplier: string,
     j_brg: string,
     desk: string,
@@ -79,6 +80,7 @@ export default function EditOut({product} : props) {
         product: product.product,
         date: product.date,
         no_invoice: product.no_invoice,
+        no_po: product.no_po || '', // [BARU] Inisialisasi No PO
         nm_supplier: product.nm_supplier,
         j_brg: product.j_brg,
         desk: product.desk,
@@ -93,7 +95,7 @@ export default function EditOut({product} : props) {
         keping_out: product.keping_out,
         kualitas_out: product.kualitas_out,
         status: product.status,
-        
+
         // Load data existing atau default kosong
         tgl_kirim: product.tgl_kirim || '',
         tgl_sampai: product.tgl_sampai || '',
@@ -112,21 +114,21 @@ export default function EditOut({product} : props) {
     useEffect(() => {
         const qtySampai = parseFloat(data.qty_sampai) || 0;
         const price = parseFloat(data.price_out) || 0;
-        
+
         // Default PPH 0
         let pph = 0;
-        
+
         if (qtySampai > 0 && price > 0) {
             // Rumus: Qty Sampai * Harga * 0.25%
             const totalBruto = qtySampai * price;
-            pph = totalBruto * 0.0025; 
+            pph = totalBruto * 0.0025;
         }
 
         // Update state jika berbeda (format 2 desimal)
         if ((parseFloat(data.pph_value) || 0) !== parseFloat(pph.toFixed(2))) {
             setData(prev => ({...prev, pph_value: pph.toFixed(2)}));
         }
-    }, [data.qty_sampai, data.price_out]); 
+    }, [data.qty_sampai, data.price_out]);
 
     // [RUMUS 2] Hitung Total Akhir (Net Amount) Otomatis
     // Trigger: Saat ada perubahan di Qty Sampai, Harga, PPh, OB, atau Extra Cost
@@ -134,17 +136,17 @@ export default function EditOut({product} : props) {
     useEffect(() => {
          const qtySampai = parseFloat(data.qty_sampai) || 0;
          const price = parseFloat(data.price_out) || 0;
-         
+
          const pph = parseFloat(data.pph_value) || 0;
          const ob = parseFloat(data.ob_cost) || 0;
          const extra = parseFloat(data.extra_cost) || 0;
-         
+
          // Hitung Bruto berdasarkan Qty Sampai
          const gross = qtySampai * price;
-         
+
          // Hitung Net
          const net = gross - pph - ob - extra;
-         
+
          // Update Amount Out otomatis
          // Note: Kita cek perbedaan value untuk mencegah infinite loop render
          if (parseFloat(data.amount_out) !== parseFloat(net.toFixed(2))) {
@@ -195,14 +197,22 @@ export default function EditOut({product} : props) {
                     )}
 
                     <form onSubmit={handleUpdate} className='space-y-10 bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700'>
-                        
+
                         <FormSection title="Informasi Transaksi">
                             <FormField label="Tanggal Nota">
                                 <StyledInput type='date' value={data.date} onChange={(e) => setData('date', e.target.value)} />
                             </FormField>
-                            <FormField label="No. Invoice">
-                                <StyledInput value={data.no_invoice} onChange={(e) => setData('no_invoice', e.target.value)} />
-                            </FormField>
+
+                            {/* [BARU] No Invoice dan No PO Bersebelahan */}
+                            <div className="grid grid-cols-2 gap-4">
+                                <FormField label="No. Invoice">
+                                    <StyledInput value={data.no_invoice} onChange={(e) => setData('no_invoice', e.target.value)} />
+                                </FormField>
+                                <FormField label="No. PO">
+                                    <StyledInput placeholder='PO-XXXX' value={data.no_po} onChange={(e) => setData('no_po', e.target.value)} />
+                                </FormField>
+                            </div>
+
                             <FormField label="Customer Name">
                                 <StyledInput value={data.customer_name} onChange={(e) => setData('customer_name', e.target.value)} />
                             </FormField>
@@ -236,7 +246,7 @@ export default function EditOut({product} : props) {
                                     <span className="absolute right-3 top-2.5 text-gray-400 text-sm">Kg</span>
                                 </div>
                             </FormField>
-                            
+
                             {/* Qty Sampai Penting untuk PPH */}
                             <FormField label="Qty Sampai (Pabrik)">
                                 <div className="relative">
@@ -248,14 +258,14 @@ export default function EditOut({product} : props) {
                             <FormField label="Price / Qty (Rp)">
                                 <StyledInput value={data.price_out} onChange={(e) => setData('price_out', e.target.value)} />
                             </FormField>
-                            
+
                             <div className="bg-gray-50 dark:bg-gray-900/50 p-3 rounded-lg border border-gray-200 dark:border-gray-700">
                                 <FormField label="PPH 0.25% (Auto)">
                                     <StyledInput value={data.pph_value} readOnly className="bg-white dark:bg-gray-800 text-right font-mono text-gray-600" />
                                     <p className="text-[10px] text-gray-500 mt-1 italic">*Basis: Qty Sampai x Harga</p>
                                 </FormField>
                             </div>
-                            
+
                             <FormField label="Keping / Buah">
                                 <StyledInput value={data.keping_out} onChange={(e) => setData('keping_out', e.target.value)} />
                             </FormField>
@@ -271,7 +281,7 @@ export default function EditOut({product} : props) {
                             <FormField label="Biaya Tambahan">
                                 <StyledInput value={data.extra_cost} onChange={(e) => setData('extra_cost', e.target.value)} className="text-right" />
                             </FormField>
-                            
+
                             <div className="md:col-span-1 lg:col-span-1">
                                 <FormField label="Total Akhir (Net)">
                                     <StyledInput value={data.amount_out} onChange={(e) => setData('amount_out', e.target.value)} className="bg-green-50 dark:bg-green-900/20 border-green-200 text-green-700 font-bold text-lg text-right" />

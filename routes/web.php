@@ -3,6 +3,7 @@
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\CustomerController; // [BARU] Import Controller
 use App\Http\Controllers\RequestController;
 use App\Http\Controllers\NotaController;
 use App\Http\Controllers\AdministrasiController;
@@ -25,14 +26,14 @@ Route::get('/', function () {
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    
+
     // ~~~~~~~~~~~~~ PRODUCT ~~~~~~~~~~~~~
-    // [BARU] Route Cetak Invoice Satuan (Letakkan DI ATAS resource agar aman)
+    // ... (Route Product yang lama tetap sama) ...
     Route::get('/products/report', [ProductController::class, 'print_report'])->name('products.report')
         ->middleware("permission:products.view");
     Route::get('/products/{product}/print', [ProductController::class, 'print'])->name('products.print')
         ->middleware("permission:products.view");
-        
+
     route::get('/products', [ProductController::class, 'index'])->name('products.index')
         ->middleware("permission:products.create|products.edit|products.delete|products.view");
     route::post('/products', [ProductController::class, 'store'])->name('products.store')
@@ -65,8 +66,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware("permission:products.create|products.edit|products.delete|products.view");
     Route::get('/products/export/excel', [ProductController::class, 'exportExcel'])->name('products.export.excel')
         ->middleware("permission:products.create|products.edit|products.delete|products.view");
-    
-    // ... sisa route lainnya biarkan tetap ada ...
+
+    // [BARU] ~~~~~~~~~~~~~ CUSTOMERS ~~~~~~~~~~~~~
+    // Saya gunakan permission yang sama dengan produk untuk saat ini agar tidak error
+    // Nanti bisa dibuat permission khusus 'customers.view' dsb jika perlu
+    Route::resource('customers', CustomerController::class)
+        ->middleware("permission:products.create|products.edit|products.delete|products.view");
+
+    // ... (Sisa route lainnya biarkan tetap ada) ...
     // ~~~~~~~~~~~~~ UserManagement ~~~~~~~~~~~~~
     route::get('/usermanagements', [UserManagementController::class, 'index'])->name('usermanagements.index')
         ->middleware("permission:usermanagements.create|usermanagements.edit|usermanagements.delete|usermanagements.view");
@@ -82,7 +89,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware("permission:usermanagements.create|usermanagements.edit|usermanagements.delete|usermanagements.view");
     route::delete('/usermanagements/{user}', [UserManagementController::class, 'destroy'])->name('usermanagements.destroy')
         ->middleware("permission:usermanagements.create|usermanagements.edit|usermanagements.delete|usermanagements.view");
-    
+
     // ~~~~~~~~~~~~~ PEGAWAI ~~~~~~~~~~~~~
     Route::resource('pegawai', PegawaiController::class)
         ->middleware("permission:pegawai.create|pegawai.edit|pegawai.delete|pegawai.view");
@@ -92,7 +99,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware("permission:payroll.create|payroll.edit|payroll.delete|payroll.view");
     Route::resource('/payroll', PayrollController::class)->except(['destroy'])
         ->middleware("permission:payroll.create|payroll.edit|payroll.delete|payroll.view");
-    
+
     // ~~~~~~~~~~~~~ REQUEST ~~~~~~~~~~~~~
     Route::get('/requests', [RequestController::class, 'index'])->name('requests.index')
         ->middleware("permission:requests.create|requests.edit|requests.delete|requests.view");
@@ -119,12 +126,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // ~~~~~~~~~~~~~ PPB (PENGAJUAN PERMINTAAN BARANG) ~~~~~~~~~~~~~
     Route::resource('ppb', PpbController::class)
         ->only(['index', 'create', 'store', 'show', 'destroy'])
-        ->middleware("permission:requests.create|requests.edit|requests.delete|requests.view"); 
-    
+        ->middleware("permission:requests.create|requests.edit|requests.delete|requests.view");
+
     Route::patch('/ppb/{ppb}/status', [PpbController::class, 'updateStatus'])
         ->name('ppb.updateStatus')
         ->middleware("permission:requests.edit");
-    
+
     // ~~~~~~~~~~~~~ Invoice ~~~~~~~~~~~~~
     route::get('/notas', [NotaController::class, 'index'])->name('notas.index')
         ->middleware("permission:notas.create|notas.edit|notas.delete|notas.view");
@@ -156,16 +163,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('/administrasis/transactions/{id}', [AdministrasiController::class, 'updateTransaction'])
         ->name('administrasis.updateTransaction')
         ->middleware("permission:administrasis.edit");
-    
+
     // [BARU] Route untuk Transaksi Keuangan (Wajib ada agar tidak error Ziggy)
     Route::get('/administrasis/transactions', [AdministrasiController::class, 'getTransactions'])
         ->name('administrasis.getTransactions')
         ->middleware("permission:administrasis.view");
-        
+
     Route::post('/administrasis/transactions', [AdministrasiController::class, 'storeTransaction'])
         ->name('administrasis.storeTransaction')
         ->middleware("permission:administrasis.create");
-        
+
     Route::delete('/administrasis/transactions/{id}', [AdministrasiController::class, 'destroyTransaction'])
         ->name('administrasis.destroyTransaction')
         ->middleware("permission:administrasis.delete");
@@ -177,7 +184,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource("roles", RoleController::class)
                     ->only(["create", "store", "edit", "update", "destroy", "index", "show"])
                     ->middleware("permission:roles.create|roles.edit|roles.delete|roles.view");
-    
+
     // ~~~~~~~~~~~~~ Incisor ~~~~~~~~~~~~~
     route::get('/incisors', [IncisorController::class, 'index'])->name('incisors.index')
         ->middleware("permission:incisor.create|incisor.edit|incisor.delete|incisor.view");
@@ -193,11 +200,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware("permission:incisor.create|incisor.edit|incisor.delete|incisor.view");
     route::delete('/incisors/{incisor}', [IncisorController::class, 'destroy'])->name('incisors.destroy')
         ->middleware("permission:incisor.create|incisor.edit|incisor.delete|incisor.view");
-    
+
     // ~~~~~~~~~~~~~ Inciseds ~~~~~~~~~~~~~
     route::get('/inciseds/print-report', [IncisedController::class, 'printReport'])->name('inciseds.printReport');
     route::get('/inciseds/{incised}/print', [IncisedController::class, 'print'])->name('inciseds.print');
-    
+
     route::get('/inciseds', [IncisedController::class, 'index'])->name('inciseds.index')
         ->middleware("permission:incised.create|incised.edit|incised.delete|incised.view");
     route::post('/inciseds', [IncisedController::class, 'store'])->name('inciseds.store')
@@ -225,13 +232,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/kasbons/print', [KasbonController::class, 'print'])->name('kasbons.print')
         ->middleware("permission:kasbons.view");
-    
+
     Route::get('/kasbons/print-detail/{type}/{id}', [KasbonController::class, 'printDetail'])->name('kasbons.printDetail')
         ->middleware("permission:kasbons.view");
 
     Route::get('/kasbons/details/{type}/{id}', [KasbonController::class, 'showByUser'])->name('kasbons.showByUser')
         ->middleware("permission:kasbons.view");
-        
+
     Route::resource('kasbons', KasbonController::class)->except(['show'])
         ->middleware("permission:kasbons.create|kasbons.edit|kasbons.delete|kasbons.view");
 
@@ -242,10 +249,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/kasbons-pegawai', [KasbonController::class, 'storePegawai'])
         ->name('kasbons.store_pegawai')
         ->middleware("permission:kasbons.create|kasbons.edit|kasbons.delete|kasbons.view");
-        
+
     Route::put('/kasbon-payments/{payment}', [KasbonController::class, 'updatePayment'])->name('kasbon-payments.update')
         ->middleware('permission:kasbons.edit');
-        
+
     Route::delete('/kasbon-payments/{payment}', [KasbonController::class, 'destroyPayment'])->name('kasbon-payments.destroy')
         ->middleware('permission:kasbons.delete');
 

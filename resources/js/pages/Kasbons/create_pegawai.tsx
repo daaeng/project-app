@@ -43,6 +43,17 @@ const formatCurrency = (value: number | null | undefined) => {
     }).format(value);
 };
 
+const SummaryRow: React.FC<{ label: string; value: string; isLoading: boolean; className?: string }> = ({ label, value, isLoading, className }) => (
+    <div className="flex items-center justify-between">
+        <p className="text-sm text-slate-400">{label}</p>
+        {isLoading ? (
+            <div className="h-6 w-32 bg-slate-700 rounded-md animate-pulse"></div>
+        ) : (
+            <p className={cn("font-bold text-xl text-white", className)}>{value}</p>
+        )}
+    </div>
+);
+
 export default function CreateKasbonPegawai({ employees, statuses, flash, errors: pageErrors }: PageProps) {
     const { data, setData, post, processing, errors, reset, wasSuccessful } = useForm({
         employee_id: '',
@@ -110,7 +121,7 @@ export default function CreateKasbonPegawai({ employees, statuses, flash, errors
                         </AlertDescription>
                     </Alert>
                 )}
-                
+
                 {flash.message && !hasErrors && (
                     <Alert variant="default" className="bg-green-50 border-green-200 text-green-800 dark:bg-green-900/20 dark:border-green-500/30 dark:text-green-200">
                         <Info className="h-4 w-4" />
@@ -138,7 +149,7 @@ export default function CreateKasbonPegawai({ employees, statuses, flash, errors
                                     </Select>
                                     {errors.employee_id && <p className="text-sm text-destructive mt-1">{errors.employee_id}</p>}
                                 </div>
-                                
+
                                 {/* [MODIFIKASI] Tambahkan input tanggal transaksi */}
                                 <div>
                                     <Label htmlFor="transaction_date">Tanggal Transaksi</Label>
@@ -168,7 +179,7 @@ export default function CreateKasbonPegawai({ employees, statuses, flash, errors
                                     />
                                     {errors.gaji && <p className="text-sm text-destructive mt-1">{errors.gaji}</p>}
                                 </div> */}
-                                
+
                                 <div className={cn(!data.employee_id && "opacity-50 pointer-events-none")}>
                                     <Label htmlFor="kasbon">Jumlah Kasbon (IDR)</Label>
                                     <Input
@@ -224,6 +235,7 @@ export default function CreateKasbonPegawai({ employees, statuses, flash, errors
                                             {formatCurrency(selectedEmployee?.salary)}
                                         </p>
                                         <p className="text-xs text-slate-400">Ini adalah batas maksimal kasbon.</p>
+                                        <SummaryRow label="Kasbon Diambil" value={formatCurrency(data.kasbon)} className="text-yellow-400" />
                                     </div>
                                 </CardContent>
                             </Card>

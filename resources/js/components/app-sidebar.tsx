@@ -3,7 +3,7 @@ import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { Link, usePage } from '@inertiajs/react';
-import { LayoutDashboard, ChartArea, UserCog2, PackageIcon, ReceiptText, Notebook, HandCoins, UsersRound, PackageOpen, BookUser, Banknote, Archive, Clock, BookUp2 } from 'lucide-react';
+import { LayoutDashboard, ChartArea, UserCog2, PackageIcon, ReceiptText, Notebook, HandCoins, UsersRound, PackageOpen, BookUser, Banknote, Archive, Clock, BookUp2, Users } from 'lucide-react'; // [BARU] Import Users icon
 import AppLogo from './app-logo';
 
 // 1. Definisikan tipe NavItem dengan field tambahan 'permission'
@@ -53,14 +53,22 @@ const mainNavItems: NavItem[] = [
         icon: BookUser,
         permission: 'pegawai.view', //
     },
-    
+
+    // [BARU] Tambahkan menu Customer
+    {
+        title: 'Customer / Client',
+        href: '/customers',
+        icon: Users,
+        permission: 'products.view', // Sementara gunakan permission yang ada agar aman
+    },
+
     {
         title: 'Incisor',
         href: '/incisors',
         icon: UsersRound,
         permission: 'incisor.view', // (Perhatikan: Singular 'incisor')
     },
-    
+
     {
         title: 'Incised Data',
         href: '/inciseds',
@@ -79,39 +87,39 @@ const mainNavItems: NavItem[] = [
         title: 'Inventory',
         href: '/inventories',
         icon: Archive,
-        // permission: 'inventories.view', 
-        // NOTE: Di web.php Anda, route 'inventories' belum ada middleware permission. 
+        // permission: 'inventories.view',
+        // NOTE: Di web.php Anda, route 'inventories' belum ada middleware permission.
         // Jadi saya biarkan kosong agar tetap muncul.
     },
-    
+
     {
         title: 'PPB',
         href: '/ppb',
         icon: BookUp2 ,
         permission: 'requests.view', // (Route PPB menggunakan middleware requests.*)
     },
-    
+
     {
         title: 'Invoice',
         href: '/notas',
         icon: ReceiptText ,
         permission: 'notas.view', //
     },
-    
+
     {
         title: 'Cash Receipt',
         href: '/kasbons',
         icon: HandCoins,
         permission: 'kasbons.view', //
     },
-    
+
     {
         title: 'Administration',
         href: '/administrasis',
         icon: ChartArea,
         permission: 'administrasis.view', //
     },
-    
+
     {
         title: 'Payroll',
         href: '/payroll',
