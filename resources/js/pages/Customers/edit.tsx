@@ -70,7 +70,7 @@ export default function CustomerEdit({ customer }: Props) {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Edit Customer" />
 
-            <div className="bg-gray-50 dark:bg-black py-8 min-h-full">
+            <div className="bg-gray-50 dark:bg-black p-6 space-y-6">
 
                 {/* Header Section */}
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
