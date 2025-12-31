@@ -107,16 +107,16 @@ const formatCurrency = (value: number) => {
 };
 
 export default function TsaPage({
-    flash, products, products2, hsl_karet, saldoin, saldoout, keping_in, keping_out, keping_sbyr, keping_sbyr2, keping_tmd, keping_tmd2, 
+    flash, products, products2, hsl_karet, saldoin, saldoout, keping_in, keping_out, keping_sbyr, keping_sbyr2, keping_tmd, keping_tmd2,
     tm_slin, tm_slou, tm_sin, tm_sou, ts_slin, ts_slou, ts_sin, ts_sou, filter, hsl_jual, currentMonth, currentYear, s_ready
 }: PageProps) {
     // Pastikan searchValue selalu string, bahkan jika filter.search null/undefined
     const [searchValue, setSearchValue] = useState(filter?.search || '');
-    
+
     // Improved useState initialization for timePeriod
     const [timePeriod, setTimePeriod] = useState(() => {
         const urlParams = new URLSearchParams(window.location.search);
-        
+
         // Prioritize 'time_period' parameter from URL if present
         if (urlParams.has('time_period')) {
             return urlParams.get('time_period') || 'this-month'; // Fallback if parameter in URL is empty
@@ -128,7 +128,7 @@ export default function TsaPage({
         if (filter?.time_period === 'all-time') {
             return 'this-month';
         }
-        
+
         // If no parameter in URL and filter prop is not 'all-time',
         // use the value from the filter prop (which should be 'this-month' from PHP default)
         // or fallback to 'this-month' if filter.time_period is undefined/null.
@@ -142,7 +142,7 @@ export default function TsaPage({
         setSearchValue(filter?.search || '');
         // This will handle subsequent updates if filter.time_period changes from the server.
         // It's important to maintain synchronization after the initial render.
-        setTimePeriod(filter?.time_period || 'this-month'); 
+        setTimePeriod(filter?.time_period || 'this-month');
         setSelectedMonth(String(filter?.month || currentMonth)); // Sync month from props
         setSelectedYear(String(filter?.year || currentYear));   // Sync year from props
     }, [filter?.search, filter?.time_period, filter?.month, filter?.year, currentMonth, currentYear]);
@@ -256,7 +256,7 @@ export default function TsaPage({
                     }
 
                     const currentParams = url ? new URLSearchParams(url.search) : new URLSearchParams();
-                    
+
                     // Set the correct page parameter name
                     currentParams.set(pageParamName, currentParams.get('page') || currentParams.get('page2') || link.label.replace(/&laquo;/g, '').replace(/&raquo;/g, ''));
 
@@ -408,7 +408,7 @@ export default function TsaPage({
                                     <div>
                                         <div className="flex gap-2"><p className="text-green-400">IN</p> {formatCurrency(saldoin)}</div>
                                         <div className="flex gap-2"><p className="text-green-400">keping</p>{keping_in}</div>
-                                        
+
                                         <div className="flex gap-2"><p className="text-red-400">MOVE</p> {formatCurrency(saldoout)}</div>
                                         <div className="flex gap-2"><p className="text-red-400">keping</p> {keping_out}</div>
 
@@ -437,10 +437,10 @@ export default function TsaPage({
 
                                     <div className="text-2xl w-full justify-center flex font-bold">{tm_sin} Kg</div>
                                     <div className="text-2xl w-full justify-center flex font-bold">{tm_sou} Kg</div>
-                                    
+
                                     <div className="text-2xl w-full justify-center flex font-bold">{keping_tmd} <p className='text-sm'>Keping</p> </div>
                                     <div className="text-2xl w-full justify-center flex font-bold">{keping_tmd2} <p className='text-sm'>Keping</p> </div>
-                                    
+
                                 </div>
                             </CardContent>
                         </Card>
@@ -460,7 +460,7 @@ export default function TsaPage({
 
                                     <div className="text-2xl w-full justify-center flex font-bold">{ts_sin} Kg</div>
                                     <div className="text-2xl w-full justify-center flex font-bold">{ts_sou} Kg</div>
-                                    
+
                                     <div className="text-2xl w-full justify-center flex font-bold">{keping_sbyr} <p className='text-sm'>Keping</p> </div>
                                     <div className="text-2xl w-full justify-center flex font-bold">{keping_sbyr2} <p className='text-sm'>Keping</p> </div>
                                 </div>
@@ -469,7 +469,7 @@ export default function TsaPage({
                     </div>
                 </div>
 
-                
+
                 <div className="flex space-x-3 justify-end">
                     <Link href={route('products.create')}>
                         <Button className="flex items-center bg-green-600 hover:bg-green-700 text-white font-semibold rounded-full shadow-lg transition-all duration-300 transform hover:scale-105 px-6 py-3">
@@ -486,9 +486,9 @@ export default function TsaPage({
                         </Link>
                     )}
                 </div>
-                
+
                 <div className="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-4 p-4 rounded-xl">
-                    
+
                     <div className="relative w-full md:flex-grow">
                         <Input
                             type="text"
@@ -553,14 +553,14 @@ export default function TsaPage({
                 {/* Bagian Tabel Data */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {/* Tabel Data Pembelian */}
-                    <div className="p-6 bg-white rounded-xl border border-gray-200 shadow-md">
-                        <h2 className="text-2xl font-bold mb-4 text-gray-900">
+                    <div className="p-6 rounded-xl border border-gray-200 shadow-md">
+                        <h2 className="text-2xl font-bold mb-4">
                             Data Pembelian
                             <span className="text-blue-500 ml-2">Temadu Sebayar Agro</span>
                         </h2>
                         <div className="overflow-x-auto">
                             <Table>
-                                <TableHeader className="bg-gray-50 dark:bg-gray-400 text-gray-600 rounded-lg">
+                                <TableHeader className="bg-gray-50 dark:bg-gray-900 rounded-lg">
                                     <TableRow>
                                         <TableHead className="p-4 font-semibold">Tanggal</TableHead>
                                         <TableHead className="p-4 font-semibold">Supplier</TableHead>
@@ -578,12 +578,12 @@ export default function TsaPage({
                                         </TableHead>
                                     </TableRow>
                                 </TableHeader>
-                                <TableBody className="text-gray-700">
+                                <TableBody>
                                     {products.data.length > 0 ? (
                                         products.data.map((product) => (
                                             <TableRow
                                                 key={product.id}
-                                                className="border-b border-gray-200 hover:bg-gray-50 transition-colors duration-200"
+                                                className="border-b border-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-200"
                                             >
                                                 <TableCell className="p-4">{product.date}</TableCell>
                                                 <TableCell className="p-4">
@@ -602,7 +602,7 @@ export default function TsaPage({
                                                     <Link href={route('products.show_buy', product.id)}>
                                                         <Button
                                                             variant="ghost"
-                                                            className="text-gray-500 hover:bg-gray-200"
+                                                            className="text-gray-500 hover:bg-gray-200 dark:text-gray-500 dark:hover:bg-neutral-800"
                                                         >
                                                             <Eye size={18} />
                                                         </Button>
@@ -611,7 +611,7 @@ export default function TsaPage({
                                                         <Link href={route('products.edit', product.id)}>
                                                             <Button
                                                                 variant="ghost"
-                                                                className="text-blue-500 hover:bg-blue-100"
+                                                                className="text-blue-500 hover:bg-blue-100 dark:text-blue-400 dark:hover:bg-blue-900"
                                                             >
                                                                 <Pencil size={18} />
                                                             </Button>
@@ -623,7 +623,7 @@ export default function TsaPage({
                                                             onClick={() =>
                                                                 handleDelete(product.id, product.product)
                                                             }
-                                                            className="text-red-500 hover:bg-red-100"
+                                                            className="text-red-500 hover:bg-red-100 dark:text-red-400 dark:hover:bg-red-900"
                                                         >
                                                             <Trash size={18} />
                                                         </Button>
@@ -645,14 +645,14 @@ export default function TsaPage({
                     </div>
 
                     {/* Tabel Data Penjualan */}
-                    <div className="p-6 bg-white rounded-xl border border-gray-200 shadow-md">
-                        <h2 className="text-2xl font-bold mb-4 text-gray-900">
+                    <div className="p-6 rounded-xl border border-gray-200 shadow-md">
+                        <h2 className="text-2xl font-bold mb-4 ">
                             Data Penjualan
                             <span className="text-blue-500 ml-2">Temadu Sebayar Agro</span>
                         </h2>
                         <div className="overflow-x-auto">
                             <Table>
-                                <TableHeader className="bg-gray-50 dark:bg-gray-400 text-gray-600 rounded-lg">
+                                <TableHeader className="bg-gray-50 dark:bg-gray-900 rounded-lg">
                                     <TableRow>
                                         <TableHead className="p-4 font-semibold">Tanggal</TableHead>
                                         <TableHead className="p-4 font-semibold">Supplier</TableHead>
@@ -670,12 +670,12 @@ export default function TsaPage({
                                         </TableHead>
                                     </TableRow>
                                 </TableHeader>
-                                <TableBody className="text-gray-700">
+                                <TableBody>
                                     {products2.data.length > 0 ? (
                                         products2.data.map((product) => (
                                             <TableRow
                                                 key={product.id}
-                                                className="border-b border-gray-200 hover:bg-gray-50 transition-colors duration-200"
+                                                className="border-b border-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-200"
                                             >
                                                 <TableCell className="p-4">{product.date}</TableCell>
                                                 <TableCell className="p-4">
@@ -694,7 +694,7 @@ export default function TsaPage({
                                                     <Link href={route('products.show', product.id)}>
                                                         <Button
                                                             variant="ghost"
-                                                            className="text-gray-500 hover:bg-gray-200"
+                                                            className="text-gray-500 hover:bg-gray-200 dark:text-gray-400 dark:hover:bg-neutral-800"
                                                         >
                                                             <Eye size={18} />
                                                         </Button>
@@ -703,7 +703,7 @@ export default function TsaPage({
                                                         <Link href={route('products.edit_out', product.id)}>
                                                             <Button
                                                                 variant="ghost"
-                                                                className="text-blue-500 hover:bg-blue-100"
+                                                                className="text-blue-500 hover:bg-blue-100 dark:text-blue-400 dark:hover:bg-blue-900"
                                                             >
                                                                 <Pencil size={18} />
                                                             </Button>
@@ -715,7 +715,7 @@ export default function TsaPage({
                                                             onClick={() =>
                                                                 handleDelete(product.id, product.product)
                                                             }
-                                                            className="text-red-500 hover:bg-red-100"
+                                                            className="text-red-500 hover:bg-red-100 dark:text-red-400 dark:hover:bg-red-900"
                                                         >
                                                             <Trash size={18} />
                                                         </Button>

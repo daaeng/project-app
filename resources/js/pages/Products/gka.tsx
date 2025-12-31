@@ -379,7 +379,7 @@ export default function GkaPage({
                 {pagination.links.map((link: PaginationLink, index: number) => {
                      let url: URL | null = null;
                      try { if (link.url) url = new URL(link.url); } catch (e) { return null; }
-                     
+
                      const currentParams = url ? new URLSearchParams(url.search) : new URLSearchParams();
                      currentParams.set(pageParamName, currentParams.get('page') || currentParams.get('page2') || link.label.replace(/&laquo;/g, '').replace(/&raquo;/g, ''));
                      if (searchValue) currentParams.set('search', searchValue);
@@ -488,7 +488,7 @@ export default function GkaPage({
                             <p className="text-xs text-blue-200">Total hasil penjualan</p>
                         </CardContent>
                     </Card>
-                    
+
                     <Card className="bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-lg">
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium text-orange-100">Produksi Karet (Gudang)</CardTitle>
@@ -499,7 +499,7 @@ export default function GkaPage({
                             <p className="text-xs text-orange-200">Total Karet masuk GKA</p>
                         </CardContent>
                     </Card>
-                    
+
                     <Card className="bg-gradient-to-br from-green-500 to-emerald-600 text-white shadow-lg">
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium text-green-100">Karet Terjual (Diterima)</CardTitle>
@@ -544,7 +544,7 @@ export default function GkaPage({
                                     <CartesianGrid strokeDasharray="3 3" vertical={false} />
                                     <XAxis dataKey="name" />
                                     <YAxis tickFormatter={(value) => `${value / 1000}k`} />
-                                    <Tooltip 
+                                    <Tooltip
                                         formatter={(value: number) => [`${new Intl.NumberFormat('id-ID').format(value)} Kg`, '']}
                                         labelStyle={{ color: 'black' }}
                                     />
@@ -693,7 +693,7 @@ export default function GkaPage({
                         </Card>
 
                         <Card>
-                            <CardHeader><CardTitle>Data Penjualan {productType === 'all' ? 'Semua Produk' : 'Karet'}</CardTitle></CardHeader>
+                            <CardHeader><CardTitle>Masuk Stok PT.GKA {productType === 'all' ? 'Semua Produk' : 'Karet'}</CardTitle></CardHeader>
                             <CardContent>
                                 <div className="rounded-md border overflow-x-auto">
                                     <Table className="min-w-full">
@@ -742,7 +742,7 @@ export default function GkaPage({
                         </Card>
                     </div>
                 )}
-                
+
                 {/* Tabel Pupuk */}
                 {productType === 'pupuk' && (
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -834,7 +834,7 @@ export default function GkaPage({
                         </Card>
                     </div>
                 )}
-                
+
                 {/* Tabel Kelapa */}
                 {productType === 'kelapa' && (
                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

@@ -89,7 +89,7 @@ export default function Create() {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Create Product" />
 
-            <div className="bg-gray-50 dark:bg-gray-900 py-6 sm:py-8 lg:py-12 min-h-full">
+            <div className="bg-gray-50 dark:bg-black py-6 sm:py-8 lg:py-12 min-h-full">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center mb-6">
                         <div>
@@ -149,7 +149,8 @@ export default function Create() {
                                     <FormField label="Status Awal">
                                         <StyledSelect value={data.status} onChange={(e) => setData('status', e.target.value)} required>
                                             <option value="" disabled>Pilih Status</option>
-                                            <option value="TSA">TSA</option>
+                                            <option value="TSA_tmd">Karet Temadu</option>
+                                            <option value="TSA_sbyr">Karet Sebayar</option>
                                             <option value="Agro">GK Agro</option>
                                             <option value="GKA">GKA</option>
                                         </StyledSelect>

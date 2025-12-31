@@ -35,13 +35,13 @@ export default function index() {
             route: 'products.gka',
         },
         {
-            name: 'Temadu Sebayar Agro',
+            name: 'Karet Temadu-Sebayar',
             icon: <Trees size={24} color={customColors.accentBlue} />,
             color: 'blue',
             route: 'products.tsa',
         },
         {
-            name: 'Garuda Karya Agro',
+            name: 'Lainnya',
             icon: <Sprout size={24} color={customColors.accentGreen} />,
             color: 'green',
             route: 'products.agro',
@@ -51,7 +51,7 @@ export default function index() {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Product" />
-            
+
             {can('products.view') && (
                 <>
                     {/* Container utama dengan latar belakang abu-abu terang dan padding */}
@@ -90,7 +90,7 @@ export default function index() {
                         <div className="border-t border-gray-200 dark:border-gray-700 my-4" />
 
                         {/* Tombol "All Product Data" */}
-                        {can('products.create') && 
+                        {can('products.create') &&
                             <div className="w-full flex justify-center">
                                 <Link href={route('products.allof')}>
                                     {/* --- UPDATE: Padding dan ukuran teks dibuat responsif --- */}
